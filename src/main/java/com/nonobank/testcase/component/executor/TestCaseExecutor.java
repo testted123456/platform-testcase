@@ -1,6 +1,7 @@
 package com.nonobank.testcase.component.executor;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,16 +14,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.apps.HttpClient;
 import com.nonobank.testcase.component.config.HttpServerProperties;
+import com.nonobank.testcase.component.exception.TestCaseException;
 import com.nonobank.testcase.component.remoteEntity.RemoteApi;
+import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.component.ws.WebSocket;
+import com.nonobank.testcase.entity.SystemEnv;
+import com.nonobank.testcase.entity.TestCase;
 import com.nonobank.testcase.entity.TestCaseInterface;
-import com.nonobank.testcase.exception.EntityException;
-import com.nonobank.testcase.exception.ExecutorException;
-import com.nonobank.testcase.exception.HttpExecutorException;
+import com.nonobank.testcase.service.EnvService;
+import com.nonobank.testcase.service.SystemEnvService;
+import com.nonobank.testcase.service.TestCaseService;
 
 @Component
 @EnableAsync
@@ -43,240 +47,82 @@ public class TestCaseExecutor {
 	RemoteApi remoteApi;
 	
 	@Autowired
-	VariableHandler variableHandler;
+	ApiHandler apiHandler;
 	
-	@Async
-	public void runCase(String sessionId, String env, List<TestCaseInterface> testCaseInterfaces) {
-		Map<String, Object> map = new HashMap<String, Object>();
-		
-		for(TestCaseInterface tcf : testCaseInterfaces){
-			try {
-				runApi(sessionId, env, map, tcf);
-			} catch (EntityException e) {
-				e.printStackTrace();
-			} catch(ExecutorException e){
-				e.printStackTrace();
-			} catch(HttpExecutorException e){
-				e.printStackTrace();
-			}
-		}
-	}
+	@Autowired
+	EnvService envService;
+	
+	@Autowired
+	SystemEnvService systemEnvService;
+	
+	@Autowired
+	TestCaseService testCaseService;
 	
 	/**
-	 * 处理自定义变量
-	 * @param map
-	 * @param variables
-	 * @throws ExecutorException 
-	 */
-	public void handleVariableBeforeExec(Map<String, Object> map, String variables) throws ExecutorException{
-		JSONArray varJsonArray = JSONArray.parseArray(variables);
-		
-		for(Object obj : varJsonArray){
-			JSONObject jsonObj = JSONObject.parseObject(obj.toString());
-			String varName = jsonObj.getString("varName");
-			String varValue = jsonObj.getString("varValue");
-			
-			if(null != varName && null != varValue){
-				logger.info("开始处理变量:" + varName);
-				Map<Boolean, String> resultMap = variableHandler.handleVariable(map, varValue);
-				
-				if(resultMap.containsKey(false)){//替换变量失败，抛异常
-					String errorMsg = resultMap.get(false);
-					logger.error("变量" + varName + "替换失败，原始值为：" + varValue + ", 失败原因：" + errorMsg);
-					throw new ExecutorException(errorMsg);
-				}else{//变量替换没有报错
-					
-					if(resultMap.containsKey(true)){//变量替换成功，则替换方法
-						String valueAfterReplace = resultMap.get(true);
-						logger.info("变量" + varName + "替换成功，原始值为：" + varValue + ", 处理后值为：" + valueAfterReplace);
-						resultMap = variableHandler.handleMethod(valueAfterReplace);
-					}else{//没有变量要替换，则替换方法
-						resultMap = variableHandler.handleMethod(varValue);
-					}
-					
-					if(resultMap.containsKey(true)){//方法替换成功
-						String valueAfterReplace = resultMap.get(true);
-						logger.info("变量" + varName + "中方法替换成功，原始值为：" + varValue + ", 处理后值为：" + valueAfterReplace);
-						map.put(varName, valueAfterReplace);
-					}else if(resultMap.containsKey(false)){//方法替换失败
-						String errorMsg = resultMap.get(false);
-						logger.error("变量" + varName + "中方法替换失败，原始值为：" + varValue + ", 失败原因为：" + errorMsg);
-						throw new ExecutorException(errorMsg);
-					}
-				}
-			}
-		}
-	}
-	
-	/**
-	 * 替换请求消息中的变量
-	 * @param map
-	 * @param request
+	 * 处理接口url
+	 * @param apiType
+	 * @param domain
+	 * @param system
+	 * @param url
 	 * @return
-	 * @throws ExecutorException 
 	 */
-	public String handleRequestBeforeExec(Map<String, Object> map, String request) throws ExecutorException{
-		if(null != request){
-			Map<Boolean, String> resultMap = variableHandler.handleReqestBody(map, request);
-			
-			if(resultMap.containsKey(true)){
-				request = resultMap.get(true);
-			}else if(resultMap.containsKey(false)){
-				String error_msg = resultMap.get(false);
-				logger.error("请求消息体替换变量失败，失败原因：" + error_msg);
-				throw new ExecutorException(error_msg);
-			}
+	public String handleUrl(String apiType, String domain, String system, String url){
+		if(null != url && url.toLowerCase().startsWith("http")){
+			return url;
 		}
 		
-		return request;
-	}
-	
-	/**
-	 * 处理响应消息
-	 * @param map
-	 * @param request
-	 * @param response
-	 */
-	public List<String> handleResponseAfterExec(Map<String, Object> map, String expectedResponseBody, String actualResponseBody, String responseBodyType){
-		List<String> list = variableHandler.handleResponseBody(map, expectedResponseBody, actualResponseBody, responseBodyType);
-		return list;
-	}
-	
-	/**
-	 * 处理断言
-	 * @param map
-	 * @param assertions
-	 */
-	public void handleAssertionsAfterExec(Map<String, Object> map, String assertions){
-		JSONArray assertionsJsonArray = JSONArray.parseArray(assertions);
-		
-		assertionsJsonArray.forEach(x->{
-			JSONObject jsonObj = JSONObject.parseObject(x.toString());
-			String actualResult = jsonObj.getString("actualResult");
-			String expectResult = jsonObj.getString("expectResult");
-			String comparator = jsonObj.getString("comparator");
-			Map<Boolean, String> resultMap = variableHandler.handleVariable(map, actualResult);
-			
-			if(resultMap.get(true) != null){
-				actualResult = resultMap.get(true);
-				resultMap = variableHandler.handleMethod(actualResult);
-				
-				if(resultMap.containsKey(true)){
-					actualResult = resultMap.get(true);
-				}else{
-					
-				}
-			}else{
-				
-			}
-			
-			resultMap = variableHandler.handleVariable(map, expectResult);
-			
-			if(resultMap.get(true) != null){
-				expectResult = resultMap.get(true);
-				resultMap = variableHandler.handleMethod(expectResult);
-				
-				if(resultMap.containsKey(true)){
-					expectResult = resultMap.get(true);
-				}
-			}else{
-				
-			}
-			
-			switch (comparator) {
-			case "=":
-				if(Float.parseFloat(actualResult) == Float.parseFloat(expectResult)){
-					
-				}else{
-					
-				}
-				break;
-			case ">":
-				if(Float.parseFloat(actualResult) > Float.parseFloat(expectResult)){
-									
-				}else{
-					
-				}
-				break;
-			case ">=":
-				if(Float.parseFloat(actualResult) >= Float.parseFloat(expectResult)){
-									
-				}else{
-					
-				}
-				break;
-			case "<":
-				if(Float.parseFloat(actualResult) < Float.parseFloat(expectResult)){
-									
-				}else{
-					
-				}
-				break;
-			case "<=":
-				if(Float.parseFloat(actualResult) <= Float.parseFloat(expectResult)){
-									
-				}else{
-					
-				}
-				break;
-			case "equals":
-				if(actualResult.trim().equals(expectResult.trim())){
-									
-				}
-				break;
-			case "contains":
-				
-				break;
-			case "match":
-				
-				break;
-			default:
-				break;
-			}
-		});
+		if("0".equals(apiType)){
+			return "http://" + domain + "/" + url;
+		}else{
+			return "https://" + domain + "/" + url;
+		}
 	}
 	
 	/**
 	 * 执行用例中的接口
 	 * @param sessionId
-	 * @param env
+	 * @param envName
 	 * @param map
 	 * @param testCaseInterface
 	 * @throws EntityException
 	 * @throws ExecutorException 
 	 * @throws HttpException 
-	 * @throws com.nonobank.testcase.exception.HttpExecutorException 
+	 * @throws com.nonobank.testcase.component.exception.HttpExecutorException 
 	 */
-	public void runApi(String sessionId, String env, Map<String, Object> map, TestCaseInterface testCaseInterface)
-	throws EntityException, ExecutorException, HttpExecutorException{
+	public void runApi(String sessionId, String envName, Map<String, Object> map, TestCaseInterface testCaseInterface){
 		logger.info("开始执行api，id：" + testCaseInterface.getId());
 		
 		//查询api的协议、url
 		Integer interfaceid = testCaseInterface.getInterfaceid();
-		Optional<JSONObject> apiRespOfJson = remoteApi.getApi(interfaceid);
-		String postWay = apiRespOfJson.map(x->x.getString("postWay")).orElseThrow(()->new EntityException("获取远程api失败， api id: " + interfaceid));
-		String apiType = apiRespOfJson.map(x->x.getString("apiType")).orElseThrow(()->new EntityException("获取远程api失败， api id: " + interfaceid));
-		String responseBodyType = apiRespOfJson.map(x->x.getString("requestBodyType")).orElseThrow(()->new EntityException("获取远程api失败， api id: " + interfaceid));
+		JSONObject apiRespOfJson = remoteApi.getApi(interfaceid);
+		String postWay = apiRespOfJson.getString("postWay");
+		String apiType =  apiRespOfJson.getString("apiType");
+		String system = apiRespOfJson.getString("system");
+		String responseBodyType =  apiRespOfJson.getString("responseBodyType");
+		
 		Optional<CloseableHttpResponse> resp = Optional.empty();
-		Optional<String> url = Optional.ofNullable(testCaseInterface.getUrlAddress());
-		Optional<String> requestBody = Optional.ofNullable(testCaseInterface.getRequestBody());
-		Optional<String> requestHeaders = Optional.ofNullable(testCaseInterface.getRequestHead());
-		Optional<String> variables = Optional.ofNullable(testCaseInterface.getVariables());
-		Optional<String> assertions = Optional.ofNullable(testCaseInterface.getAssertions());
+		String url = testCaseInterface.getUrlAddress();
+		String requestBody = testCaseInterface.getRequestBody();
+		String requestHeaders = testCaseInterface.getRequestHead();
+		String variables = testCaseInterface.getVariables();
+		String assertions = testCaseInterface.getAssertions();
+		
+		//处理接口url
+		SystemEnv systemEnv = systemEnvService.findBySystemNameAndEnvName(system, envName);
+		String domain = systemEnv.getDomain();
+		String dns = systemEnv.getDns();
+		url = handleUrl(apiType, domain, system, url);
 		
 		//处理自定义变量
-		if(variables.isPresent()){
-			handleVariableBeforeExec(map, variables.get());
-		}
+		List<String> varList = new ArrayList<String>();
+		apiHandler.handleVariableBeforeExec(map, variables, varList);
 		
 		//处理请求消息体
-		if(requestBody.isPresent()){
-			handleRequestBeforeExec(map, requestBody.get());
-		}
+		apiHandler.handleRequestBeforeExec(map, requestBody);
 		
 		//发送请求 
 		if(!"2".equals(apiType)){//http
-			resp = httpExecutor.exec(apiType, postWay, url.get(), map, requestHeaders.get(), requestBody.get());
+			resp = httpExecutor.exec(apiType, postWay, url, map, requestHeaders, requestBody);
 		}else{//mq
 			
 		}
@@ -288,30 +134,50 @@ public class TestCaseExecutor {
 				try{
 					return HttpClient.getResBody(x);
 				}catch(IOException e){
-					return e.getMessage();
+					e.printStackTrace();
+					throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
 				}catch(HttpException e){
-					return e.getMessage();
+					e.printStackTrace();
+					throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
 				}
 			 }).orElse("response is null");
 		
-		 Optional<List<String>> optList = expectedResponseBody.map(x->{
-			 List<String> list = handleResponseAfterExec(map, x, actualResponseBody, responseBodyType);
-			 return list;
+		logger.info("响应消息为：" + actualResponseBody);
+		
+		expectedResponseBody.map(x->{
+			 List<String> list = new ArrayList<String>();
+			 boolean result = apiHandler.handleResponseAfterExec(map, x, actualResponseBody, responseBodyType, list);
+			 return result;
 		});
 		 
 		//处理断言
-		if(assertions.isPresent()){
-			handleAssertionsAfterExec(map, assertions.get());
-		}
+		logger.info("开始处理断言");
+		apiHandler.handleAssertionsAfterExec(map, assertions);
 		
 //		webSocket.sendMsgTo(requestBody, sessionId);
 	}
 	
-	public static void main(String [] args){
-		String a = "1.0";
-		String b = "1.000001";
-		System.out.println(Float.parseFloat(a) == Float.parseFloat(b));
-        
+	@Async
+	public void runCase(String sessionId, String env, List<TestCaseInterface> testCaseInterfaces) {
+		Map<String, Object> map = new HashMap<String, Object>();
+		
+		for(TestCaseInterface tcf : testCaseInterfaces){
+			TestCase testCase = tcf.getTestCase();
+			boolean isflow = testCase.getCaseType();
+			
+			try{
+				runApi(sessionId, env, map, tcf);
+			}catch(Exception e){
+				if(isflow == true){
+					throw new TestCaseException(ResultCode.EXCEPTION_ERROR);
+				}else{
+					e.printStackTrace();
+					continue;
+				}
+			}
+		}
+		
+		logger.info("用例执行完成");
 	}
-
+	
 }

@@ -3,8 +3,6 @@ package com.nonobank.testcase.component.executor;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -14,10 +12,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.nonobank.apps.HttpClient;
 import com.nonobank.testcase.component.config.HttpServerProperties;
-import com.nonobank.testcase.exception.HttpExecutorException;
+import com.nonobank.testcase.component.exception.TestCaseException;
+import com.nonobank.testcase.component.result.ResultCode;
+import com.nonobank.testcase.entity.SystemEnv;
+import com.nonobank.testcase.service.EnvService;
 
 @Component
 public class HttpExecutor {
@@ -28,21 +28,12 @@ public class HttpExecutor {
 	HttpServerProperties httpServerProperties;
 	
 	@SuppressWarnings("unchecked")
-	public Optional<CloseableHttpResponse> exec(String apiType, String postWay, String url, Map<String, Object> mapOfVariables, String requestHeaders, String requestBody) throws HttpExecutorException{
+	public Optional<CloseableHttpResponse> exec(String apiType, String postWay, String url, Map<String, Object> mapOfVariables, String requestHeaders, String requestBody)  {
 		HttpClient httpClient = new HttpClient();
 		CloseableHttpClient client =  null;
 		CloseableHttpResponse response = null;
 		Map mapOfReq = JSON.parseObject(requestBody, Map.class);
-		Map<String, String> mapOfHeaders = new HashMap<String, String>();
-		List<Map> listOfHeaders = JSONArray.parseArray(requestHeaders, Map.class);
-		
-		listOfHeaders.forEach(x->{
-			String key =String.valueOf( x.get("key"));
-			String value =String.valueOf( x.get("Value"));
-			if(null != key){
-				mapOfHeaders.put(key, value);
-			}
-		});
+		Map<String, String> mapOfHeaders = JSON.parseObject(requestHeaders, Map.class);
 		
 		if("0".equals(apiType)){
 			client = httpClient.getHttpClient();
@@ -62,8 +53,7 @@ public class HttpExecutor {
 			try {
 				response = httpClient.doGetSend(client, null, url, mapOfReq);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				throw new HttpExecutorException(e.getMessage(), e.getCause());
+				throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getMessage());
 			}
 			return Optional.ofNullable(response);
 		}else{//post
@@ -73,16 +63,14 @@ public class HttpExecutor {
 				try {
 					response = httpClient.doPostSendJson(client, mapOfHeaders, url, requestBody);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					throw new HttpExecutorException(e.getMessage(), e.getCause());
+					throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getMessage());
 				}
 				return Optional.ofNullable(response);
 			}else if("application/x-www-form-urlencoded".equals(contentType)){
 				try {
 					response = httpClient.doPostSendForm(client, mapOfHeaders, url, mapOfReq);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					throw new HttpExecutorException(e.getMessage(), e.getCause());
+					throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getMessage());
 				}
 				return Optional.ofNullable(response);
 			}

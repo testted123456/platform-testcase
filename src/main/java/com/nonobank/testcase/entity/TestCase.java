@@ -39,6 +39,9 @@ public class TestCase {
 	@Column(columnDefinition=" datetime")
 	LocalDateTime updatedTime;
 	
+	@Column(nullable=false, columnDefinition="bit(1) COMMENT '0:流程接口，1:非流程接口'")
+	Boolean caseType;
+	
 	@Column(nullable=false, columnDefinition="smallint(1) COMMENT '0:正常，1:已更新，2:已删除'")
 	Short optstatus;
 
@@ -128,6 +131,14 @@ public class TestCase {
 
 	public void setUpdatedTime(LocalDateTime updatedTime) {
 		this.updatedTime = updatedTime;
+	}
+
+	public Boolean getCaseType() {
+		return caseType;
+	}
+
+	public void setCaseType(Boolean caseType) {
+		this.caseType = caseType;
 	}
 
 	public Short getOptstatus() {

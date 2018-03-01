@@ -47,17 +47,17 @@ public class AsyncConfigurer2 implements AsyncConfigurer {
 			// TODO Auto-generated method stub
 			logger.error("捕获线程异常信息...");
 			
-			logger.error("Exception message - " + ex.getMessage());
+//			logger.error("Exception message - " + ex.getMessage());
 			
 //			ex.getCause().printStackTrace();
 			
 			ex.printStackTrace();
 			
-            logger.error("Method name - " + method.getName());
-            
+//            logger.error("Method name - " + method.getName());
+            /**
             for (Object param : params) {
             	logger.error("Parameter value - " + param);
-            }
+            }**/
 		}
 	}
 

@@ -3,7 +3,6 @@ package com.nonobank.testcase.component.remoteEntity;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import org.apache.http.HttpException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -16,6 +15,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.apps.HttpClient;
 import com.nonobank.testcase.component.config.HttpServerProperties;
+import com.nonobank.testcase.component.exception.TestCaseException;
+import com.nonobank.testcase.component.result.ResultCode;
 
 @Component
 public class RemoteApi {
@@ -25,7 +26,7 @@ public class RemoteApi {
 	@Autowired
 	HttpServerProperties httpServerProperties;
 	
-	public Optional<JSONObject> getApi(Integer id){
+	public JSONObject getApi(Integer id){
 		logger.info("开始查询API信息， id：" + id);
 		
 		HttpClient httpClient = new HttpClient();
@@ -38,32 +39,27 @@ public class RemoteApi {
 			map.put("id", id.toString());
 			response = httpClient.doGetSend(client, null, httpServer + "/api/getApi", map);
 			
-			try {
-				String resOfString = httpClient.getResBody(response);
-				JSONObject resOfJson = JSON.parseObject(resOfString);
-				
-				if(resOfJson.getBoolean("succeed")){
-					logger.info("查询api成功");
-					JSONObject apiOfJson = resOfJson.getJSONObject("data");
-					return Optional.ofNullable(apiOfJson);
-				}else{
-					logger.error("查询api失败，" + resOfJson.getString("errorMessage"));
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (HttpException e) {
-				// TODO Auto-generated catch block
-				e.getMessage();
+			String resOfString = httpClient.getResBody(response);
+			JSONObject resOfJson = JSON.parseObject(resOfString);
+			
+			if(resOfJson.getBoolean("succeed")){
+				logger.info("查询api成功");
+				JSONObject apiOfJson = resOfJson.getJSONObject("data");
+				return apiOfJson;
+			}else{
+				logger.error("查询api失败，" + resOfJson.getString("errorMessage"));
+				throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "获取api信息失败");
 			}
+		} catch (HttpException e) {
+			e.printStackTrace();
+			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
 		} catch (ClientProtocolException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
 		}
 		
-		return Optional.empty();
 	}
 }

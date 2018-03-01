@@ -1,5 +1,7 @@
 package com.nonobank.testcase.dataProvider.common;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Random;
 import com.nonobank.testcase.dataProvider.annotation.Info;
 import com.nonobank.testcase.dataProvider.annotation.Param;
@@ -33,5 +35,4 @@ public class RandomDataUtils {
 		random = s[index];
 		return random;
 	}
-	
 }

@@ -1,8 +1,6 @@
 package com.nonobank.testcase.service;
 
 import java.util.List;
-import java.util.Optional;
-import com.nonobank.testcase.component.MessageEntity;
 import com.nonobank.testcase.entity.TestCaseInterface;
 
 public interface TestCaseInterfaceService {
@@ -11,16 +9,12 @@ public interface TestCaseInterfaceService {
 	
 	List<TestCaseInterface> findByTestCaseId(Integer testCaseId);
 	
-	MessageEntity add(Optional<TestCaseInterface> optTestCaseInterface);
+	TestCaseInterface add(TestCaseInterface optTestCaseInterface);
 	
-//	MessageEntity add(List<Optional<TestCaseInterface>> optTestCaseInterfaces);
+	List<TestCaseInterface> add(List<TestCaseInterface> testCaseInterfaces);
 	
-	MessageEntity add(List<TestCaseInterface> testCaseInterfaces);
+	TestCaseInterface update(TestCaseInterface optTestCaseInterface);
 	
-	MessageEntity update(Optional<TestCaseInterface> optTestCaseInterface);
-	
-	MessageEntity update(List<Optional<TestCaseInterface>> optTestCaseInterfaces);
-	
-	
+	TestCaseInterface update(List<TestCaseInterface> optTestCaseInterfaces);
 
 }

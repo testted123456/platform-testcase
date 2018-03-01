@@ -7,10 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.nonobank.testcase.exception.JsonException;
 
 public class JSONUtils {
 	
@@ -20,6 +18,7 @@ public class JSONUtils {
     
     private final static Pattern SAVE_PATTERN = Pattern.compile("\\&\\{(\\w*\\d*\\.*)\\}");
 	
+    /**
 	public static boolean isJsonObject(String jsonStr) throws JsonException{
 		if(JSONOBJECT_PATTERN.matcher(jsonStr).matches()){
 			
@@ -34,7 +33,7 @@ public class JSONUtils {
 		}else{
 			return false;
 		}
-	}
+	}**/
 	
 	public static boolean isJsonArray(String jsonStr){
 		if(JSONARRAY_PATTERN.matcher(jsonStr).matches()){

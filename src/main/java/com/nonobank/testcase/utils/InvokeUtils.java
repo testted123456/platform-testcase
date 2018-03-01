@@ -80,7 +80,7 @@ public class InvokeUtils {
     public static List<JSONObject> getMethods() {
         List<JSONObject> listOfJson = new LinkedList<JSONObject>();
 
-        List<Class<?>> list = DataProviderUtil.getClasses("com.nonobank.testCase.dataProvider.common");
+        List<Class<?>> list = DataProviderUtil.getClasses("com.nonobank.testcase.dataProvider.common");
 
         for (Class<?> clazz : list) {
             Method[] methods = clazz.getDeclaredMethods();
@@ -131,6 +131,15 @@ public class InvokeUtils {
         return listOfJson;
     }
     
+    public static String invokeMethod(String methodName) throws InstantiationException, 
+    IllegalAccessException, NoSuchMethodException, SecurityException, IllegalArgumentException, InvocationTargetException{
+    	Class<?> clazz = getClass(methodName);
+		Object object = clazz.newInstance();
+		Method method = clazz.getDeclaredMethod(methodName);
+		Object result = method.invoke(object);
+		return result.toString();
+    }
+    
     public static String invokeMethod(String methodName, String [] args) throws InstantiationException, 
     IllegalAccessException, NoSuchMethodException, SecurityException, IllegalArgumentException, InvocationTargetException{
     	
@@ -144,8 +153,8 @@ public class InvokeUtils {
     	Class<?> clazz = getClass(methodName);
 		Object object = clazz.newInstance();
 		Method method = clazz.getDeclaredMethod(methodName, clazzes);
-		Object result = 
-				method.invoke(object, clazzes);
+		Object result = method.invoke(object, args);
+		
 		return result.toString();
     }
 
@@ -176,7 +185,7 @@ public class InvokeUtils {
     }
     
     public static Class getClass(String methodName){
-    	 List<Class<?>> claszes = DataProviderUtil.getClasses("com.nonobank.testCase.dataProvider");
+    	 List<Class<?>> claszes = DataProviderUtil.getClasses("com.nonobank.testcase.dataProvider.common");
          
     	 for (Class claz : claszes) {
              Method[] methods = claz.getDeclaredMethods();
@@ -195,7 +204,7 @@ public class InvokeUtils {
 
     //根据方法名返回方法所属类名
     private static String getClassName(String methodName) {
-        List<Class<?>> claszes = DataProviderUtil.getClasses("com.nonobank.testCase.dataProvider");
+        List<Class<?>> claszes = DataProviderUtil.getClasses("com.nonobank.testcase.dataProvider.common");
         for (Class claz : claszes) {
             Method[] methods = claz.getDeclaredMethods();
             for (Method method : methods) {
@@ -208,5 +217,4 @@ public class InvokeUtils {
         
         return "";
     }
-
 }
