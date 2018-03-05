@@ -1,6 +1,8 @@
 package com.nonobank.testcase.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -61,5 +63,25 @@ public class SystemCfgServiceImpl implements SystemCfgService{
 	public SystemCfg findById(Integer id){
 		return systemCfgRepository.findById(id);
 	}
+
+	@Override
+	public List<SystemCfg> findAll() {
+		// TODO Auto-generated method stub
+		return systemCfgRepository.findAll();
+	}
+
+	@Override
+	public List<String> findAllAlias() {
+		// TODO Auto-generated method stub
+		List<SystemCfg> sysCfgs = findAll();
+		List<String> aliases = new ArrayList<String>();
+		
+		sysCfgs.forEach(x->{
+			aliases.add(x.getAlias());
+		});
+		
+		return aliases;
+	}
+	
 
 }
