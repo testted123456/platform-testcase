@@ -2,6 +2,7 @@ package com.nonobank.testcase.service;
 
 import java.util.List;
 import com.nonobank.testcase.entity.TestCaseInterface;
+import com.nonobank.testcase.entity.TestCaseInterfaceFront;
 
 public interface TestCaseInterfaceService {
 	
@@ -9,12 +10,8 @@ public interface TestCaseInterfaceService {
 	
 	List<TestCaseInterface> findByTestCaseId(Integer testCaseId);
 	
-	TestCaseInterface add(TestCaseInterface optTestCaseInterface);
+	void add(List<TestCaseInterfaceFront> tcifs);
 	
-	List<TestCaseInterface> add(List<TestCaseInterface> testCaseInterfaces);
-	
-	TestCaseInterface update(TestCaseInterface optTestCaseInterface);
-	
-	TestCaseInterface update(List<TestCaseInterface> optTestCaseInterfaces);
+	void update(List<TestCaseInterfaceFront> tcifs);
 
 }

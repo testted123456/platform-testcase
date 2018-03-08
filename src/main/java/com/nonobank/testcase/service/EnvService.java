@@ -1,5 +1,7 @@
 package com.nonobank.testcase.service;
 
+import java.util.List;
+
 import com.nonobank.testcase.entity.Env;
 
 public interface EnvService {
@@ -13,4 +15,6 @@ public interface EnvService {
 	Env findByName(String name);
 	
 	Env findById(Integer id);
+	
+	List<Env> findAll();
 }

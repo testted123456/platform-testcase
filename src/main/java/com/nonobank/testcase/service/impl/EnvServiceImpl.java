@@ -1,5 +1,7 @@
 package com.nonobank.testcase.service.impl;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,5 +52,11 @@ public class EnvServiceImpl implements EnvService {
 	@Override
 	public Env findByName(String name) {
 		return envRepository.findByName(name);
+	}
+
+	@Override
+	public List<Env> findAll() {
+		// TODO Auto-generated method stub
+		return envRepository.findAll();
 	}
 }

@@ -1,5 +1,6 @@
 package com.nonobank.testcase.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultUtil;
 import com.nonobank.testcase.entity.TestCaseInterface;
+import com.nonobank.testcase.entity.TestCaseInterfaceFront;
 import com.nonobank.testcase.service.TestCaseInterfaceService;
 import com.nonobank.testcase.service.TestCaseService;
 
@@ -31,40 +33,36 @@ public class TestCaseInterfaceController {
 	@Autowired
 	TestCaseService testCaseService;
 	
-	@GetMapping(value="getById")
-	@ResponseBody
-	public Result getById(@RequestParam Integer id){
-		logger.info("开始查询用例接口{}", id);
-		
-		TestCaseInterface testCaseInterface = testCaseInterfaceService.findById(id);
-		return ResultUtil.success(testCaseInterface);
-	}
-	
 	@GetMapping(value="getByTestCaseId")
 	@ResponseBody
 	public Result getByTestCaseId(@RequestParam Integer testCaseId){
 		logger.info("开始查询用例接口");
 		
-		List<TestCaseInterface> testCaseInterfaces = testCaseInterfaceService.findByTestCaseId(testCaseId);
-		return ResultUtil.success(testCaseInterfaces);
+		List<TestCaseInterface> tcis = testCaseInterfaceService.findByTestCaseId(testCaseId);
+		List<TestCaseInterfaceFront> tcifs = new ArrayList<>();
+		
+		tcis.forEach(x->{
+			tcifs.add(x.convert());
+		});
+		
+		return ResultUtil.success(tcifs);
 	}
 	
-	@PostMapping(value="addCaseInterface")
-	@ResponseBody
-	public Result addCaseInterface(@RequestBody TestCaseInterface testCaseInterface){
-		logger.info("开始新增用例接口");
-		
-		testCaseInterfaceService.add(testCaseInterface);	
-		return ResultUtil.success(testCaseInterface);
-	}
 	
 	@PostMapping(value="addCaseInterfaces")
 	@ResponseBody
-	public Result add(@RequestBody List<TestCaseInterface> testCaseInterfaces){
+	public Result add(@RequestBody List<TestCaseInterfaceFront> tcifs){
 		logger.info("开始新增用例接口");
-		
-		testCaseInterfaceService.add(testCaseInterfaces);	
-		return ResultUtil.success(testCaseInterfaces);
+		testCaseInterfaceService.add(tcifs);
+		return ResultUtil.success();
+	}
+	
+	@PostMapping(value="updateCaseInterfaces")
+	@ResponseBody
+	public Result update(@RequestBody List<TestCaseInterfaceFront> tcifs){
+		logger.info("开始新增用例接口");
+		testCaseInterfaceService.update(tcifs);
+		return ResultUtil.success();
 	}
 	
 }

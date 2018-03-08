@@ -10,9 +10,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.nonobank.testcase.component.ws.WebSocket;
 import com.nonobank.testcase.utils.InvokeUtils;
 
 @Component
@@ -37,6 +39,9 @@ public class VariableHandler {
     private final static Pattern SAVE_PATTERN = Pattern.compile("\\&\\{(\\w*\\d*\\.*)\\}");
     
     private final static Pattern CRLF_PATTERN = Pattern.compile("(\r\n|\r|\n|\n\r|\t)");
+    
+    @Autowired
+    WebSocket webSocket;
     
     /**
      * 替换字符串中的换行、tab
@@ -78,15 +83,21 @@ public class VariableHandler {
 			if(matcher.find()){
 				map.put(matcher.group(1), actualStr);
 				logger.info("true: 已保存变量" + matcher.group(1) + " ，变量值为：" + actualStr);
+				
 				list.add("true: 已保存变量" + matcher.group(1) + " ，变量值为：" + actualStr);
+				webSocket.sendMsgTo(0, "###已保存变量" + matcher.group(1) + " ，变量值为：" + actualStr, "123");
 			}
 		}else{
 			if(!expectedStr.equals(actualStr)){
 				logger.warn("false: " + key + " 预期结果是：" + expectedStr + ",但实际结果是：" + actualStr);
+				
 				list.add("false: " + key + " 预期结果是：" + expectedStr + ",但实际结果是：" + actualStr);
+				webSocket.sendMsgTo(0, "###" + key + " 预期结果是：" + expectedStr + ",但实际结果是：" + actualStr, "123");
 			}else{
 				logger.info("true: " + key + " 预期结果、实际结果相同，结果为：" + expectedStr);
+				
 				list.add("true: " + key + " 预期结果、实际结果相同，结果为：" + expectedStr);
+				webSocket.sendMsgTo(0, "###" + key + " 预期结果、实际结果相同，结果为：" + expectedStr, "123");
 			}
 		}
 	}
@@ -106,11 +117,13 @@ public class VariableHandler {
 				}else{
 					logger.warn("false: " + key + "的预期值：" + expectedValue + ",但实际值为：" + actualValue);
 					list.add("false: " + key + "的预期值：" + expectedValue + ",但实际值为：" + actualValue);
+					webSocket.sendMsgTo(0, "###" + key + "的预期值：" + expectedValue + ",但实际值为：" + actualValue, "123");
 					result = false;
 				}
 			}else if(expectedValue instanceof JSONArray){
 				logger.warn("false: 预期结果暂不支持数组, " + key + " : " + expectedValue);
 				list.add("false: 预期结果暂不支持数组, " + key + " : " + expectedValue);
+				webSocket.sendMsgTo(0, "###预期结果暂不支持数组, " + key + " : " + expectedValue, "123");
 				result = false;
 			}else{
 				compareStr(key, expectedJsonObj.getString(key), actualJsonObj.getString(key), map, list);
@@ -302,16 +315,21 @@ public class VariableHandler {
     			}
     			
     			logger.info("true: 已保存变量：" + matcher.group(1) + " ，变量值为：" + actualResponseBody);
+    			
     			list.add("true: 已保存变量：" + matcher.group(1) + " ，变量值为：" + actualResponseBody);
+    			webSocket.sendMsgTo(0, "###已保存变量：" + matcher.group(1) + " ，变量值为：" + actualResponseBody, "123");
     			return result;
     		}
     		
     		if(expectedResponseBody.equals(actualResponseBody)){
     			logger.info("true: 预期结果:" + expectedResponseBody + " ,实际结果:" + actualResponseBody);
+    			
     			list.add("true: 预期结果:" + expectedResponseBody + " ,实际结果:" + actualResponseBody);
+    			webSocket.sendMsgTo(0, "###预期结果:" + expectedResponseBody + " ,实际结果:" + actualResponseBody, "123");
     		}else{
     			logger.info("false: 预期结果:" + expectedResponseBody + " ,实际结果:" + actualResponseBody);
     			list.add("false: 预期结果:" + expectedResponseBody + " ,实际结果:" + actualResponseBody);
+    			webSocket.sendMsgTo(0, "###预期结果:" + expectedResponseBody + " ,实际结果:" + actualResponseBody, "123");
     			result = false;
     		}
     		
@@ -325,6 +343,7 @@ public class VariableHandler {
     		}else{
     			logger.error("响应消息不是json格式");
     			list.add("响应消息不是json格式");
+    			webSocket.sendMsgTo(0, "响应消息不是json格式", "123");
     			result = false;
     		}
     	}

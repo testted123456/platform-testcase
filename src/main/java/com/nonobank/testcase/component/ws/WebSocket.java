@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.alibaba.fastjson.JSONObject;
+
 @ServerEndpoint(value="/webSocket/{sessionId}")
 @Component
 public class WebSocket {
@@ -30,7 +32,11 @@ public class WebSocket {
 	public void onOpen(@PathParam("sessionId") String sessionId,Session session) throws IOException{
 		logger.info("打开新webSocket连接, sessionId: " + sessionId);
 		this.session = session;
-		clients.put(session.toString(), this);
+		clients.put(sessionId, this);
+		
+//		for(int i=0;i<100;i++){
+//			this.session.getBasicRemote().sendText("xxxxxxxxxxxxxxxxxxxxxxxxxxx");
+//		}
 	}
 
 	@OnClose
@@ -43,7 +49,7 @@ public class WebSocket {
 	@OnMessage
 	public void onMessage(String message){
 		logger.info("收到客户端信息...");
-		sendMsgTo(message, this.session.toString());
+//		sendMsgTo(message, this.session.toString());
 	}
 	
 	@OnError 
@@ -51,11 +57,18 @@ public class WebSocket {
         error.printStackTrace();  
     }  
 	
-	public void sendMsgTo(String msg, String to){
+	public void sendMsgTo(int type, String msg, String to){
+		
+		JSONObject wsJsonObj = new JSONObject();
+		
+		wsJsonObj.put("type", type);
+		
+		wsJsonObj.put("value", msg);
+		
 		clients.forEach((k, v)->{
 			if(k.equals(to)){
 				try {
-					v.session.getBasicRemote().sendText(msg);
+					v.session.getBasicRemote().sendText(wsJsonObj.toJSONString());
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

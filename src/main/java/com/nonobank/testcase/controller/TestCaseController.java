@@ -13,9 +13,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.alibaba.fastjson.JSONObject;
 import com.nonobank.testcase.component.executor.TestCaseExecutor;
 import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultUtil;
+import com.nonobank.testcase.component.ws.WebSocket;
 import com.nonobank.testcase.entity.TestCase;
 import com.nonobank.testcase.entity.TestCaseInterface;
 import com.nonobank.testcase.service.TestCaseInterfaceService;
@@ -37,12 +40,16 @@ public class TestCaseController {
 	@Autowired
 	TestCaseExecutor testCaseExecutor;
 	
+	@Autowired
+	WebSocket webSocket;
+	
 	@PostMapping(value="addCase")
 	@ResponseBody
 	public Result addCase(@RequestBody TestCase testCase){
 		logger.info("开始新增用例");
 		
 		testCaseService.add(testCase, true);
+		
 		return ResultUtil.success(testCase);
 	}
 	
@@ -98,6 +105,12 @@ public class TestCaseController {
 		logger.info("开始执行用例,id:{}", id);
 		
 		TestCase testCase = testCaseService.findById(id);
+		
+		JSONObject wsJsonObj = new JSONObject();
+		wsJsonObj.put("type", "text");
+		wsJsonObj.put("value", "********开始执行用例：" + testCase.getName() + "********");
+		webSocket.sendMsgTo(0, wsJsonObj.toJSONString(), "123");
+		
 		String env = testCase.getEnv();
 		List<TestCaseInterface> testCaseInterfaces = testCaseInterfaceService.findByTestCaseId(id);
 	    testCaseExecutor.runCase(sessionId, env, testCaseInterfaces);

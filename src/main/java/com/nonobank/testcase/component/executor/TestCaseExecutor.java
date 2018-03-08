@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
+
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.apps.HttpClient;
 import com.nonobank.testcase.component.config.HttpServerProperties;
@@ -98,7 +100,10 @@ public class TestCaseExecutor {
 		String postWay = apiRespOfJson.getString("postWay");
 		String apiType =  apiRespOfJson.getString("apiType");
 		String system = apiRespOfJson.getString("system");
+		String apiName = apiRespOfJson.getString("name");
 		String responseBodyType =  apiRespOfJson.getString("responseBodyType");
+		
+		webSocket.sendMsgTo(0, "***开始执行api：" + apiName + "***", "123");
 		
 		Optional<CloseableHttpResponse> resp = Optional.empty();
 		String url = testCaseInterface.getUrlAddress();
@@ -122,6 +127,7 @@ public class TestCaseExecutor {
 		
 		//发送请求 
 		if(!"2".equals(apiType)){//http
+			webSocket.sendMsgTo(0, "###发送请求：" + url, "123");
 			resp = httpExecutor.exec(apiType, postWay, url, map, requestHeaders, requestBody);
 		}else{//mq
 			
@@ -143,6 +149,7 @@ public class TestCaseExecutor {
 			 }).orElse("response is null");
 		
 		logger.info("响应消息为：" + actualResponseBody);
+		webSocket.sendMsgTo(0, "###响应消息为：" + actualResponseBody, "123");
 		
 		expectedResponseBody.map(x->{
 			 List<String> list = new ArrayList<String>();
@@ -178,6 +185,10 @@ public class TestCaseExecutor {
 		}
 		
 		logger.info("用例执行完成");
+	}
+	
+	public static void main(String [] args){
+		System.out.println(JSON.toJSON("{\"aaa\":1}").toString());
 	}
 	
 }

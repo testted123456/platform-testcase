@@ -1,64 +1,48 @@
 package com.nonobank.testcase.entity;
 
 import java.time.LocalDateTime;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-
+import javax.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.NotEmpty;
 import com.alibaba.fastjson.JSONArray;
 
-@Entity
-public class TestCaseInterface implements Cloneable{
-	@Id
-	@GeneratedValue
+public class TestCaseInterfaceFront {
+	
 	Integer id;
-	
-	@ManyToOne
-	@JoinColumn(name="testCaseId", nullable=false)
+
 	TestCase testCase;
-	
+
+	@NotNull(message="接口id不能为空")
 	Integer interfaceid;
-	
-	@Column(nullable=true)
+
+	@NotNull(message="orderNo不能为空")
 	Integer orderNo;
-	
-	@Column(nullable=false, columnDefinition="varchar(500) COMMENT '测试步骤描述'")
+
+	@NotEmpty(message="step不能为空")
 	String step;
-	
+
+	@NotEmpty(message="urlAddress不能为空")
 	String urlAddress;
-	
-	@Column(columnDefinition=" text")
-	String variables;
-	
-	@Column(columnDefinition=" text")
-	String requestHead;
-	
-	@Column(columnDefinition=" text")
+
+	JSONArray variables;
+
+	JSONArray requestHead;
+
 	String requestBody;
-	
-	@Column(columnDefinition=" text")
-	String responseHead;
-	
-	@Column(columnDefinition=" text")
+
+	JSONArray responseHead;
+
 	String responseBody;
-	
-	@Column(columnDefinition=" text")
-	String assertions;
-	
+
+	JSONArray assertions;
+
 	String createdBy;
-	
-	@Column(columnDefinition="datetime")
+
 	LocalDateTime createdTime;
-	
+
 	String updatedBy;
-	
-	@Column(columnDefinition=" datetime")
+
 	LocalDateTime updatedTime;
-	
-	@Column(nullable=false, columnDefinition="smallint(1) COMMENT '0:正常，1:已更新，2:已删除'")
+
 	Short optstatus;
 
 	public Integer getId() {
@@ -109,19 +93,19 @@ public class TestCaseInterface implements Cloneable{
 		this.urlAddress = urlAddress;
 	}
 
-	public String getVariables() {
+	public JSONArray getVariables() {
 		return variables;
 	}
 
-	public void setVariables(String variables) {
+	public void setVariables(JSONArray variables) {
 		this.variables = variables;
 	}
 
-	public String getRequestHead() {
+	public JSONArray getRequestHead() {
 		return requestHead;
 	}
 
-	public void setRequestHead(String requestHead) {
+	public void setRequestHead(JSONArray requestHead) {
 		this.requestHead = requestHead;
 	}
 
@@ -133,11 +117,11 @@ public class TestCaseInterface implements Cloneable{
 		this.requestBody = requestBody;
 	}
 
-	public String getResponseHead() {
+	public JSONArray getResponseHead() {
 		return responseHead;
 	}
 
-	public void setResponseHead(String responseHead) {
+	public void setResponseHead(JSONArray responseHead) {
 		this.responseHead = responseHead;
 	}
 
@@ -149,11 +133,11 @@ public class TestCaseInterface implements Cloneable{
 		this.responseBody = responseBody;
 	}
 
-	public String getAssertions() {
+	public JSONArray getAssertions() {
 		return assertions;
 	}
 
-	public void setAssertions(String assertions) {
+	public void setAssertions(JSONArray assertions) {
 		this.assertions = assertions;
 	}
 
@@ -197,43 +181,43 @@ public class TestCaseInterface implements Cloneable{
 		this.optstatus = optstatus;
 	}
 	
-	public TestCaseInterfaceFront convert(){
-		TestCaseInterfaceFront tcif = new TestCaseInterfaceFront();
+	public TestCaseInterface convert(){
+		TestCaseInterface tci = new TestCaseInterface();
 		
-		tcif.setId(this.id);
-		tcif.setTestCase(this.testCase);
-		tcif.setInterfaceid(this.interfaceid);
-		tcif.setOrderNo(this.orderNo);
-		tcif.setStep(this.step);
-		tcif.setUrlAddress(this.urlAddress);
+		tci.setId(this.id);
+		tci.setTestCase(this.testCase);
+		tci.setInterfaceid(this.interfaceid);
+		tci.setOrderNo(this.orderNo);
+		tci.setStep(this.step);
+		tci.setUrlAddress(this.urlAddress);
 		
 		if(this.variables != null){
-			tcif.setVariables(JSONArray.parseArray(this.variables));
+			tci.setVariables(this.variables.toJSONString());
 		}
 		
 		if(this.requestHead != null){
-			tcif.setRequestHead(JSONArray.parseArray(this.requestHead));
+			tci.setRequestHead(this.requestHead.toJSONString());
 		}
 		
 		if(this.responseHead != null){
-			tcif.setResponseHead(JSONArray.parseArray(this.responseHead));
+			tci.setResponseHead(this.responseHead.toJSONString());
 		}
 		
 		if(this.assertions != null){
-			tcif.setAssertions(JSONArray.parseArray(this.assertions));
+			tci.setAssertions(this.assertions.toJSONString());
 		}
 		
-		tcif.setCreatedBy(this.createdBy);
+		tci.setCreatedBy(this.createdBy);
 		
-		tcif.setCreatedTime(this.createdTime);
+		tci.setCreatedTime(this.createdTime);
 		
-		tcif.setUpdatedBy(this.updatedBy);
+		tci.setUpdatedBy(this.updatedBy);
 		
-		tcif.setUpdatedTime(this.updatedTime);
+		tci.setUpdatedTime(this.updatedTime);
 		
-		tcif.setOptstatus(this.optstatus);
+		tci.setOptstatus(this.optstatus);
 		
-		return tcif;
+		return tci;
+		
 	}
-
 }

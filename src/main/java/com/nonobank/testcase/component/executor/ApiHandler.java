@@ -11,6 +11,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.testcase.component.exception.TestCaseException;
 import com.nonobank.testcase.component.result.ResultCode;
+import com.nonobank.testcase.component.ws.WebSocket;
 
 @Component
 public class ApiHandler {
@@ -19,6 +20,9 @@ public class ApiHandler {
 	
 	@Autowired
 	VariableHandler variableHandler;
+	
+	@Autowired
+	WebSocket webSocket;
 	
 	/**
 	 * 处理自定义变量
@@ -39,11 +43,17 @@ public class ApiHandler {
 				logger.info("开始处理变量:" + varName);
 				
 				list.add("开始处理变量:" + varName);
+				
+				webSocket.sendMsgTo(0, "###开始处理变量: " + varName, "123");
+				
 				Map<Boolean, String> resultMap = variableHandler.handleVariable(map, varValue);
 				
 				if(resultMap.containsKey(false)){//替换变量失败，抛异常
 					String errorMsg = resultMap.get(false);
 					logger.error("变量" + varName + "替换失败，原始值为：" + varValue + ", 失败原因：" + errorMsg);
+					
+					webSocket.sendMsgTo(0, "###变量：" + varName + "替换失败，原始值为：" + varValue + ", 失败原因：" + errorMsg, "123");
+					
 					list.add("变量" + varName + "替换失败，原始值为：" + varValue + ", 失败原因：" + errorMsg);
 					throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), errorMsg);
 				}else{//变量替换没有报错
@@ -51,7 +61,9 @@ public class ApiHandler {
 					if(resultMap.containsKey(true)){//变量替换成功，则替换方法
 						String valueAfterReplace = resultMap.get(true);
 						logger.info("变量" + varName + "替换成功，原始值为：" + varValue + ", 处理后值为：" + valueAfterReplace);
+						
 						list.add("变量" + varName + "替换成功，原始值为：" + varValue + ", 处理后值为：" + valueAfterReplace);
+						webSocket.sendMsgTo(0, "###变量：" + varName + "替换成功，原始值为：" + varValue + ", 处理后值为：" + valueAfterReplace, "123");
 						
 						if(variableHandler.matchMethod(varValue)){
 							resultMap = variableHandler.handleMethod(valueAfterReplace);
@@ -65,13 +77,19 @@ public class ApiHandler {
 					if(resultMap.containsKey(false)){//方法替换失败
 						String errorMsg = resultMap.get(false);
 						logger.error("变量" + varName + "中方法替换失败，原始值为：" + varValue + ", 失败原因为：" + errorMsg);
+						
 						list.add("变量" + varName + "中方法替换失败，原始值为：" + varValue + ", 失败原因为：" + errorMsg);
+						webSocket.sendMsgTo(0, "###变量:" + varName + "中方法替换失败，原始值为：" + varValue + ", 失败原因为：" + errorMsg, "123");
+						
 						throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), errorMsg);
 					}else{
 						if(resultMap.containsKey(true)){//方法替换成功
 							String valueAfterReplace = resultMap.get(true);
 							logger.info("变量" + varName + "中方法替换成功，原始值为：" + varValue + ", 处理后值为：" + valueAfterReplace);
+							
 							list.add("变量" + varName + "中方法替换成功，原始值为：" + varValue + ", 处理后值为：" + valueAfterReplace);
+							webSocket.sendMsgTo(0, "###变量:" + varName + "中方法替换成功，原始值为：" + varValue + ", 处理后值为：" + valueAfterReplace, "123");
+							
 							map.put(varName, valueAfterReplace);
 						}else{
 							if(!map.containsKey(varValue)){
@@ -102,6 +120,7 @@ public class ApiHandler {
 			}else if(resultMap.containsKey(false)){
 				String errorMsg = resultMap.get(false);
 				logger.error("请求消息体替换变量失败，失败原因：" + errorMsg);
+				
 				throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), errorMsg);
 			}
 		}
@@ -145,12 +164,17 @@ public class ApiHandler {
 			
 			if(resultMap.containsKey(false)){
 				logger.warn("处理实际值" + actualResult + "失败，失败原因：" + resultMap.get(false));
+				
 				list.add("处理实际值" + actualResult + "失败，失败原因：" + resultMap.get(false));
+				webSocket.sendMsgTo(0, "###处理实际值" + actualResult + "失败，失败原因：" + resultMap.get(false), "123");
+				
 			}else {
 				if(resultMap.containsKey(true)){
 					logger.info("处理实际值" + actualResult + "成功，处理后的值：" + resultMap.get(true));
 					actualResult = resultMap.get(true);
+					
 					list.add("true：" + "处理实际值" + actualResult + "成功，处理后的值：" + resultMap.get(true));
+					webSocket.sendMsgTo(0, "###处理实际值" + actualResult + "成功，处理后的值：" + resultMap.get(true), "123");
 				}
 				
 				//处理实际结果中的方法
@@ -159,11 +183,14 @@ public class ApiHandler {
 					
 					if(resultMap.containsKey(false)){
 						logger.error("处理实际值" + actualResult + "失败，失败原因：" + resultMap.get(false));
+						
 						list.add("false：" +  "处理实际值" + actualResult + "失败，失败原因：" + resultMap.get(false));
+						webSocket.sendMsgTo(0, "###处理实际值" + actualResult + "失败，失败原因：" + resultMap.get(false), "123");
 					}else if(resultMap.containsKey(true)){
 						actualResult = resultMap.get(true);
 						logger.info("处理实际值" + actualResult + "成功，处理后的值：" + resultMap.get(true));
 						list.add("true：" + "处理实际值" + actualResult + "成功，处理后的值：" + resultMap.get(true));
+						webSocket.sendMsgTo(0, "###处理实际值" + actualResult + "成功，处理后的值：" + resultMap.get(true), "123");
 					}
 				}
 			}
@@ -173,12 +200,16 @@ public class ApiHandler {
 			
 			if(resultMap.containsKey(false)){
 				logger.warn("处理预期值" + expectResult + "失败，失败原因：" + resultMap.get(false));
+				
 				list.add("处理预期值" + expectResult + "失败，失败原因：" + resultMap.get(false));
+				webSocket.sendMsgTo(0, "###处理预期值" + expectResult + "失败，失败原因：" + resultMap.get(false), "123");
 			}else {
 				if(resultMap.containsKey(true)){
 					logger.info("处理预期值" + expectResult + "成功，处理后的值：" + resultMap.get(true));
 					expectResult = resultMap.get(true);
+					
 					list.add("true：" + "处理预期值" + expectResult + "成功，处理后的值：" + resultMap.get(true));
+					webSocket.sendMsgTo(0, "###处理预期值" + expectResult + "成功，处理后的值：" + resultMap.get(true), "123");
 				}
 				
 				//处理预期结果中的方法
@@ -187,11 +218,16 @@ public class ApiHandler {
 					
 					if(resultMap.containsKey(false)){
 						logger.error("处理预期值" + expectResult + "失败，失败原因：" + resultMap.get(false));
+						
 						list.add("false：" +  "处理预期值" + expectResult + "失败，失败原因：" + resultMap.get(false));
+						webSocket.sendMsgTo(0, "###处理预期值" + expectResult + "失败，失败原因：" + resultMap.get(false), "123");
+						
 					}else if(resultMap.containsKey(true)){
 						expectResult = resultMap.get(true);
 						logger.info("处理预期值" + expectResult + "成功，处理后的值：" + resultMap.get(true));
+						
 						list.add("true：" + "处理预期值" + expectResult + "成功，处理后的值：" + resultMap.get(true));
+						webSocket.sendMsgTo(0, "###处理预期值" + expectResult + "成功，处理后的值：" + resultMap.get(true), "123");
 					}
 				}
 			}
@@ -204,16 +240,22 @@ public class ApiHandler {
 					
 					if(dactualResult == dExpectResult){
 						logger.info("true：预期结果：" + expectResult + "，实际结果：" + actualResult);
+						
 						list.add("true：预期结果：" + expectResult + "，实际结果：" + actualResult);
+						webSocket.sendMsgTo(0, "###预期结果：" + expectResult + "，实际结果：" + actualResult, "123");
 					}else{
 						logger.warn("false：预期结果：" + expectResult + "，实际结果：" + actualResult);
+						
 						list.add("false：预期结果：" + expectResult + "，实际结果：" + actualResult);
+						webSocket.sendMsgTo(0, "###预期结果：" + expectResult + "，实际结果：" + actualResult, "123");
 					}
 					break;
 				case ">":
 					dactualResult = Double.parseDouble(actualResult);
 				    dExpectResult = Double.parseDouble(expectResult);
-					list.add("处理断言：" + dactualResult + " " + comparator + dExpectResult);
+				    
+					list.add("处理断言：" + dactualResult + " " + comparator + " " + dExpectResult);
+					webSocket.sendMsgTo(0, "###处理断言：" + dactualResult  + " " + comparator + " " + dExpectResult, "123");
 					
 					if(dactualResult > dExpectResult){
 						logger.info("true：预期结果：" + expectResult + "，实际结果：" + actualResult);

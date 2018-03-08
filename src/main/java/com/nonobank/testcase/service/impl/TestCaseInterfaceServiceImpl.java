@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.nonobank.testcase.entity.TestCaseInterface;
+import com.nonobank.testcase.entity.TestCaseInterfaceFront;
 import com.nonobank.testcase.repository.TestCaseInterfaceRepository;
 import com.nonobank.testcase.service.TestCaseInterfaceService;
 import com.nonobank.testcase.service.TestCaseService;
@@ -33,33 +34,47 @@ public class TestCaseInterfaceServiceImpl implements TestCaseInterfaceService {
 	}
 
 	@Override
-	public TestCaseInterface add(TestCaseInterface testCaseInterface) {
-		testCaseInterfaceRepository.save(testCaseInterface);
-		logger.info("新增用例接口成功");
-		return testCaseInterface;
+	@Transactional
+	public void add(List<TestCaseInterfaceFront> tcifs) {
+		
+		int size = tcifs.size();
+		
+		for(int i=0;i<size;i++){
+			TestCaseInterfaceFront tcif = tcifs.get(i);
+			TestCaseInterface tci = tcif.convert();
+			tcif.setOrderNo(i);
+			testCaseInterfaceRepository.save(tci);
+		}
 	}
 
 	@Override
 	@Transactional
-	public List<TestCaseInterface> add(List<TestCaseInterface> testCaseInterfaces) {
+	public void update(List<TestCaseInterfaceFront> tcifs) {
 		
-		testCaseInterfaces.forEach(x->{
-			testCaseInterfaceRepository.save(x);
-			logger.info("新增用例接口成功");
+		int size = tcifs.size();
+		
+		Integer tcId = null;
+		
+		for(int i=0;i<size;i++){
+			TestCaseInterface tci = tcifs.get(i).convert();
+			tcId = tci.getTestCase().getId();
+			tci.setOrderNo(i);
+			testCaseInterfaceRepository.save(tci);
+		}
+		
+		List<TestCaseInterface> tcis = testCaseInterfaceRepository.findByTestCaseIdAndOptstatusEquals(tcId, (short)0);
+		
+		
+		tcis.forEach(t->{
+			long count = tcifs.stream().filter(s->{
+				return s.getId().equals(t.getId());
+			}).count();
+			
+			if(count == 0){
+				t.setOptstatus((short)2);
+				testCaseInterfaceRepository.save(t);
+			}
 		});
-		
-		return testCaseInterfaces;
-	}
-
-	@Override
-	public TestCaseInterface update(TestCaseInterface optTestCaseInterface) {
-		return null;
-	}
-
-	@Override
-	public TestCaseInterface update(List<TestCaseInterface> optTestCaseInterfaces) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

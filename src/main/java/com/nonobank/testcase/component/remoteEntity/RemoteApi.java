@@ -42,7 +42,7 @@ public class RemoteApi {
 			String resOfString = httpClient.getResBody(response);
 			JSONObject resOfJson = JSON.parseObject(resOfString);
 			
-			if(resOfJson.getBoolean("succeed")){
+			if(resOfJson.getInteger("code").equals(10000)){
 				logger.info("查询api成功");
 				JSONObject apiOfJson = resOfJson.getJSONObject("data");
 				return apiOfJson;
