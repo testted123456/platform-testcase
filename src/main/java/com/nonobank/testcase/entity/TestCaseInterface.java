@@ -1,13 +1,13 @@
 package com.nonobank.testcase.entity;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-
 import com.alibaba.fastjson.JSONArray;
 
 @Entity
@@ -20,7 +20,7 @@ public class TestCaseInterface implements Cloneable{
 	@JoinColumn(name="testCaseId", nullable=false)
 	TestCase testCase;
 	
-	Integer interfaceid;
+	Integer interfaceId;
 	
 	@Column(nullable=true)
 	Integer orderNo;
@@ -28,6 +28,7 @@ public class TestCaseInterface implements Cloneable{
 	@Column(nullable=false, columnDefinition="varchar(500) COMMENT '测试步骤描述'")
 	String step;
 	
+	@Column(nullable=false, columnDefinition="varchar(500) COMMENT '接口URL地址'")
 	String urlAddress;
 	
 	@Column(columnDefinition=" text")
@@ -50,12 +51,12 @@ public class TestCaseInterface implements Cloneable{
 	
 	String createdBy;
 	
-	@Column(columnDefinition="datetime")
+	@Column(nullable=true, columnDefinition="datetime")
 	LocalDateTime createdTime;
 	
 	String updatedBy;
 	
-	@Column(columnDefinition=" datetime")
+	@Column(nullable=true, columnDefinition=" datetime")
 	LocalDateTime updatedTime;
 	
 	@Column(nullable=false, columnDefinition="smallint(1) COMMENT '0:正常，1:已更新，2:已删除'")
@@ -77,12 +78,12 @@ public class TestCaseInterface implements Cloneable{
 		this.testCase = testCase;
 	}
 
-	public Integer getInterfaceid() {
-		return interfaceid;
+	public Integer getInterfaceId() {
+		return interfaceId;
 	}
 
-	public void setInterfaceid(Integer interfaceid) {
-		this.interfaceid = interfaceid;
+	public void setInterfaceId(Integer interfaceId) {
+		this.interfaceId = interfaceId;
 	}
 
 	public Integer getOrderNo() {
@@ -202,10 +203,12 @@ public class TestCaseInterface implements Cloneable{
 		
 		tcif.setId(this.id);
 		tcif.setTestCase(this.testCase);
-		tcif.setInterfaceid(this.interfaceid);
+		tcif.setInterfaceId(this.interfaceId);
 		tcif.setOrderNo(this.orderNo);
 		tcif.setStep(this.step);
 		tcif.setUrlAddress(this.urlAddress);
+		tcif.setRequestBody(this.getRequestBody());
+		tcif.setResponseBody(this.responseBody);
 		
 		if(this.variables != null){
 			tcif.setVariables(JSONArray.parseArray(this.variables));
@@ -225,15 +228,27 @@ public class TestCaseInterface implements Cloneable{
 		
 		tcif.setCreatedBy(this.createdBy);
 		
-		tcif.setCreatedTime(this.createdTime);
+		if(null != this.createdTime){
+			tcif.setCreatedTime(this.createdTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss")));
+		}
 		
 		tcif.setUpdatedBy(this.updatedBy);
 		
-		tcif.setUpdatedTime(this.updatedTime);
+		if(null != this.updatedTime){
+			tcif.setUpdatedTime(this.updatedTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss")));
+		}
 		
 		tcif.setOptstatus(this.optstatus);
 		
 		return tcif;
 	}
+	
+	public TestCaseInterface clone() throws CloneNotSupportedException{
+		TestCaseInterface tci = (TestCaseInterface)super.clone();
+		TestCase tc = this.testCase.clone();
+		tci.setTestCase(tc);
+		return tci;
+	}
+	
 
 }

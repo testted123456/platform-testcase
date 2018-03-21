@@ -1,5 +1,7 @@
 package com.nonobank.testcase.controller;
 
+import java.util.HashMap;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Controller;
@@ -37,5 +39,11 @@ public class TestController {
 		
 		return null;
 	}
+	
+	@RequestMapping("/hello")
+    public String helloHtml(HashMap<String, Object> map) {
+        map.put("hello", "欢迎进入HTML页面");
+        return "/hello";
+    }
 
 }

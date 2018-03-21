@@ -4,6 +4,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 @Entity
 public class Env {
@@ -13,6 +15,10 @@ public class Env {
 
 	@Column(nullable=false, columnDefinition="varchar(20) COMMENT '环境名称'")
 	private String name;
+	
+	@ManyToOne
+	@JoinColumn(name="dbGroupId", nullable=true)
+	DBGroup dbGroup;
 
 	public Integer getId() {
 		return id;
@@ -28,6 +34,14 @@ public class Env {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public DBGroup getDbGroup() {
+		return dbGroup;
+	}
+
+	public void setDbGroup(DBGroup dbGroup) {
+		this.dbGroup = dbGroup;
 	}
 	
 }

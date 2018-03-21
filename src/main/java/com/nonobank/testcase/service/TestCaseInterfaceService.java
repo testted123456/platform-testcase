@@ -10,8 +10,9 @@ public interface TestCaseInterfaceService {
 	
 	List<TestCaseInterface> findByTestCaseId(Integer testCaseId);
 	
-	void add(List<TestCaseInterfaceFront> tcifs);
+	void add(String userName, List<TestCaseInterfaceFront> tcifs);
 	
-	void update(List<TestCaseInterfaceFront> tcifs);
+	List<TestCaseInterfaceFront> update(String userName, List<TestCaseInterfaceFront> tcifs);
+	
 
 }

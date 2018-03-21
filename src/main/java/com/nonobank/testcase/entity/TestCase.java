@@ -1,45 +1,55 @@
 package com.nonobank.testcase.entity;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
+
+import org.hibernate.validator.constraints.NotEmpty;
 
 @Entity
-public class TestCase {
+public class TestCase implements Cloneable {
 	@Id
 	@GeneratedValue
 	Integer id;
 	
+    @NotNull(message="pId不能为空")	
 	Integer pId;
 	
+    @NotEmpty(message="名称不能为空")
 	@Column(nullable=false, columnDefinition="varchar(300) COMMENT 'case名称'")
 	String name;
 	
-	@Column(nullable=false, columnDefinition="varchar(500) COMMENT 'case描述'")
+	@Column(nullable=true, columnDefinition="varchar(500) COMMENT 'case描述'")
 	String description;
 	
-	@Column(nullable=false, columnDefinition="bit(1) COMMENT '0:目录，1:testCase'")
+	@NotNull
+	@Column(nullable=true, columnDefinition="bit(1) COMMENT '0:目录，1:testCase'")
 	Boolean type;
 	
 	@Column(columnDefinition="varchar(20) COMMENT '运行环境'")
 	String env;
 	
-	@Column(columnDefinition="varchar(100) COMMENT '项目'")
+	@Column(nullable=true, columnDefinition="varchar(100) COMMENT '项目'")
 	String projectName;
 	
+	@Column(nullable=true, columnDefinition="varchar(100) COMMENT '创建人'")
 	String createdBy;
 	
-	@Column(columnDefinition="datetime")
+	@Column(nullable=true,columnDefinition="datetime")
 	LocalDateTime createdTime;
 	
+	@Column(nullable=true, columnDefinition="varchar(100) COMMENT '更新人'")
 	String updatedBy;
 	
-	@Column(columnDefinition=" datetime")
+	@Column(nullable=true, columnDefinition=" datetime")
 	LocalDateTime updatedTime;
 	
-	@Column(nullable=false, columnDefinition="bit(1) COMMENT '0:流程接口，1:非流程接口'")
+	@Column(nullable=true, columnDefinition="bit(1) COMMENT '0:流程接口，1:非流程接口'")
 	Boolean caseType;
 	
 	@Column(nullable=false, columnDefinition="smallint(1) COMMENT '0:正常，1:已更新，2:已删除'")
@@ -125,11 +135,20 @@ public class TestCase {
 		this.updatedBy = updatedBy;
 	}
 
-	public LocalDateTime getUpdatedTime() {
-		return updatedTime;
+	public String getUpdatedTime() {
+		if(null != this.updatedTime){
+			return this.updatedTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		}else{
+			return null;
+		}
 	}
 
-	public void setUpdatedTime(LocalDateTime updatedTime) {
+	public void setUpdatedTime(String updatedTime) {
+		LocalDateTime t = LocalDateTime.parse(updatedTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		this.updatedTime = t;
+	}
+	
+	public void setUpdatedTime(LocalDateTime updatedTime){
 		this.updatedTime = updatedTime;
 	}
 
@@ -147,6 +166,16 @@ public class TestCase {
 
 	public void setOptstatus(Short optstatus) {
 		this.optstatus = optstatus;
+	}
+	
+	public TestCase clone() throws CloneNotSupportedException{
+		return (TestCase)super.clone();
+	}
+	
+	public static void main(String [] args){
+		LocalDateTime t = LocalDateTime.parse("2018-03-20 02:08:39", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		System.out.println(t.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+		
 	}
 
 }

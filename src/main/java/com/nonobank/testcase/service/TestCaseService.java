@@ -9,9 +9,11 @@ public interface TestCaseService {
 	
 	List<TestCase> findByPId(Integer pId);
 	 
-	TestCase add(TestCase testCase, boolean type);
+	TestCase add(String userName, TestCase testCase, boolean type);
 	
-	TestCase update(TestCase testCase);
+	TestCase update(String userName, TestCase testCase);
 	
-	TestCase delete(TestCase testCase);
+	TestCase deleteTestCase(String userName, Integer id);
+	
+	void deleteTestCaseDir(String userName, Integer id);
 }

@@ -1,11 +1,10 @@
 package com.nonobank.testcase.component.executor;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.http.HttpException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.slf4j.Logger;
@@ -14,11 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
-
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.apps.HttpClient;
 import com.nonobank.testcase.component.config.HttpServerProperties;
+import com.nonobank.testcase.component.exception.CaseExecutionException;
 import com.nonobank.testcase.component.exception.TestCaseException;
 import com.nonobank.testcase.component.remoteEntity.RemoteApi;
 import com.nonobank.testcase.component.result.ResultCode;
@@ -48,8 +46,8 @@ public class TestCaseExecutor {
 	@Autowired
 	RemoteApi remoteApi;
 	
-	@Autowired
-	ApiHandler apiHandler;
+//	@Autowired
+//	ApiExecutor apiExecutor;
 	
 	@Autowired
 	EnvService envService;
@@ -60,6 +58,21 @@ public class TestCaseExecutor {
 	@Autowired
 	TestCaseService testCaseService;
 	
+	@Autowired
+	ApiVariablesHandler apiVariablesHandler;
+	
+	@Autowired
+	ApiRequestHandler apiRequestHandler;
+	
+	@Autowired
+	ApiResponseHandler apiResponseHandler;
+	
+	@Autowired
+	ApiAssertionsHandler apiAssertionsHandler;
+	
+	@Autowired
+    ApiHandlerUtils apiHandlerUtils;
+	
 	/**
 	 * 处理接口url
 	 * @param apiType
@@ -69,14 +82,24 @@ public class TestCaseExecutor {
 	 * @return
 	 */
 	public String handleUrl(String apiType, String domain, String system, String url){
-		if(null != url && url.toLowerCase().startsWith("http")){
-			return url;
+		String pattern = "([H|h][T|t][T|t][P|p][S|s]*)://(.+?)/(.*)";
+		Pattern p = Pattern.compile(pattern);
+		Matcher m = p.matcher(url);
+		
+		if(m.find() && m.groupCount() == 3){
+			url = m.group(3);
+		}
+		
+		if(url.startsWith("/")){
+			url = domain + url;
+		}else{
+			url =  domain + "/" + url;
 		}
 		
 		if("0".equals(apiType)){
-			return "http://" + domain + "/" + url;
+				return "http://" + url;
 		}else{
-			return "https://" + domain + "/" + url;
+			return "https://" + url;
 		}
 	}
 	
@@ -91,77 +114,99 @@ public class TestCaseExecutor {
 	 * @throws HttpException 
 	 * @throws com.nonobank.testcase.component.exception.HttpExecutorException 
 	 */
-	public void runApi(String sessionId, String envName, Map<String, Object> map, TestCaseInterface testCaseInterface){
+	public void runApi(String sessionId, String env, Map<String, Object> map, TestCaseInterface testCaseInterface){
 		logger.info("开始执行api，id：" + testCaseInterface.getId());
 		
 		//查询api的协议、url
-		Integer interfaceid = testCaseInterface.getInterfaceid();
+		Integer interfaceid = testCaseInterface.getInterfaceId();
 		JSONObject apiRespOfJson = remoteApi.getApi(interfaceid);
 		String postWay = apiRespOfJson.getString("postWay");
 		String apiType =  apiRespOfJson.getString("apiType");
 		String system = apiRespOfJson.getString("system");
 		String apiName = apiRespOfJson.getString("name");
-		String responseBodyType =  apiRespOfJson.getString("responseBodyType");
+		String responseBodyType = apiRespOfJson.getString("responseBodyType");
 		
-		webSocket.sendMsgTo(0, "***开始执行api：" + apiName + "***", "123");
+		webSocket.sendH5("执行接口：" + apiName, sessionId);
 		
-		Optional<CloseableHttpResponse> resp = Optional.empty();
+		CloseableHttpResponse resp = null;
 		String url = testCaseInterface.getUrlAddress();
 		String requestBody = testCaseInterface.getRequestBody();
 		String requestHeaders = testCaseInterface.getRequestHead();
 		String variables = testCaseInterface.getVariables();
 		String assertions = testCaseInterface.getAssertions();
 		
-		//处理接口url
-		SystemEnv systemEnv = systemEnvService.findBySystemNameAndEnvName(system, envName);
-		String domain = systemEnv.getDomain();
-		String dns = systemEnv.getDns();
-		url = handleUrl(apiType, domain, system, url);
-		
 		//处理自定义变量
-		List<String> varList = new ArrayList<String>();
-		apiHandler.handleVariableBeforeExec(map, variables, varList);
-		
-		//处理请求消息体
-		apiHandler.handleRequestBeforeExec(map, requestBody);
-		
-		//发送请求 
-		if(!"2".equals(apiType)){//http
-			webSocket.sendMsgTo(0, "###发送请求：" + url, "123");
-			resp = httpExecutor.exec(apiType, postWay, url, map, requestHeaders, requestBody);
-		}else{//mq
-			
+		if(null != variables){
+			apiVariablesHandler.handleAllVariables(map, variables, sessionId, env);
 		}
 		
-		Optional<String> expectedResponseBody = Optional.ofNullable(testCaseInterface.getResponseBody());
+		//处理接口url
+		if(!"thirdparty".equals(system)){
+			SystemEnv systemEnv = systemEnvService.findBySystemNameAndEnvName(system, env);
+			String domain = systemEnv.getDomain();
+			String dns = systemEnv.getDns();
+			url = handleUrl(apiType, domain, system, url);
+		}
+		
+		if(apiHandlerUtils.variableMatched(url) == true){
+			Map<Boolean, String> urlMap = apiHandlerUtils.handleVariable(map, url);
+			if(urlMap.containsKey(true)){
+				url = urlMap.get(true);
+			}
+		}
+		
+		webSocket.send6("接口地址", sessionId);
+		webSocket.sendItem(url, sessionId);
+		
+		//处理请求消息体
+		if(null != requestBody){
+			apiRequestHandler.handleRequest(map, requestBody, sessionId);
+		}
+		
+		//发送请求 
+		switch (apiType) {
+		case "0"://http
+			if("0".equals(postWay)){//get
+				resp = httpExecutor.doHttpGet(url, map, requestHeaders, requestBody);
+			}else{//post
+				resp = httpExecutor.doHttpPost(url, map, requestHeaders, requestBody);
+			}
+			break;
+		case "1"://https
+			if("0".equals(postWay)){//get
+				resp = httpExecutor.doHttpsGet(url, map, requestHeaders, requestBody);
+			}else{//post
+				resp = httpExecutor.doHttpsPost(url, map, requestHeaders, requestBody);
+			}
+			break;
+		case "2":
+			break;
+		default:
+			break;
+		}
+		
+		String expectedResponseBody = testCaseInterface.getResponseBody();
 		
 		//处理响应消息
-		String actualResponseBody = resp.map(x->{
-				try{
-					return HttpClient.getResBody(x);
-				}catch(IOException e){
-					e.printStackTrace();
-					throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
-				}catch(HttpException e){
-					e.printStackTrace();
-					throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
-				}
-			 }).orElse("response is null");
+		String actualResponseBody = null;
+		
+		if(resp != null){
+			try {
+				actualResponseBody = HttpClient.getResBody(resp);
+			} catch (Exception e) {
+				throw new CaseExecutionException(ResultCode.EXCEPTION_ERROR.getCode(), e.getMessage());
+			} 
+		}
 		
 		logger.info("响应消息为：" + actualResponseBody);
-		webSocket.sendMsgTo(0, "###响应消息为：" + actualResponseBody, "123");
+
+		if(null != expectedResponseBody){
+			 apiResponseHandler.handleResponseBody(map, expectedResponseBody, actualResponseBody, responseBodyType, sessionId);
+		}
 		
-		expectedResponseBody.map(x->{
-			 List<String> list = new ArrayList<String>();
-			 boolean result = apiHandler.handleResponseAfterExec(map, x, actualResponseBody, responseBodyType, list);
-			 return result;
-		});
-		 
 		//处理断言
 		logger.info("开始处理断言");
-		apiHandler.handleAssertionsAfterExec(map, assertions);
-		
-//		webSocket.sendMsgTo(requestBody, sessionId);
+		apiAssertionsHandler.handleAssertions(map, assertions, sessionId, env);
 	}
 	
 	@Async
@@ -173,8 +218,10 @@ public class TestCaseExecutor {
 			boolean isflow = testCase.getCaseType();
 			
 			try{
-				runApi(sessionId, env, map, tcf);
+				runApi("123", env, map, tcf);
 			}catch(Exception e){
+				webSocket.sendVar("接口测试发生异常：" + e.getMessage(), "123");
+				
 				if(isflow == true){
 					throw new TestCaseException(ResultCode.EXCEPTION_ERROR);
 				}else{
@@ -184,11 +231,8 @@ public class TestCaseExecutor {
 			}
 		}
 		
+		webSocket.send6("用例执行完成", "123");
 		logger.info("用例执行完成");
-	}
-	
-	public static void main(String [] args){
-		System.out.println(JSON.toJSON("{\"aaa\":1}").toString());
 	}
 	
 }

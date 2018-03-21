@@ -1,5 +1,6 @@
 package com.nonobank.testcase.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,36 +36,59 @@ public class TestCaseInterfaceServiceImpl implements TestCaseInterfaceService {
 
 	@Override
 	@Transactional
-	public void add(List<TestCaseInterfaceFront> tcifs) {
+	public void add(String userName, List<TestCaseInterfaceFront> tcifs) {
 		
 		int size = tcifs.size();
 		
 		for(int i=0;i<size;i++){
 			TestCaseInterfaceFront tcif = tcifs.get(i);
+			
+			logger.info("新增用例接口，用例{},接口{}",tcif.getTestCase().getName(), tcif.getName());
+			
 			TestCaseInterface tci = tcif.convert();
-			tcif.setOrderNo(i);
+			tci.setOrderNo(i);
+			tci.setCreatedBy(userName);
+			tci.setCreatedTime(LocalDateTime.now());
+			tci.setUpdatedTime(null);
 			testCaseInterfaceRepository.save(tci);
 		}
 	}
 
 	@Override
 	@Transactional
-	public void update(List<TestCaseInterfaceFront> tcifs) {
+	public List<TestCaseInterfaceFront> update(String userName, List<TestCaseInterfaceFront> tcifs) {
 		
 		int size = tcifs.size();
-		
 		Integer tcId = null;
 		
-		for(int i=0;i<size;i++){
-			TestCaseInterface tci = tcifs.get(i).convert();
+		for(int i=0;i<size;i++){//保存用例接口
+			TestCaseInterfaceFront tcif = tcifs.get(i);
+			TestCaseInterface tci = tcif.convert();
 			tcId = tci.getTestCase().getId();
 			tci.setOrderNo(i);
+			
+			if(tci.getId() == null){
+				logger.info("新增用例接口，用例{},接口{}",tcif.getTestCase().getName(), tcif.getName());
+				
+				tci.setCreatedBy(userName);
+				tci.setCreatedTime(LocalDateTime.now());
+				tci.setOptstatus((short)0);
+			}else{
+				logger.info("更新用例接口，用例{},接口{}",tcif.getTestCase().getName(), tcif.getName());
+				
+				tci.setUpdatedBy(userName);
+				tci.setUpdatedTime(LocalDateTime.now());
+			}
+			
 			testCaseInterfaceRepository.save(tci);
+			tcif.setId(tci.getId());
+			tcif.setOrderNo(tci.getOrderNo());
+			tcif.setOptstatus(tci.getOptstatus());
 		}
 		
 		List<TestCaseInterface> tcis = testCaseInterfaceRepository.findByTestCaseIdAndOptstatusEquals(tcId, (short)0);
 		
-		
+		//删除接口　
 		tcis.forEach(t->{
 			long count = tcifs.stream().filter(s->{
 				return s.getId().equals(t.getId());
@@ -75,6 +99,8 @@ public class TestCaseInterfaceServiceImpl implements TestCaseInterfaceService {
 				testCaseInterfaceRepository.save(t);
 			}
 		});
+		
+		return tcifs;
 	}
 
 }

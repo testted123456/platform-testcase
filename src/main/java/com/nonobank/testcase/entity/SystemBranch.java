@@ -19,12 +19,12 @@ public class SystemBranch {
 	String branch;
 	
 	@Column(nullable = true, columnDefinition = "varchar(50) COMMENT '系统分支版本'")
-	String version;
+    String version;
 	
 	@Column(nullable = true, columnDefinition = "bit(1) COMMENT '是否是最新分支'")
 	Boolean last;
 	
-	@Column(nullable=false, columnDefinition="smallint(1) COMMENT '0:正常，1:已更新，2:已删除'")
+	@Column(nullable=false, columnDefinition="smallint(1) COMMENT '0:正常，1:已更新，2:已删除,3:同步中，4:同步成功，5:同步失败'")
 	Short optstatus;
 
 	public Integer getId() {

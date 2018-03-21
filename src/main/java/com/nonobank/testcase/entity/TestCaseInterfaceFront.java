@@ -1,6 +1,5 @@
 package com.nonobank.testcase.entity;
 
-import java.time.LocalDateTime;
 import javax.validation.constraints.NotNull;
 import org.hibernate.validator.constraints.NotEmpty;
 import com.alibaba.fastjson.JSONArray;
@@ -12,13 +11,19 @@ public class TestCaseInterfaceFront {
 	TestCase testCase;
 
 	@NotNull(message="接口id不能为空")
-	Integer interfaceid;
+	Integer interfaceId;
 
 	@NotNull(message="orderNo不能为空")
 	Integer orderNo;
 
 	@NotEmpty(message="step不能为空")
 	String step;
+	
+	String name;
+	
+	String branch;
+	
+	String system;
 
 	@NotEmpty(message="urlAddress不能为空")
 	String urlAddress;
@@ -37,11 +42,11 @@ public class TestCaseInterfaceFront {
 
 	String createdBy;
 
-	LocalDateTime createdTime;
+	String createdTime;
 
 	String updatedBy;
 
-	LocalDateTime updatedTime;
+	String updatedTime;
 
 	Short optstatus;
 
@@ -61,12 +66,36 @@ public class TestCaseInterfaceFront {
 		this.testCase = testCase;
 	}
 
-	public Integer getInterfaceid() {
-		return interfaceid;
+	public Integer getInterfaceId() {
+		return interfaceId;
 	}
 
-	public void setInterfaceid(Integer interfaceid) {
-		this.interfaceid = interfaceid;
+	public void setInterfaceId(Integer interfaceId) {
+		this.interfaceId = interfaceId;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getBranch() {
+		return branch;
+	}
+
+	public void setBranch(String branch) {
+		this.branch = branch;
+	}
+
+	public String getSystem() {
+		return system;
+	}
+
+	public void setSystem(String system) {
+		this.system = system;
 	}
 
 	public Integer getOrderNo() {
@@ -149,11 +178,11 @@ public class TestCaseInterfaceFront {
 		this.createdBy = createdBy;
 	}
 
-	public LocalDateTime getCreatedTime() {
+	public String getCreatedTime() {
 		return createdTime;
 	}
 
-	public void setCreatedTime(LocalDateTime createdTime) {
+	public void setCreatedTime(String createdTime) {
 		this.createdTime = createdTime;
 	}
 
@@ -165,11 +194,11 @@ public class TestCaseInterfaceFront {
 		this.updatedBy = updatedBy;
 	}
 
-	public LocalDateTime getUpdatedTime() {
+	public String getUpdatedTime() {
 		return updatedTime;
 	}
 
-	public void setUpdatedTime(LocalDateTime updatedTime) {
+	public void setUpdatedTime(String updatedTime) {
 		this.updatedTime = updatedTime;
 	}
 
@@ -186,7 +215,7 @@ public class TestCaseInterfaceFront {
 		
 		tci.setId(this.id);
 		tci.setTestCase(this.testCase);
-		tci.setInterfaceid(this.interfaceid);
+		tci.setInterfaceId(this.interfaceId);
 		tci.setOrderNo(this.orderNo);
 		tci.setStep(this.step);
 		tci.setUrlAddress(this.urlAddress);
@@ -207,17 +236,10 @@ public class TestCaseInterfaceFront {
 			tci.setAssertions(this.assertions.toJSONString());
 		}
 		
-		tci.setCreatedBy(this.createdBy);
-		
-		tci.setCreatedTime(this.createdTime);
-		
-		tci.setUpdatedBy(this.updatedBy);
-		
-		tci.setUpdatedTime(this.updatedTime);
-		
+		tci.setRequestBody(this.requestBody);
+		tci.setResponseBody(this.responseBody);
 		tci.setOptstatus(this.optstatus);
 		
 		return tci;
-		
 	}
 }
