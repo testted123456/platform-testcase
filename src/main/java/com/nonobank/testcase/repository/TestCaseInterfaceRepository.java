@@ -8,6 +8,8 @@ import com.nonobank.testcase.entity.TestCaseInterface;
 public interface TestCaseInterfaceRepository extends JpaRepository<TestCaseInterface, Integer> {
 	
 	TestCaseInterface findById(Integer id);
+	
+	List<TestCaseInterface> findByInterfaceIdAndOptstatusEquals(Integer interfaceId, short optstatus);
 
 	TestCaseInterface findByIdAndOptstatusEquals(Integer id, short optstatus);
 	

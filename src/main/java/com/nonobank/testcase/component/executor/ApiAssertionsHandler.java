@@ -1,10 +1,13 @@
 package com.nonobank.testcase.component.executor;
 
+import java.util.List;
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.testcase.component.ws.WebSocket;
@@ -20,7 +23,16 @@ public class ApiAssertionsHandler {
     @Autowired
     ApiHandlerUtils apiHandlerUtils;
 
-	public boolean handleAssertions(Map<String, Object> map, String assertions, String sessionId, String env){
+    /**
+     * 
+     * @param map
+     * @param handledAssertions 保存断言结果
+     * @param assertions 要处理的断言
+     * @param sessionId
+     * @param env
+     * @return
+     */
+	public boolean handleAssertions(Map<String, Object> map, List<String> handledAssertions, String assertions, String sessionId, String env){
 		assertions = ApiHandlerUtils.removeCRLF(assertions);
 		JSONArray assertionsJsonArray = JSONArray.parseArray(assertions);
 		webSocket.send6("处理断言", sessionId);
@@ -29,7 +41,8 @@ public class ApiAssertionsHandler {
 		for(Object object : assertionsJsonArray){
 			JSONObject jsonObj = JSONObject.parseObject(object.toString());
 			String actualResult = jsonObj.getString("actualResult");
-			String expectResult = jsonObj.getString("expectResult");
+			String expectResult = jsonObj.getString("expectResult"); 
+			String expectVar = expectResult;
 			String comparator = jsonObj.getString("comparator");
 			
 			logger.info("处理断言，预期值：" + expectResult + "，实际值：" + actualResult + "，比较符：" + comparator);
@@ -99,6 +112,8 @@ public class ApiAssertionsHandler {
 					double dExpectResult = Double.parseDouble(expectResult);
 					webSocket.sendVar("预期结果：" + expectResult, sessionId);
 					webSocket.sendVar("实际结果：" + actualResult, sessionId);
+					handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
+							"，比较符：" + comparator);
 					
 					if(dactualResult == dExpectResult){
 						logger.info("true：预期结果：" + expectResult + "，实际结果：" + actualResult);
@@ -112,6 +127,8 @@ public class ApiAssertionsHandler {
 				case ">":
 					dactualResult = Double.parseDouble(actualResult);
 				    dExpectResult = Double.parseDouble(expectResult);
+				    handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
+							"，比较符：" + comparator);
 				    
 					if(dactualResult > dExpectResult){
 						logger.info("true：预期结果：" + expectResult + "，实际结果：" + actualResult);
@@ -125,6 +142,8 @@ public class ApiAssertionsHandler {
 				case ">=":
 					dactualResult = Double.parseDouble(actualResult);
 				    dExpectResult = Double.parseDouble(expectResult);
+				    handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
+							"，比较符：" + comparator);
 					
 					if(dactualResult >= dExpectResult){
 						logger.info("true：预期结果：" + expectResult + "，实际结果：" + actualResult);
@@ -138,6 +157,8 @@ public class ApiAssertionsHandler {
 				case "<":
 					dactualResult = Double.parseDouble(actualResult);
 				    dExpectResult = Double.parseDouble(expectResult);
+				    handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
+							"，比较符：" + comparator);
 					
 					if(dactualResult < dExpectResult){
 						logger.info("true：预期结果：" + expectResult + "，实际结果：" + actualResult);
@@ -151,6 +172,8 @@ public class ApiAssertionsHandler {
 				case "<=":
 					dactualResult = Double.parseDouble(actualResult);
 				    dExpectResult = Double.parseDouble(expectResult);
+				    handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
+							"，比较符：" + comparator);
 					
 					if(dactualResult <= dExpectResult){
 						logger.info("true：预期结果：" + expectResult + "，实际结果：" + actualResult);
@@ -162,6 +185,9 @@ public class ApiAssertionsHandler {
 					}
 					break;
 				case "equals":
+					handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
+							"，比较符：" + comparator);
+
 					if(actualResult.trim().equals(expectResult.trim())){
 						logger.info("true：预期结果：" + expectResult + "，实际结果：" + actualResult);
 						webSocket.sendVar("对比结果: true", sessionId);

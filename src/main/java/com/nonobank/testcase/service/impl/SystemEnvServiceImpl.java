@@ -23,27 +23,17 @@ public class SystemEnvServiceImpl implements SystemEnvService {
 	public SystemEnv findById(Integer id){
 		return systemEnvRepository.findById(id);
 	}
-
+	
 	@Override
-	public List<SystemEnv> findBySystemName(String systemName) {
-		return systemEnvRepository.findBySystemName(systemName);
-	}
-
-	@Override
-	public List<SystemEnv> findByEnvName(String envName) {
-		return systemEnvRepository.findByEnvName(envName);
-	}
-
-	@Override
-	public SystemEnv findBySystemNameAndEnvName(String systemName, String envName) {
-		return systemEnvRepository.findBySystemNameAndEnvName(systemName, envName);
+	public SystemEnv findBySystemCfgIdAndEnvId(Integer systemCfgId, Integer envId){
+		return systemEnvRepository.findBySystemCfgIdAndEnvId(systemCfgId, envId);
 	}
 
 	@Override
 	public SystemEnv add(SystemEnv systemEnv) {
-		List<SystemEnv> optList = findBySystemNameOrEnvName(systemEnv.getSystemName(), systemEnv.getEnvName());
+		SystemEnv existSystemEnv = findBySystemCfgIdAndEnvId(systemEnv.getSystemCfg().getId(), systemEnv.getEnv().getId());
 		
-		if(null == optList || optList.size() == 0){
+		if(null == existSystemEnv || existSystemEnv.getId().equals(systemEnv.getId())){
 			return systemEnvRepository.save(systemEnv);
 		}else{
 			throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "系统名称或环境名称有重复");
@@ -62,13 +52,13 @@ public class SystemEnvServiceImpl implements SystemEnvService {
 	}
 
 	@Override
-	public void delete(SystemEnv systemEnv) {
-		systemEnvRepository.delete(systemEnv.getId());
+	public void delete(Integer id) {
+		systemEnvRepository.delete(id);
 	}
 
 	@Override
-	public List<SystemEnv> findBySystemNameOrEnvName(String systemName, String envName) {
-		return systemEnvRepository.findBySystemNameOrEnvName(systemName, envName);
+	public List<SystemEnv> findAll() {
+		return systemEnvRepository.findAll();
 	}
 
 }

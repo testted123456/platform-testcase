@@ -47,6 +47,7 @@ public class ApiRequestHandler {
 			if(resultMap.containsKey(true)){
 				webSocket.sendItem("处理后的request", sessionId);
 				request = resultMap.get(true);
+				
 				if(JSONUtils.isJsonArray(request) || JSONUtils.isJsonObject(request)){
 					webSocket.sendJson(request, sessionId);
 				}else{
@@ -54,6 +55,7 @@ public class ApiRequestHandler {
 					webSocket.sendVar(request, sessionId);
 					webSocket.sendVar("```", sessionId);
 				}
+				
 			}else if(resultMap.containsKey(false)){
 				String errorMsg = resultMap.get(false);
 				logger.error("请求消息体替换变量失败，失败原因：" + errorMsg);

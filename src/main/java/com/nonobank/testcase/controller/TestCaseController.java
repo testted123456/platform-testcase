@@ -2,6 +2,7 @@ package com.nonobank.testcase.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ import com.nonobank.testcase.component.result.ResultUtil;
 import com.nonobank.testcase.component.ws.WebSocket;
 import com.nonobank.testcase.entity.SystemBranch;
 import com.nonobank.testcase.entity.TestCase;
+import com.nonobank.testcase.entity.TestCaseFront;
 import com.nonobank.testcase.entity.TestCaseInterface;
 import com.nonobank.testcase.service.SystemBranchService;
 import com.nonobank.testcase.service.TestCaseInterfaceService;
@@ -57,21 +59,29 @@ public class TestCaseController {
 	
 	@PostMapping(value="addCase")
 	@ResponseBody
-	public Result addCase(@CookieValue(value="nonousername",required=false) String userName, @RequestBody TestCase testCase){
+	public Result addCase(@CookieValue(value="nonousername",required=false) String userName, @RequestBody TestCaseFront testCaseFront){
 		logger.info("开始新增用例");
 		
-		testCaseService.add(userName, testCase, true);
+		TestCase testCase = testCaseService.add(userName, testCaseFront, true);
 		
-		return ResultUtil.success(testCase);
+		if(null != testCase){
+			testCaseFront = testCase.convert();
+		}
+		return ResultUtil.success(testCaseFront);
 	}
 	
 	@PostMapping(value="addCaseDir")
 	@ResponseBody
-	public Result addCaseDir(@CookieValue(value="nonousername",required=false) String userName, @RequestBody TestCase testCase){
+	public Result addCaseDir(@CookieValue(value="nonousername",required=false) String userName, @RequestBody TestCaseFront testCaseFront){
 		logger.info("开始新增用例目录");
 		
-		testCaseService.add(userName, testCase, false);
-		return ResultUtil.success(testCase);
+		TestCase testCase = testCaseService.add(userName, testCaseFront, false);
+		
+		if(null != testCase){
+			testCaseFront = testCase.convert();
+		}
+		
+		return ResultUtil.success(testCaseFront);
 	}
 	
 	@GetMapping(value="getCaseTreeByPId")
@@ -85,22 +95,25 @@ public class TestCaseController {
 		
 	}
 	
-	@GetMapping(value="getCase")
+	@GetMapping(value="getCaseById")
 	@ResponseBody
-	public Result getCase(@RequestParam Integer id){
+	public Result getCaseById(@RequestParam Integer id){
 		logger.info("开始查找用例");
 		
 		TestCase testCase = testCaseService.findById(id);
+		TestCaseFront tcf = testCase.convert();
 		logger.info("查找用例成功");
-		return ResultUtil.success(testCase);
+		return ResultUtil.success(tcf);
 	}
 	
 	@PostMapping(value="updateCase")
 	@ResponseBody
-	public Result updateCase(@CookieValue(value="nonousername",required=false) String userName, @RequestBody TestCase testCase){
+	public Result updateCase(@CookieValue(value="nonousername",required=false) String userName, @RequestBody TestCaseFront testCaseFront){
 		logger.info("开始更新用例");
-		testCaseService.update(userName, testCase);
-		return ResultUtil.success(testCase);
+		
+		TestCase testCase = testCaseService.update(userName, testCaseFront);
+		testCaseFront = testCase.convert();
+		return ResultUtil.success(testCaseFront);
 	}
 	
 	@GetMapping(value="deleteCase")
@@ -169,58 +182,35 @@ public class TestCaseController {
 		
 		webSocket.sendMsgTo("### " + "开始执行用例：" + testCase.getName(), "123");
 		
-//		webSocket.sendMsgTo("#### 执行接口api1", "123");
-//		
-//		webSocket.sendMsgTo("##### 接口URL", "123");
-//		
-//		webSocket.sendMsgTo("- http://123.com", "123");
-//		
-//		webSocket.sendMsgTo("", "123");
-//		
-//		webSocket.sendMsgTo("##### 处理变量", "123");
-//		
-//		webSocket.sendMsgTo("- 处理变量 var1: ${\"xxx\"}", "123");
-//		
-//		webSocket.sendMsgTo("", "123");
-//		
-//		webSocket.sendMsgTo("  处理后值：**198191**", "123");
-//		
-//		webSocket.sendMsgTo("- 处理变量 var1: ${\"xxx\"}", "123");
-//		
-//		webSocket.sendMsgTo("", "123");
-//		
-//		webSocket.sendMsgTo("  处理后值：**198191**", "123");
-//		
-//		webSocket.sendMsgTo("```", "123");
-//		
-//		String str = "{\"a\":1}";
-//		
-//		try {
-//			webSocket.sendMsgTo(JSONUtils.format(str), "123");
-//		} catch (JsonParseException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (JsonMappingException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		} catch (IOException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-		
-//		webSocket.sendMsgTo("{", "123");
-//		
-//		webSocket.sendMsgTo("  \"a\":1", "123");
-//		
-//		webSocket.sendMsgTo("}", "123");
-		
-//		webSocket.sendMsgTo("```", "123");
-//		
-//		webSocket.sendMsgTo("", "123");
-		
 		String env = testCase.getEnv();
 		List<TestCaseInterface> testCaseInterfaces = testCaseInterfaceService.findByTestCaseId(id);
-	    testCaseExecutor.runCase(sessionId, env, testCaseInterfaces);
+	    testCaseExecutor.asyncRunCase(sessionId, env, testCaseInterfaces);
 	    return ResultUtil.success(testCase);
+	}
+	
+	@PostMapping(value="executeApis")
+	@ResponseBody
+	public Result executeApis(@CookieValue(value="JSESSIONID", required=false) String sessionId, @RequestBody JSONObject jsonObj){
+		Integer tcId = jsonObj.getInteger("tcId");
+		JSONArray jsonArrOfApiIds = jsonObj.getJSONArray("apiIds");
+		
+		TestCase testCase = testCaseService.findById(tcId);
+		webSocket.sendMsgTo("### " + "开始执行用例：" + testCase.getName(), "123");
+		String env = testCase.getEnv();
+		
+		List<Integer> listOfApiIds = jsonArrOfApiIds.stream().map(x->{
+			return Integer.valueOf(x.toString());
+		}).collect(Collectors.toList());
+		
+		List<TestCaseInterface> tcis = new ArrayList<TestCaseInterface>();
+		
+		for(Integer apiId : listOfApiIds){
+			TestCaseInterface tci = testCaseInterfaceService.findById(apiId);
+			tcis.add(tci);
+		}
+		
+		
+		testCaseExecutor.asyncRunCase(sessionId, env, tcis);
+		return ResultUtil.success(testCase);
 	}
 }

@@ -1,9 +1,14 @@
 package com.nonobank.testcase.entity;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+
+import org.aspectj.weaver.tools.Trace;
 
 @Entity
 public class SystemEnv {
@@ -12,11 +17,13 @@ public class SystemEnv {
 	@GeneratedValue
 	Integer id;
 	
-	@Column(nullable=false, columnDefinition="varchar(20) COMMENT '系统名称'")
-	private String systemName;
+	@ManyToOne
+	@JoinColumn(name="systemCfgId", nullable=false)
+	private SystemCfg systemCfg;
 	
-	@Column(nullable=false, columnDefinition="varchar(20) COMMENT '环境名称'")
-	private String envName;
+	@ManyToOne
+	@JoinColumn(name="envId", nullable=false)
+	private Env env;
 	
 	@Column(nullable=false, columnDefinition="varchar(100) COMMENT '环境域名'")
 	private String domain;
@@ -32,20 +39,20 @@ public class SystemEnv {
 		this.id = id;
 	}
 
-	public String getSystemName() {
-		return systemName;
+	public SystemCfg getSystemCfg() {
+		return systemCfg;
 	}
 
-	public void setSystemName(String systemName) {
-		this.systemName = systemName;
+	public void setSystemCfg(SystemCfg systemCfg) {
+		this.systemCfg = systemCfg;
 	}
 
-	public String getEnvName() {
-		return envName;
+	public Env getEnv() {
+		return env;
 	}
 
-	public void setEnvName(String envName) {
-		this.envName = envName;
+	public void setEnv(Env env) {
+		this.env = env;
 	}
 
 	public String getDomain() {

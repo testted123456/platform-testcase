@@ -14,5 +14,6 @@ public interface TestCaseInterfaceService {
 	
 	List<TestCaseInterfaceFront> update(String userName, List<TestCaseInterfaceFront> tcifs);
 	
+	List<TestCaseInterface> findByInterfaceIdAndOptstatusEquals(Integer interfaceId);
 
 }

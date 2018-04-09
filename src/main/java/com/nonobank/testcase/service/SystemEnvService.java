@@ -9,15 +9,12 @@ public interface SystemEnvService {
 	
 	SystemEnv update(SystemEnv systemEnv);
 	
-	void delete(SystemEnv systemEnv);
+	void delete(Integer id);
 	
 	SystemEnv findById(Integer id);
 	
-	List<SystemEnv> findBySystemName(String systemName);
+	SystemEnv findBySystemCfgIdAndEnvId(Integer systemCfgId, Integer envId);
 	
-	List<SystemEnv> findByEnvName(String envName);
+	List<SystemEnv> findAll();
 	
-	SystemEnv findBySystemNameAndEnvName(String systemName, String envName);	
-	
-	List<SystemEnv> findBySystemNameOrEnvName(String systemName, String envName);
 }

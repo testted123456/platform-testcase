@@ -18,7 +18,7 @@ public interface SystemCfgService {
 	
 	SystemCfg findById(Integer id);
 	
-	List<SystemCfg> findBySystemOrAlias(String system, String alias);
+	SystemCfg findBySystemOrAlias(String system, String alias);
 	
 	List<SystemCfg> findAll();
 	

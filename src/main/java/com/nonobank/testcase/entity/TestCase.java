@@ -2,13 +2,19 @@ package com.nonobank.testcase.entity;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.annotations.Where;
 import org.hibernate.validator.constraints.NotEmpty;
 
 @Entity
@@ -51,6 +57,12 @@ public class TestCase implements Cloneable {
 	
 	@Column(nullable=true, columnDefinition="bit(1) COMMENT '0:流程接口，1:非流程接口'")
 	Boolean caseType;
+	
+	@OneToMany(cascade={CascadeType.ALL})
+//	@JsonManagedReference
+	@JoinColumn(name="testCaseId")
+	@Where(clause="optstatus!=2")
+	List<TestCaseInterface> testCaseInterfaces;
 	
 	@Column(nullable=false, columnDefinition="smallint(1) COMMENT '0:正常，1:已更新，2:已删除'")
 	Short optstatus;
@@ -119,8 +131,19 @@ public class TestCase implements Cloneable {
 		this.createdBy = createdBy;
 	}
 
-	public LocalDateTime getCreatedTime() {
-		return createdTime;
+	public String getCreatedTime() {
+		
+		if(null != this.createdTime){
+			return this.createdTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		}else{
+			return null;
+		}
+	}
+	
+	public void setCreatedTime(String createdTime){
+		if(null != createdTime){
+			this.createdTime = LocalDateTime.parse(createdTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		}
 	}
 
 	public void setCreatedTime(LocalDateTime createdTime) {
@@ -144,8 +167,10 @@ public class TestCase implements Cloneable {
 	}
 
 	public void setUpdatedTime(String updatedTime) {
-		LocalDateTime t = LocalDateTime.parse(updatedTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-		this.updatedTime = t;
+		if(null != this.updatedTime){
+			LocalDateTime t = LocalDateTime.parse(updatedTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+			this.updatedTime = t;
+		}
 	}
 	
 	public void setUpdatedTime(LocalDateTime updatedTime){
@@ -160,6 +185,14 @@ public class TestCase implements Cloneable {
 		this.caseType = caseType;
 	}
 
+	public List<TestCaseInterface> getTestCaseInterfaces() {
+		return testCaseInterfaces;
+	}
+
+	public void setTestCaseInterfaces(List<TestCaseInterface> testCaseInterfaces) {
+		this.testCaseInterfaces = testCaseInterfaces;
+	}
+
 	public Short getOptstatus() {
 		return optstatus;
 	}
@@ -168,14 +201,32 @@ public class TestCase implements Cloneable {
 		this.optstatus = optstatus;
 	}
 	
+	public TestCaseFront convert(){
+		TestCaseFront testCaseFront = new TestCaseFront();
+		
+		testCaseFront.setId(this.id);
+		testCaseFront.setpId(this.pId);
+		testCaseFront.setCaseType(this.caseType);
+		testCaseFront.setEnv(this.env);
+		testCaseFront.setCreatedBy(this.createdBy);
+		testCaseFront.setCreatedTime(this.createdTime);
+		testCaseFront.setDescription(this.description);
+		testCaseFront.setName(this.name);
+		testCaseFront.setType(this.type);
+		testCaseFront.setUpdatedBy(this.updatedBy);
+		testCaseFront.setUpdatedTime(this.updatedTime);
+		testCaseFront.setProjectName(this.projectName);
+		
+		if(null != this.getTestCaseInterfaces()){
+			testCaseFront.setTestCaseInterfaces(this.getTestCaseInterfaces().stream().map(x->{return x.convert();}).collect(Collectors.toList()));
+		}
+		
+		testCaseFront.setOptstatus(this.optstatus);
+		
+		return testCaseFront;
+	}
+	
 	public TestCase clone() throws CloneNotSupportedException{
 		return (TestCase)super.clone();
 	}
-	
-	public static void main(String [] args){
-		LocalDateTime t = LocalDateTime.parse("2018-03-20 02:08:39", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-		System.out.println(t.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-		
-	}
-
 }

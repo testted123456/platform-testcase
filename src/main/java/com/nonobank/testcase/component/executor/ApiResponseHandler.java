@@ -1,13 +1,19 @@
 package com.nonobank.testcase.component.executor;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.nonobank.testcase.component.ws.WebSocket;
 import com.nonobank.testcase.utils.JSONUtils;
 
@@ -28,10 +34,9 @@ public class ApiResponseHandler {
 	 @Autowired
 	 ApiHandlerUtils apiHandlerUtils;
 	 
-	 public boolean handleResponseBody(Map<String, Object> map, String expectedResponseBody, String actualResponseBody, String responseBodyType, String sessionId){
+	 public boolean handleResponseBody(Map<String, Object> map, String expectedResponseBody, String actualResponseBody, String responseBodyType, Map<String, String> handledResponse, String sessionId){
 	    	logger.info("开始处理响应消息");
 	    	webSocket.send6("处理response", sessionId);
-	    	
 	    	webSocket.sendItem("预期结果", sessionId);
 			
 			if(JSONUtils.isJsonArray(expectedResponseBody) || JSONUtils.isJsonObject(expectedResponseBody)){
@@ -45,7 +50,20 @@ public class ApiResponseHandler {
 			webSocket.sendItem("实际结果", sessionId);
 			
 			if(JSONUtils.isJsonArray(actualResponseBody) || JSONUtils.isJsonObject(actualResponseBody)){
+//				try {
+//					webSocket.sendJson(JSONUtils.format(actualResponseBody), sessionId);
+//				} catch (JsonParseException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				} catch (JsonMappingException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
 				webSocket.sendJson(actualResponseBody, sessionId);
+				
 			}else{
 				webSocket.sendVar("```", sessionId);
 				webSocket.sendVar(actualResponseBody, sessionId);
@@ -66,15 +84,18 @@ public class ApiResponseHandler {
 	    			logger.info("true: 已保存变量：" + matcher.group(1) + " ，变量值为：" + actualResponseBody);
 	    			
 	    			webSocket.sendMsgTo("###已保存变量：" + matcher.group(1) + " ，变量值为：" + actualResponseBody, "123");
+	    			handledResponse.put(matcher.group(1), actualResponseBody);
 	    			return result;
 	    		}
 	    		
 	    		if(expectedResponseBody.equals(actualResponseBody)){
 	    			logger.info("true: 预期结果:" + expectedResponseBody + " ,实际结果:" + actualResponseBody);
 	    			webSocket.sendMsgTo("###预期值:" + expectedResponseBody + " ，实际值:" + actualResponseBody, "123");
+	    			handledResponse.put(expectedResponseBody, actualResponseBody);
 	    		}else{
 	    			logger.info("false: 预期结果:" + expectedResponseBody + " ,实际结果:" + actualResponseBody);
 	    			webSocket.sendMsgTo("###预期结果:" + expectedResponseBody + " ,实际结果:" + actualResponseBody, "123");
+	    			handledResponse.put(expectedResponseBody, actualResponseBody);
 	    			result = false;
 	    		}
 	    		
@@ -85,7 +106,7 @@ public class ApiResponseHandler {
 	    	//json响应消息
 	    	if(JSONOBJECT_PATTERN.matcher(expectedResponseBody).matches()){
 	    		if(JSONOBJECT_PATTERN.matcher(actualResponseBody).matches()){
-	    			result = apiHandlerUtils.compareJsonObj(JSONObject.parseObject(expectedResponseBody), JSONObject.parseObject(actualResponseBody), map, sessionId);
+	    			result = apiHandlerUtils.compareJsonObj(JSONObject.parseObject(expectedResponseBody), JSONObject.parseObject(actualResponseBody), map, handledResponse, sessionId);
 	    		}else{
 	    			logger.error("响应消息不是json格式");
 	    			webSocket.sendItem("响应消息不是json格式", sessionId);

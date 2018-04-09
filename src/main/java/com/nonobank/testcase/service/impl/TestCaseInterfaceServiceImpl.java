@@ -49,8 +49,10 @@ public class TestCaseInterfaceServiceImpl implements TestCaseInterfaceService {
 			tci.setOrderNo(i);
 			tci.setCreatedBy(userName);
 			tci.setCreatedTime(LocalDateTime.now());
-			tci.setUpdatedTime(null);
+//			tci.setUpdatedTime(null);
+			tci.setOptstatus((short)0);
 			testCaseInterfaceRepository.save(tci);
+			tcif.setId(tci.getId());
 		}
 	}
 
@@ -102,5 +104,13 @@ public class TestCaseInterfaceServiceImpl implements TestCaseInterfaceService {
 		
 		return tcifs;
 	}
+
+	@Override
+	public List<TestCaseInterface> findByInterfaceIdAndOptstatusEquals(Integer interfaceId) {
+		// TODO Auto-generated method stub
+		return testCaseInterfaceRepository.findByInterfaceIdAndOptstatusEquals(interfaceId, (short)0);
+	}
+
+	
 
 }

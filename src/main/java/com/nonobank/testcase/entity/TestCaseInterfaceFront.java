@@ -5,27 +5,31 @@ import org.hibernate.validator.constraints.NotEmpty;
 import com.alibaba.fastjson.JSONArray;
 
 public class TestCaseInterfaceFront {
-	
+
 	Integer id;
 
 	TestCase testCase;
 
-	@NotNull(message="接口id不能为空")
+	@NotNull(message = "接口id不能为空")
 	Integer interfaceId;
 
-	@NotNull(message="orderNo不能为空")
+	@NotNull(message = "orderNo不能为空")
 	Integer orderNo;
 
-	@NotEmpty(message="step不能为空")
+	@NotEmpty(message = "step不能为空")
 	String step;
-	
+
 	String name;
-	
+
+	Character apiType;
+
+	Character postWay;
+
 	String branch;
-	
+
 	String system;
 
-	@NotEmpty(message="urlAddress不能为空")
+	@NotEmpty(message = "urlAddress不能为空")
 	String urlAddress;
 
 	JSONArray variables;
@@ -80,6 +84,22 @@ public class TestCaseInterfaceFront {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public Character getApiType() {
+		return apiType;
+	}
+
+	public void setApiType(Character apiType) {
+		this.apiType = apiType;
+	}
+
+	public Character getPostWay() {
+		return postWay;
+	}
+
+	public void setPostWay(Character postWay) {
+		this.postWay = postWay;
 	}
 
 	public String getBranch() {
@@ -209,37 +229,69 @@ public class TestCaseInterfaceFront {
 	public void setOptstatus(Short optstatus) {
 		this.optstatus = optstatus;
 	}
-	
-	public TestCaseInterface convert(){
+
+	public TestCaseInterface convert() {
 		TestCaseInterface tci = new TestCaseInterface();
-		
+
 		tci.setId(this.id);
 		tci.setTestCase(this.testCase);
 		tci.setInterfaceId(this.interfaceId);
+		tci.setInterfaceName(this.name);
+		tci.setApiType(this.apiType);
+		tci.setPostWay(this.postWay);
+
+//		switch (this.apiType) {
+//		case "Http":
+//			tci.setApiType('0');
+//			break;
+//		case "Https":
+//			tci.setApiType('1');
+//			break;
+//		case "MQ":
+//			tci.setApiType('2');
+//			break;
+//
+//		default:
+//			break;
+//		}
+//
+//		switch (this.postWay) {
+//		case "get":
+//			tci.setPostWay('0');
+//			break;
+//		case "post":
+//			tci.setPostWay('1');
+//			break;
+//		default:
+//			break;
+//		}
+
+		tci.setBranch(this.branch);
+		tci.setSystem(this.system);
 		tci.setOrderNo(this.orderNo);
 		tci.setStep(this.step);
 		tci.setUrlAddress(this.urlAddress);
-		
-		if(this.variables != null){
+
+		if (this.variables != null) {
 			tci.setVariables(this.variables.toJSONString());
 		}
-		
-		if(this.requestHead != null){
+
+		if (this.requestHead != null) {
 			tci.setRequestHead(this.requestHead.toJSONString());
 		}
-		
-		if(this.responseHead != null){
+
+		if (this.responseHead != null) {
 			tci.setResponseHead(this.responseHead.toJSONString());
 		}
-		
-		if(this.assertions != null){
+
+		if (this.assertions != null) {
 			tci.setAssertions(this.assertions.toJSONString());
 		}
-		
+
 		tci.setRequestBody(this.requestBody);
 		tci.setResponseBody(this.responseBody);
 		tci.setOptstatus(this.optstatus);
-		
+
 		return tci;
 	}
 }

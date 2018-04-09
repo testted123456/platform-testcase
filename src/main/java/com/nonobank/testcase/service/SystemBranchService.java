@@ -36,4 +36,7 @@ public interface SystemBranchService {
 	
 	
 	List<SystemBranch> findBySystemAndLast(String system, boolean last);
+	
+	List<SystemBranch> findall();
+	
 }

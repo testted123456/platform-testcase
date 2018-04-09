@@ -1,8 +1,9 @@
 package com.nonobank.testcase.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.nonobank.testcase.component.remoteEntity.RemoteApi;
 import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultUtil;
+import com.nonobank.testcase.entity.TestCase;
 import com.nonobank.testcase.entity.TestCaseInterface;
 import com.nonobank.testcase.entity.TestCaseInterfaceFront;
 import com.nonobank.testcase.service.SystemBranchService;
@@ -55,8 +57,13 @@ public class TestCaseInterfaceController {
 		logger.info("开始查询用例接口");
 		
 		List<TestCaseInterface> tcis = testCaseInterfaceService.findByTestCaseId(testCaseId);
+		
 		List<TestCaseInterfaceFront> tcifs = new ArrayList<>();
 		
+		tcis.stream().forEach(x->{
+			tcifs.add(x.convert());
+		});
+		/**
 		List<Integer> ids = tcis.stream().map(x->x.getInterfaceId()).collect(Collectors.toList());
 		JSONArray jsonApis = remoteApi.getApisById(ids);
 		
@@ -77,7 +84,7 @@ public class TestCaseInterfaceController {
 			}
 			
 			tcifs.add(tcif);
-		});
+		});**/
 		
 		return ResultUtil.success(tcifs);
 	}
@@ -88,7 +95,7 @@ public class TestCaseInterfaceController {
 	public Result add(@CookieValue(value="nonousername",required=false) String userName, @RequestBody List<TestCaseInterfaceFront> tcifs){
 		logger.info("开始新增用例接口");
 		testCaseInterfaceService.add(userName, tcifs);
-		return ResultUtil.success();
+		return ResultUtil.success(tcifs);
 	}
 	
 	@PostMapping(value="updateCaseInterfaces")
@@ -156,4 +163,180 @@ public class TestCaseInterfaceController {
 		
 		return ResultUtil.success(resultJson);
 	}
+	
+	@GetMapping(value="getSameCasesByApiId")
+	@ResponseBody
+	public Result getSameCasesByApiId(@RequestParam Integer apiId){
+		
+		List<JSONObject> treeNodes = new ArrayList<JSONObject>();
+		
+		Map<Integer, JSONObject> map = new HashMap<Integer, JSONObject>();
+		
+		JSONObject rootNode = new JSONObject();
+		
+		List<TestCaseInterface> tcis = testCaseInterfaceService.findByInterfaceIdAndOptstatusEquals(apiId);
+		
+		tcis.forEach(x->{
+			String name = x.getStep();
+			Integer id = x.getId();
+			TestCase tc = x.getTestCase();
+			
+			
+			JSONObject leaf = new JSONObject();
+			leaf.put("pId", tc.getId());
+			leaf.put("id", id);
+			leaf.put("name", name);
+			leaf.put("type", 0);
+			x.setId(null);
+			leaf.put("api", x);
+			
+			name = tc.getName();
+			id = tc.getId();
+			Integer pId = tc.getpId();
+			
+			JSONObject node = null;
+			
+			if(map.containsKey(id)){
+				node = map.get(id);
+				node.getJSONArray("children").add(leaf);
+			}else{
+				node = new JSONObject();
+				node.put("pId", pId);
+				node.put("id", id);
+				node.put("name", name);
+				node.put("type", 1);
+				JSONArray children = new JSONArray();
+				children.add(leaf);
+				node.put("children", children);
+				map.put(id, node);
+			}
+			
+			while(!pId.equals(0)){
+				tc = testCaseService.findById(pId);
+				
+				name = tc.getName();
+				id = tc.getId();
+				pId = tc.getpId();
+				
+				JSONObject parnetNode = null;
+				
+				if(map.containsKey(id)){
+					parnetNode = map.get(id);
+					parnetNode.getJSONArray("children").add(node);
+				}else{
+					parnetNode = new JSONObject();
+					parnetNode.put("id", id);
+					parnetNode.put("name", name);
+					parnetNode.put("type", 1);
+					parnetNode.put("pId", pId);
+					JSONArray parentChildren = new JSONArray();
+					parentChildren.add(node);
+					parnetNode.put("children", parentChildren);
+					map.put(id, parnetNode);
+				}
+						
+//				if(parnetNode.containsKey("children")){
+//					parnetNode.getJSONArray("children").add(node);
+//				}else{
+//					JSONArray parentChildren = new JSONArray();
+//					parentChildren.add(node);
+//					parnetNode.put("children", parentChildren);
+//				}
+				node = parnetNode;
+			}
+			
+		});
+		
+		rootNode.put("children", treeNodes);
+		rootNode.put("id", 0);
+		rootNode.put("type", 1);
+		rootNode.put("name", "测试用例");
+		
+		map.forEach((k,v)->{
+			if(v.getInteger("pId").equals(0)){
+				treeNodes.add(v);
+			}
+		});
+		
+		List<JSONObject> list = new ArrayList<JSONObject>();
+		list.add(rootNode);
+//		
+//		List<JSONObject> tempList = treeNodes.stream().filter(x->{
+//			return !x.getInteger("pId").equals(0);
+//		}).collect(Collectors.toList());
+//		
+//		while(tempList.size()>0){
+//			tempList.forEach(x->{
+//				
+//			});
+//		}
+//	
+//		
+//		tcis.stream().forEach(x->{
+//			JSONObject leaf = new JSONObject();
+//			leaf.put("id", x.getId());
+//			leaf.put("name", x.getStep());
+//			leaf.put("type", 0);
+//			leaf.put("api", x);
+//
+//			TestCase tc = x.getTestCase();
+//			String name = tc.getName();
+//			Integer id = tc.getId();
+//			Integer pId = tc.getpId();
+//			
+//			leaf.put("pId", pId);
+//			
+//			JSONObject treeNode = treeNodes.stream().filter(y->{
+//				return y.getInteger("id").equals(tc.getId());
+//				}).map(z->{
+//					z.getJSONArray("children").add(leaf);
+//					return z;
+//				}).findFirst().orElseGet(()->{
+//					JSONObject jsonTreeNode =  new JSONObject();
+//					jsonTreeNode.put("name", name);
+//					jsonTreeNode.put("id", tc.getId());
+//					jsonTreeNode.put("type", 1);
+//					jsonTreeNode.put("pId", tc.getpId());
+//					JSONArray leafs = new JSONArray();
+//					leafs.add(leaf);
+//					jsonTreeNode.put("children", leafs);
+//					treeNodes.add(jsonTreeNode);
+//					return jsonTreeNode;
+//					});
+//			
+//			while(true){
+//				treeNodes.stream().forEach(y->{
+//					if(y.equals(pId)){
+//						y.getJSONArray("children").stream().filter(z->{
+//							JSONObject jsonObj = (JSONObject)z;
+//							return jsonObj.getInteger("id").equals(id);
+//						}).findFirst().orElseGet(()->{
+//							y.getJSONArray("children").add(treeNode);
+//							return y;
+//						});
+//					}
+//				});
+//				
+//				if(pId.equals(0)){
+//					break;
+//				}else{
+//					TestCase parentCase = testCaseService.findById(pId);
+//					JSONObject jsonParentTNode = new JSONObject();
+//					jsonParentTNode.put("name", parentCase.getName());
+//					jsonParentTNode.put("id", parentCase.getId());
+//					jsonParentTNode.put("type", 1);
+//					jsonParentTNode.put("pId", parentCase.getpId());
+//					jsonParentTNode.put("children", treeNode);
+//					treeNodes.add(jsonParentTNode);
+//				}
+//			}
+//		});
+//		
+//		List<JSONObject> list = treeNodes.stream().filter(x->{
+//			return x.getInteger("pId").equals(0);
+//		}).collect(Collectors.toList());
+		
+		return ResultUtil.success(list);
+	}
+	
 }

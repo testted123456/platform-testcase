@@ -79,4 +79,8 @@ public class SystemBranchServiceImpl implements SystemBranchService {
 		return systemBranchRepository.findBySystemAndLastAndOptstatusEquals(system, last, (short)0);
 	}
 
+	@Override
+	public List<SystemBranch> findall() {
+		return systemBranchRepository.findAll();
+	}
 }

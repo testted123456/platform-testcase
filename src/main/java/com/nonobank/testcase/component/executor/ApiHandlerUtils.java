@@ -1,5 +1,6 @@
 package com.nonobank.testcase.component.executor;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ import com.nonobank.testcase.entity.DBCfg;
 import com.nonobank.testcase.entity.Env;
 import com.nonobank.testcase.service.DBCfgService;
 import com.nonobank.testcase.service.EnvService;
+import com.nonobank.testcase.utils.JSONUtils;
 import com.nonobank.testcase.utils.dll.InvokeUtils;
 
 @Component
@@ -45,29 +47,41 @@ public class ApiHandlerUtils {
 	@Autowired
 	DBCfgService dbCfgService;
 
-	public  void compareStr(String key, String expectedStr, String actualStr, Map<String, Object> map, String sessionId) {
+	public  void compareStr(String key, String expectedStr, String actualStr, Map<String, Object> map, Map<String, String> handledResult, String sessionId) {
+		if(null == expectedStr ){
+			if(null == actualStr){
+				webSocket.sendVar("**" + key + "** 预期结果、实际结果相同，结果为：" + expectedStr, sessionId);
+			}else{
+				webSocket.sendVar("**" + key + "** 预期值：" + expectedStr + "，实际值：" + actualStr, sessionId);
+			}
+			
+			return;
+		}
+		
 		if (SAVE_PATTERN.matcher(expectedStr).matches()) {
 			Matcher matcher = SAVE_PATTERN.matcher(expectedStr);
 			if (matcher.find()) {
 				map.put(matcher.group(1), actualStr);
 				logger.info("true: 已保存变量" + matcher.group(1) + " ，变量值为：" + actualStr);
-//				webSocket.sendMsgTo("###已保存变量" + matcher.group(1) + " ，变量值为：" + actualStr, "123");
 				webSocket.sendVar("**" + matcher.group(1) + "**" + " 已保存" + " ，变量值为：" + actualStr, sessionId);
+				handledResult.put(matcher.group(1),  "已保存" + " ，变量值为：" + actualStr);
 			}
 		} else {
 			if (!expectedStr.equals(actualStr)) {
 				logger.warn("false: " + key + " 预期结果是：" + expectedStr + ",但实际结果是：" + actualStr);
-//				webSocket.sendMsgTo("###" + key + " 预期结果是：" + expectedStr + ",但实际结果是：" + actualStr, "123");
+				
 				webSocket.sendVar("**" + key + "** 预期值：" + expectedStr + "，实际值：" + actualStr, sessionId);
+				handledResult.put(key, "预期值：" + expectedStr + "，实际值：" + actualStr);
 			} else {
 				logger.info("true: " + key + " 预期结果、实际结果相同，结果为：" + expectedStr);
-//				webSocket.sendMsgTo("###" + key + " 预期结果、实际结果相同，结果为：" + expectedStr, "123");
 				webSocket.sendVar("**" + key + "** 预期结果、实际结果相同，结果为：" + expectedStr, sessionId);
+				handledResult.put(key, "预期结果、实际结果相同，结果为：" + expectedStr);
 			}
 		}
 	}
 
 	public boolean compareJsonObj(JSONObject expectedJsonObj, JSONObject actualJsonObj, Map<String, Object> map,
+			Map<String, String> handledResult,
 			String sessionId) {
 		Set<String> keys = expectedJsonObj.keySet();
 
@@ -79,19 +93,21 @@ public class ApiHandlerUtils {
 
 			if (expectedValue instanceof JSONObject) {
 				if (actualValue instanceof JSONObject) {
-					compareJsonObj((JSONObject) expectedValue, (JSONObject) actualValue, map, sessionId);
+					compareJsonObj((JSONObject) expectedValue, (JSONObject) actualValue, map, handledResult, sessionId);
 				} else {
 					logger.warn("false: " + key + "的预期值：" + expectedValue + ",但实际值为：" + actualValue);
 //					webSocket.sendMsgTo("###" + key + "的预期值：" + expectedValue + ",但实际值为：" + actualValue, "123");
 					webSocket.sendVar("**" + key + "** 预期值：" + expectedValue + "，实际值：" + actualValue, sessionId);
+					handledResult.put(key, "预期值：" + expectedValue + "，实际值：" + actualValue);
 					result = false;
 				}
 			} else if (expectedValue instanceof JSONArray) {
 				logger.warn("false: 预期结果暂不支持数组, " + key + " : " + expectedValue);
 				webSocket.sendVar("预期结果暂不支持数组，" + key + " : " + expectedValue, sessionId);
+				handledResult.put(key, "预期结果暂不支持数组，" + expectedValue);
 				result = false;
 			} else {
-				compareStr(key, expectedJsonObj.getString(key), actualJsonObj.getString(key), map, sessionId);
+				compareStr(key, expectedJsonObj.getString(key), actualJsonObj.getString(key), map, handledResult, sessionId);
 			}
 		}
 

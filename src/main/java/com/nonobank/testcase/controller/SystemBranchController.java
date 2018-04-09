@@ -1,6 +1,7 @@
 package com.nonobank.testcase.controller;
 
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
 import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultUtil;
 import com.nonobank.testcase.entity.SystemBranch;
@@ -43,6 +45,13 @@ public class SystemBranchController {
 		logger.info("开始更新系统 {} ,分支 {}", systemBranch.getSystem(), systemBranch.getBranch());
 		systemBranchService.update(systemBranch);
 		return ResultUtil.success();
+	}
+	
+	@GetMapping(value="getAll")
+	@ResponseBody
+	public Result getAll(){
+		logger.info("开始获取系统分支配置");
+		return ResultUtil.success(systemBranchService.findall());
 	}
 
 }

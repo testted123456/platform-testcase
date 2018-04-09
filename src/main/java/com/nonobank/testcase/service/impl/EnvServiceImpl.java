@@ -27,6 +27,10 @@ public class EnvServiceImpl implements EnvService {
 
 	@Override
 	public Env add(Env env) {
+		if(env.getId() != null){
+			return update(env);
+		}
+		
 		if(envRepository.findByName(env.getName()) == null){
 			return envRepository.save(env);
 		}else{
@@ -36,12 +40,13 @@ public class EnvServiceImpl implements EnvService {
 
 	@Override
 	public Env update(Env env) {
+		Env e = envRepository.findByName(env.getName());
 		
-		if(envRepository.findByName(env.getName()) != null){
-			return envRepository.save(env);
-		}else{
-			throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "要更新的记录不存在");
+		if(null != e && !e.getId().equals(env.getId())){
+			throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "要更新的环境名称已存在");
 		}
+		
+		return envRepository.save(env);
 	}
 
 	@Override

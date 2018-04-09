@@ -63,4 +63,13 @@ public class SystemCfgController {
 		logger.info("查找所有系统别名成功");
 		return ResultUtil.success(aliases);
 	}
+	
+	@GetMapping(value="getAll")
+	@ResponseBody
+	public Result getAll(){
+		logger.info("开始查找所有系统配置");
+		List<SystemCfg> systemCfgs = SystemCfgService.findAll();
+		logger.info("查找所有系统配置");
+		return ResultUtil.success(systemCfgs);
+	}
 }

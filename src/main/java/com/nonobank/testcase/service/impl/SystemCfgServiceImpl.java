@@ -20,22 +20,29 @@ public class SystemCfgServiceImpl implements SystemCfgService{
 
 	@Override
 	public SystemCfg add(SystemCfg systemCfg) {
-		List<SystemCfg> systemCfgs = systemCfgRepository.findBySystemOrAlias(systemCfg.getSystem(), systemCfg.getAlias());
 		
-		if(systemCfgs.size() == 0){
-			return systemCfgRepository.save(systemCfg);
-		}else{
-			throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "名称或别名不能重复");
+		if(systemCfg.getId() != null){
+			return update(systemCfg);
 		}
 		
+		SystemCfg scfg = systemCfgRepository.findBySystemOrAlias(systemCfg.getSystem(), systemCfg.getAlias());
+		
+		if(scfg != null){
+			throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "名称或别名不能重复");
+		}else{
+			return systemCfgRepository.save(systemCfg);
+		}
 	}
 
 	@Override
 	public SystemCfg update(SystemCfg systemCfg) {
-		if(systemCfgRepository.findBySystem(systemCfg.getSystem()) != null){
-			return systemCfgRepository.save(systemCfg);
+		
+		SystemCfg scfg = systemCfgRepository.findBySystemOrAlias(systemCfg.getSystem(), systemCfg.getAlias());
+		
+		if(!scfg.getId().equals(systemCfg.getId())){
+			throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "名称或别名不能重复");
 		}else{
-			throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "记录不存在");
+			return systemCfgRepository.save(systemCfg);
 		}
 	}
 
@@ -55,7 +62,7 @@ public class SystemCfgServiceImpl implements SystemCfgService{
 	}
 
 	@Override
-	public List<SystemCfg> findBySystemOrAlias(String system, String alias) {
+	public SystemCfg findBySystemOrAlias(String system, String alias) {
 		return systemCfgRepository.findBySystemOrAlias(system, alias);
 	}
 	

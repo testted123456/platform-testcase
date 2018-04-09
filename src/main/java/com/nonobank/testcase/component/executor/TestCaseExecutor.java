@@ -1,10 +1,13 @@
 package com.nonobank.testcase.component.executor;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.http.HttpException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.slf4j.Logger;
@@ -13,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
+
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.apps.HttpClient;
 import com.nonobank.testcase.component.config.HttpServerProperties;
@@ -21,12 +25,19 @@ import com.nonobank.testcase.component.exception.TestCaseException;
 import com.nonobank.testcase.component.remoteEntity.RemoteApi;
 import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.component.ws.WebSocket;
+import com.nonobank.testcase.entity.Env;
+import com.nonobank.testcase.entity.ResultDetail;
+import com.nonobank.testcase.entity.ResultHistory;
+import com.nonobank.testcase.entity.SystemCfg;
 import com.nonobank.testcase.entity.SystemEnv;
 import com.nonobank.testcase.entity.TestCase;
 import com.nonobank.testcase.entity.TestCaseInterface;
 import com.nonobank.testcase.service.EnvService;
+import com.nonobank.testcase.service.ResultDetailService;
+import com.nonobank.testcase.service.SystemCfgService;
 import com.nonobank.testcase.service.SystemEnvService;
 import com.nonobank.testcase.service.TestCaseService;
+import com.nonobank.testcase.utils.JSONUtils;
 
 @Component
 @EnableAsync
@@ -48,6 +59,9 @@ public class TestCaseExecutor {
 	
 //	@Autowired
 //	ApiExecutor apiExecutor;
+	
+	@Autowired
+	SystemCfgService systemCfgService;
 	
 	@Autowired
 	EnvService envService;
@@ -73,6 +87,9 @@ public class TestCaseExecutor {
 	@Autowired
     ApiHandlerUtils apiHandlerUtils;
 	
+	@Autowired
+	ResultDetailService resultDetailService;
+	
 	/**
 	 * 处理接口url
 	 * @param apiType
@@ -90,10 +107,10 @@ public class TestCaseExecutor {
 			url = m.group(3);
 		}
 		
-		if(url.startsWith("/")){
-			url = domain + url;
+		if(!url.startsWith("/") && !domain.endsWith("/")){
+			url = domain + "/" + url;
 		}else{
-			url =  domain + "/" + url;
+			url =  domain + url;
 		}
 		
 		if("0".equals(apiType)){
@@ -114,16 +131,23 @@ public class TestCaseExecutor {
 	 * @throws HttpException 
 	 * @throws com.nonobank.testcase.component.exception.HttpExecutorException 
 	 */
-	public void runApi(String sessionId, String env, Map<String, Object> map, TestCaseInterface testCaseInterface){
+	public void runApi(ResultHistory resultHistory , Integer tcId, String sessionId, String env, Map<String, Object> map, TestCaseInterface testCaseInterface, ResultDetail resultDetail){
 		logger.info("开始执行api，id：" + testCaseInterface.getId());
 		
 		//查询api的协议、url
 		Integer interfaceid = testCaseInterface.getInterfaceId();
 		JSONObject apiRespOfJson = remoteApi.getApi(interfaceid);
+		
+		//0:get，1:post
 		String postWay = apiRespOfJson.getString("postWay");
+		
+		//0:Http;1:Https;2:MQ
 		String apiType =  apiRespOfJson.getString("apiType");
+		
 		String system = apiRespOfJson.getString("system");
+		
 		String apiName = apiRespOfJson.getString("name");
+		
 		String responseBodyType = apiRespOfJson.getString("responseBodyType");
 		
 		webSocket.sendH5("执行接口：" + apiName, sessionId);
@@ -135,14 +159,19 @@ public class TestCaseExecutor {
 		String variables = testCaseInterface.getVariables();
 		String assertions = testCaseInterface.getAssertions();
 		
+		resultDetail.setHeaders(requestHeaders);
+		
 		//处理自定义变量
 		if(null != variables){
-			apiVariablesHandler.handleAllVariables(map, variables, sessionId, env);
+			Map<String, String> HandledVariables = apiVariablesHandler.handleAllVariables(map, variables, sessionId, env);
+			resultDetail.setVariables(JSONObject.toJSONString(HandledVariables));
 		}
 		
 		//处理接口url
 		if(!"thirdparty".equals(system)){
-			SystemEnv systemEnv = systemEnvService.findBySystemNameAndEnvName(system, env);
+			SystemCfg systemCfg = systemCfgService.findBySystem(system);
+		    Env e = envService.findByName(env);
+			SystemEnv systemEnv = systemEnvService.findBySystemCfgIdAndEnvId(systemCfg.getId(), e.getId());
 			String domain = systemEnv.getDomain();
 			String dns = systemEnv.getDns();
 			url = handleUrl(apiType, domain, system, url);
@@ -160,7 +189,8 @@ public class TestCaseExecutor {
 		
 		//处理请求消息体
 		if(null != requestBody){
-			apiRequestHandler.handleRequest(map, requestBody, sessionId);
+			requestBody = apiRequestHandler.handleRequest(map, requestBody, sessionId);
+			resultDetail.setRequestBody(requestBody);
 		}
 		
 		//发送请求 
@@ -201,27 +231,69 @@ public class TestCaseExecutor {
 		logger.info("响应消息为：" + actualResponseBody);
 
 		if(null != expectedResponseBody){
-			 apiResponseHandler.handleResponseBody(map, expectedResponseBody, actualResponseBody, responseBodyType, sessionId);
+			 Map<String, String> handledResponse = new HashMap<String, String>();
+			 apiResponseHandler.handleResponseBody(map, expectedResponseBody, actualResponseBody, responseBodyType, handledResponse, sessionId);
+			 resultDetail.setResponseBody(JSONObject.toJSONString(handledResponse));
+		}else{
+			webSocket.sendItem("实际结果", sessionId);
+			
+			if(JSONUtils.isJsonArray(actualResponseBody) || JSONUtils.isJsonObject(actualResponseBody)){
+				webSocket.sendJson(actualResponseBody, sessionId);
+			}else{
+				webSocket.sendVar("```", sessionId);
+				webSocket.sendVar(actualResponseBody, sessionId);
+				webSocket.sendVar("```", sessionId);
+			}
 		}
 		
 		//处理断言
-		logger.info("开始处理断言");
-		apiAssertionsHandler.handleAssertions(map, assertions, sessionId, env);
+		if(null != assertions){
+			logger.info("开始处理断言");
+			List<String> handledAssertions = new ArrayList<>();
+			boolean result  = apiAssertionsHandler.handleAssertions(map, handledAssertions, assertions, sessionId, env);
+			resultDetail.setResult(result);
+			resultDetail.setAssertions(JSONObject.toJSONString(handledAssertions));
+		}
 	}
 	
 	@Async
-	public void runCase(String sessionId, String env, List<TestCaseInterface> testCaseInterfaces) {
-		Map<String, Object> map = new HashMap<String, Object>();
+	public void asyncRunCase(String sessionId, String env, List<TestCaseInterface> testCaseInterfaces){
+		Map<String, Object> varMap = new HashMap<String, Object>();
+		runCase(null, null, sessionId, env, testCaseInterfaces, varMap);
+	}
+	
+	/**
+	 * 
+	 * @param resultHistory
+	 * @param tcId
+	 * @param sessionId
+	 * @param env
+	 * @param testCaseInterfaces
+	 * @param map 变量上下文
+	 */
+	public void runCase(ResultHistory resultHistory, Integer tcId, String sessionId, String env, List<TestCaseInterface> testCaseInterfaces,
+			Map<String, Object> map) {
+		
+		logger.info("开始执行用例，id：{}", tcId);
 		
 		for(TestCaseInterface tcf : testCaseInterfaces){
+			ResultDetail resultDetail = new ResultDetail();
+			resultDetail.setApiId(tcf.getInterfaceId());
+			resultDetail.setTcId(tcId);
+			resultDetail.setResultHistory(resultHistory);
+			resultDetail.setCreatedTime(LocalDateTime.now());
+			
 			TestCase testCase = tcf.getTestCase();
 			boolean isflow = testCase.getCaseType();
 			
 			try{
-				runApi("123", env, map, tcf);
+				runApi(resultHistory, tcId, "123", env, map, tcf, resultDetail);
 			}catch(Exception e){
 				webSocket.sendVar("接口测试发生异常：" + e.getMessage(), "123");
-				
+				resultDetail.setException(e.getMessage());
+				resultDetail.setResult(false);
+				resultDetailService.add(resultDetail);
+					
 				if(isflow == true){
 					throw new TestCaseException(ResultCode.EXCEPTION_ERROR);
 				}else{
@@ -229,6 +301,8 @@ public class TestCaseExecutor {
 					continue;
 				}
 			}
+			
+			resultDetailService.add(resultDetail);
 		}
 		
 		webSocket.send6("用例执行完成", "123");
