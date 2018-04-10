@@ -12,13 +12,21 @@ import com.nonobank.testcase.component.dataProvider.annotation.Return;
 import com.nonobank.testcase.utils.dll.MD5Util;
 
 public class SignatureUtils {
-	
+
 	@Info(name="getSignature_db",desc="获取签名")
 	@Param(type={},name={},desc={})
 	@Return(type="String",desc="获取签名")
+
+	/**
+	 * @api {函数} getSignature_db() 获取签名
+	 * @apiGroup OTHER
+	 * @apiVersion 0.1.0
+	 * @apiSuccessExample {invoke} 调用说明:
+	 * ${getSignature_db()}
+	 */
 	public static void getSignature_db(){
 	}
-	
+
 	public static String getSignature(String jsonStr) {
 		JSONObject json = JSONObject.parseObject(jsonStr);
 		String appId = json.getString("appId");
