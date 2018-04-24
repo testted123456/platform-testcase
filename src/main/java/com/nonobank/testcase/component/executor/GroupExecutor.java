@@ -1,6 +1,5 @@
 package com.nonobank.testcase.component.executor;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,9 +12,11 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 
+import com.nonobank.testcase.entity.GlobalVariable;
 import com.nonobank.testcase.entity.ResultHistory;
 import com.nonobank.testcase.entity.TestCase;
 import com.nonobank.testcase.entity.TestCaseInterface;
+import com.nonobank.testcase.service.GlobalVariableService;
 import com.nonobank.testcase.service.ResultHistoryService;
 import com.nonobank.testcase.service.TestCaseInterfaceService;
 import com.nonobank.testcase.service.TestCaseService;
@@ -37,6 +38,9 @@ public class GroupExecutor {
 	
 	@Autowired
 	ResultHistoryService resultHistoryService;
+	
+	@Autowired
+	GlobalVariableService globalVariableService;
 	
 	Map<Integer, Map<String, Integer>> map = new ConcurrentHashMap<Integer, Map<String, Integer>>();
 	
@@ -67,6 +71,10 @@ public class GroupExecutor {
 		float executedCount = map.get(groupId).get("executedCount");
 		return executedCount/totalCount * 100;
 	}
+	
+	public void setMap(Integer groupId, Map<String, Integer>groupMap){
+		this.map.put(groupId, groupMap);
+	}
 
 	@Async
 	public void runGroup(Integer groupId, String env, Integer totalSize, List<Integer> tcIDs){
@@ -75,14 +83,22 @@ public class GroupExecutor {
 			logger.info("开始执行group，id：{}", groupId);
 			
 			int size = tcIDs.size();
-			Map<String, Integer> groupMap = new HashMap<String, Integer>();
-			groupMap.put("totalCount", size);
-			groupMap.put("executedCount", 0);
+			Map<String, Integer> groupMap = map.get(groupId);
+					
+//			new HashMap<String, Integer>();
+//			groupMap.put("totalCount", size);
+//			groupMap.put("executedCount", 0);
 			
-			ResultHistory resultHistory = resultHistoryService.add(groupId, null, tcIDs.toString(), totalSize);
+			ResultHistory resultHistory = resultHistoryService.add(groupId, null, tcIDs.toString(), null, totalSize);
 			map.put(groupId, groupMap);
 			
 			Map<String, Object> varMap = new HashMap<String, Object>();
+			List<GlobalVariable> listOfGlobalVars = globalVariableService.getAll();
+			listOfGlobalVars.forEach(g->{
+				String name = g.getName();
+				String value = g.getValue();
+				varMap.put(name, value);	
+			});
 			
 			for(Integer tcId : tcIDs){
 				TestCase tc = testCaseService.findById(tcId);
@@ -104,6 +120,7 @@ public class GroupExecutor {
 			
 			logger.info("group执行完成，id：{}", groupId);
 		}catch(Exception e){
+			e.printStackTrace();
 			logger.error("group执行抛异常，groupId:" + groupId);
 		}
 		

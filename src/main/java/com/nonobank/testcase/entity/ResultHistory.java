@@ -14,14 +14,17 @@ public class ResultHistory {
 	@GeneratedValue
 	private Integer id;
 
-	@Column(nullable = true, columnDefinition = "int(11) COMMENT 'group id'")
+	@Column(nullable = true, columnDefinition = "int(11) COMMENT '执行group时group id'")
 	private Integer groupId;
 
-	@Column(nullable = true, columnDefinition = "int(11) COMMENT 'tc id'")
+	@Column(nullable = true, columnDefinition = "int(11) COMMENT '执行case时tc id'")
 	private Integer tcId;
 
-	@Column(nullable = true, columnDefinition = "varchar(500) COMMENT 'group中的case列表'")
+	@Column(nullable = true, columnDefinition = "varchar(500) COMMENT '执行group时，group中的case列表'")
 	private String tcIds;
+	
+	@Column(nullable = true, columnDefinition = "varchar(500) COMMENT '执行case时，case中的api列表'")
+	private String apiIds;
 
 	@Column(nullable = true, columnDefinition = "int(11) COMMENT 'group中的case数量或case中的api数量'")
 	private Integer totalSize;
@@ -59,6 +62,14 @@ public class ResultHistory {
 
 	public void setTcIds(String tcIds) {
 		this.tcIds = tcIds;
+	}
+	
+	public String getApiIds() {
+		return apiIds;
+	}
+
+	public void setApiIds(String apiIds) {
+		this.apiIds = apiIds;
 	}
 
 	public Integer getTotalSize() {

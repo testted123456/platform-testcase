@@ -18,7 +18,7 @@ public class GlobalVariable {
 	@Column(nullable=false, columnDefinition="varchar(300) COMMENT '变量值'")
 	private String value;
 	
-	@Column(nullable=false, columnDefinition="varchar(300) COMMENT '变量描述'")
+	@Column(nullable=true, columnDefinition="varchar(300) COMMENT '变量描述'")
 	private String description;
 
 	public Integer getId() {

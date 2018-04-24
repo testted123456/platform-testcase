@@ -91,7 +91,7 @@ public class TestCaseServiceImpl implements TestCaseService {
 				tci.setOptstatus((short)0);
 				System.out.println(tci.getApiType());
 				
-				if(null == tci.getId()){//新增接口
+				if(null == tci.getId() ){//新增接口
 					tci.setTestCase(testCase);
 					tci.setCreatedBy(userName);
 					tci.setCreatedTime(LocalDateTime.now());
@@ -114,7 +114,7 @@ public class TestCaseServiceImpl implements TestCaseService {
 				}
 			});
 			
-			testCaseRepository.save(testCase);
+			testCase = testCaseRepository.save(testCase);
 			logger.info("更新用例{}成功", id);
 		}else{
 			throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "case不在数据库中");

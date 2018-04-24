@@ -26,8 +26,17 @@ public class ResultDetail {
 	@Column(nullable=false, columnDefinition="int(11) COMMENT 'case id'")
 	private Integer tcId;
 	
+	@Column(nullable=true, columnDefinition="varchar(500) COMMENT '用例名称'")
+	private String tcName;
+	
 	@Column(nullable=false, columnDefinition="int(11) COMMENT 'api id'")
 	private Integer apiId;
+	
+	@Column(nullable=true, columnDefinition="varchar(500) COMMENT '接口名称'")
+	private String apiName;
+	
+	@Column(nullable=true, columnDefinition="varchar(500) COMMENT '接口步骤名称'")
+	private String apiStepName;
 	
 	@Column(nullable=true, columnDefinition="varchar(500) COMMENT '接口地址'")
 	private String url;
@@ -43,6 +52,9 @@ public class ResultDetail {
 	
 	@Column(nullable=true, columnDefinition="text COMMENT '响应消息'")
 	private String responseBody;
+	
+	@Column(nullable=true, columnDefinition="text COMMENT '实际响应消息'")
+	private String actualResponseBody;
 	
 	@Column(nullable=true, columnDefinition="text COMMENT '接口断言'")
 	private String assertions;
@@ -78,6 +90,14 @@ public class ResultDetail {
 	public void setTcId(Integer tcId) {
 		this.tcId = tcId;
 	}
+	
+	public String getTcName() {
+		return tcName;
+	}
+
+	public void setTcName(String tcName) {
+		this.tcName = tcName;
+	}
 
 	public Integer getApiId() {
 		return apiId;
@@ -85,6 +105,22 @@ public class ResultDetail {
 
 	public void setApiId(Integer apiId) {
 		this.apiId = apiId;
+	}
+	
+	public String getApiName() {
+		return apiName;
+	}
+
+	public void setApiName(String apiName) {
+		this.apiName = apiName;
+	}
+
+	public String getApiStepName() {
+		return apiStepName;
+	}
+
+	public void setApiStepName(String apiStepName) {
+		this.apiStepName = apiStepName;
 	}
 
 	public String getUrl() {
@@ -125,6 +161,14 @@ public class ResultDetail {
 
 	public void setResponseBody(String responseBody) {
 		this.responseBody = responseBody;
+	}
+
+	public String getActualResponseBody() {
+		return actualResponseBody;
+	}
+
+	public void setActualResponseBody(String actualResponseBody) {
+		this.actualResponseBody = actualResponseBody;
 	}
 
 	public String getAssertions() {

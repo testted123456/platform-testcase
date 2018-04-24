@@ -18,6 +18,8 @@ public class TestCaseFront {
 	Boolean type;
 
 	String env;
+	
+	String system;
 
 	String projectName;
 
@@ -73,6 +75,14 @@ public class TestCaseFront {
 
 	public void setEnv(String env) {
 		this.env = env;
+	}
+
+	public String getSystem() {
+		return system;
+	}
+
+	public void setSystem(String system) {
+		this.system = system;
 	}
 
 	public String getProjectName() {
@@ -176,6 +186,7 @@ public class TestCaseFront {
 		testCase.setpId(this.pId);
 		testCase.setCaseType(this.caseType);
 		testCase.setEnv(this.env);
+		testCase.setSystem(this.system);
 		testCase.setCreatedBy(this.createdBy);
 		testCase.setCreatedTime(this.createdTime);
 		testCase.setDescription(this.description);

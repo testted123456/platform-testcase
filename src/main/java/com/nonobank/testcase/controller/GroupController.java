@@ -1,5 +1,6 @@
 package com.nonobank.testcase.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -39,7 +40,13 @@ public class GroupController {
 	@ResponseBody
 	public Result getProgress(@RequestParam Integer groupId){
 		float progress = groupExecutor.getGroupStatus(groupId);
-		return ResultUtil.success(progress);
+		
+		if(progress != -1){
+			return ResultUtil.success(progress);
+		}else{
+			return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "group已执行结束！");
+		}
+		
 	}
 	
 	/**
@@ -73,6 +80,10 @@ public class GroupController {
 		
 		if(objOfTcIDs instanceof List){
 			listOfTcIDs = (List)objOfTcIDs;
+			Map<String, Integer> groupMap = new HashMap<String, Integer>();
+			groupMap.put("totalCount", listOfTcIDs.size());
+			groupMap.put("executedCount", 0);
+			groupExecutor.setMap(groupId, groupMap);
 			groupExecutor.runGroup(groupId, env, totalSize, listOfTcIDs);
 		}
 		
