@@ -21,4 +21,7 @@ spring:
      keepAliveSeconds: 120
      queueCapacity: 10
      
-      
+
+ignore:
+  urlPath:
+  ip: 192.168.1.43,192.168.1.44,192.168.1.47,192.168.1.49
