@@ -1,5 +1,6 @@
 package com.nonobank.testcase.component.executor;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +33,7 @@ public class ApiAssertionsHandler {
      * @param env
      * @return
      */
-	public boolean handleAssertions(Map<String, Object> map, List<String> handledAssertions, String assertions, String sessionId, String env){
+	public boolean handleAssertions(Map<String, Object> map, List<Map<String, String>> handledAssertions, String assertions, String sessionId, String env){
 		assertions = ApiHandlerUtils.removeCRLF(assertions);
 		JSONArray assertionsJsonArray = JSONArray.parseArray(assertions);
 		webSocket.send6("处理断言", sessionId);
@@ -112,81 +113,87 @@ public class ApiAssertionsHandler {
 					double dExpectResult = Double.parseDouble(expectResult);
 					webSocket.sendVar("预期结果：" + expectResult, sessionId);
 					webSocket.sendVar("实际结果：" + actualResult, sessionId);
-					handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
-							"，比较符：" + comparator);
+//					handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
+//							"，比较符：" + comparator);
+					
 					
 					if(dactualResult == dExpectResult){
 						logger.info("true：预期结果：" + expectResult + "，实际结果：" + actualResult);
 						webSocket.sendVar("对比结果: true", sessionId);
 					}else{
 						logger.warn("false：预期结果：" + expectResult + "，实际结果：" + actualResult);
-						webSocket.sendVar("对比结果: true", sessionId);
+//						webSocket.sendVar("对比结果: false", sessionId);
+						webSocket.sendVar("对比结果: " + "**FALSE**", sessionId);
 						res = false;					
 					}
 					break;
 				case ">":
 					dactualResult = Double.parseDouble(actualResult);
 				    dExpectResult = Double.parseDouble(expectResult);
-				    handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
-							"，比较符：" + comparator);
+//				    handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
+//							"，比较符：" + comparator);
 				    
 					if(dactualResult > dExpectResult){
 						logger.info("true：预期结果：" + expectResult + "，实际结果：" + actualResult);
 						webSocket.sendVar("对比结果: true", sessionId);
 					}else{
 						logger.warn("false：预期结果：" + expectResult + "，实际结果：" + actualResult);
-						webSocket.sendVar("对比结果: true", sessionId);
+//						webSocket.sendVar("对比结果: false", sessionId);
+						webSocket.sendVar("对比结果: " + "**FALSE**", sessionId);
 						res = false;
 					}
 					break;
 				case ">=":
 					dactualResult = Double.parseDouble(actualResult);
 				    dExpectResult = Double.parseDouble(expectResult);
-				    handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
-							"，比较符：" + comparator);
+//				    handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
+//							"，比较符：" + comparator);
 					
 					if(dactualResult >= dExpectResult){
 						logger.info("true：预期结果：" + expectResult + "，实际结果：" + actualResult);
 						webSocket.sendVar("对比结果: true", sessionId);
 					}else{
 						logger.warn("false：预期结果：" + expectResult + "，实际结果：" + actualResult);
-						webSocket.sendVar("对比结果: true", sessionId);
+//						webSocket.sendVar("对比结果: false", sessionId);
+						webSocket.sendVar("对比结果: " + "**FALSE**", sessionId);
 						res = false;	
 					}
 					break;
 				case "<":
 					dactualResult = Double.parseDouble(actualResult);
 				    dExpectResult = Double.parseDouble(expectResult);
-				    handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
-							"，比较符：" + comparator);
+//				    handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
+//							"，比较符：" + comparator);
 					
 					if(dactualResult < dExpectResult){
 						logger.info("true：预期结果：" + expectResult + "，实际结果：" + actualResult);
 						webSocket.sendVar("对比结果: true", sessionId);
 					}else{
 						logger.warn("false：预期结果：" + expectResult + "，实际结果：" + actualResult);
-						webSocket.sendVar("对比结果: true", sessionId);
+//						webSocket.sendVar("对比结果: false", sessionId);
+						webSocket.sendVar("对比结果: " + "**FALSE**", sessionId);
 						res = false;	
 					}
 					break;
 				case "<=":
 					dactualResult = Double.parseDouble(actualResult);
 				    dExpectResult = Double.parseDouble(expectResult);
-				    handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
-							"，比较符：" + comparator);
+//				    handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
+//							"，比较符：" + comparator);
 					
 					if(dactualResult <= dExpectResult){
 						logger.info("true：预期结果：" + expectResult + "，实际结果：" + actualResult);
 						webSocket.sendVar("对比结果: true", sessionId);
 					}else{
 						logger.warn("false：预期结果：" + expectResult + "，实际结果：" + actualResult);
-						webSocket.sendVar("对比结果: true", sessionId);
+//						webSocket.sendVar("对比结果: false", sessionId);
+						webSocket.sendVar("对比结果: " + "**FALSE**", sessionId);
 						res = false;
 					}
 					break;
 				case "equals":
-					handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
-							"，比较符：" + comparator);
+//					handledAssertions.add(expectVar +"-预期结果：" + expectResult + "，实际结果：" + actualResult +
+//							"，比较符：" + comparator);
 
 					if(actualResult.trim().equals(expectResult.trim())){
 						logger.info("true：预期结果：" + expectResult + "，实际结果：" + actualResult);
@@ -206,6 +213,13 @@ public class ApiAssertionsHandler {
 				default:
 					break;
 			}
+			
+			Map<String, String> mapOfAssertions = new HashMap<String, String>();
+			mapOfAssertions.put("actualResult", actualResult);
+			mapOfAssertions.put("expectResult", expectResult);
+			mapOfAssertions.put("comparator", comparator);
+			mapOfAssertions.put("result", String.valueOf(res));
+			handledAssertions.add(mapOfAssertions);
 		}
 		
 		return res;

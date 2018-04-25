@@ -5,4 +5,5 @@ import com.nonobank.testcase.entity.GlobalVariable;
 
 public interface GlobalVariableRepository extends JpaRepository<GlobalVariable, Integer> {
 
+	GlobalVariable findByName(String name);
 }

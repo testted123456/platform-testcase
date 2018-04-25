@@ -1,9 +1,12 @@
 package com.nonobank.testcase.service.impl;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.nonobank.testcase.entity.ResultDetail;
+import com.nonobank.testcase.entity.ResultHistory;
 import com.nonobank.testcase.repository.ResultDetailRepository;
 import com.nonobank.testcase.service.ResultDetailService;
 
@@ -20,6 +23,11 @@ public class ResultDetailServiceImpl implements ResultDetailService {
 		}
 		
 		return null;
+	}
+
+	@Override
+	public List<ResultDetail> findByResultHistory(ResultHistory resultHistory) {
+		return resultDetailRepository.findByResultHistory(resultHistory);
 	}
 
 }

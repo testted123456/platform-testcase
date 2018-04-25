@@ -34,7 +34,9 @@ public class ApiResponseHandler {
 	 @Autowired
 	 ApiHandlerUtils apiHandlerUtils;
 	 
-	 public boolean handleResponseBody(Map<String, Object> map, String expectedResponseBody, String actualResponseBody, String responseBodyType, Map<String, String> handledResponse, String sessionId){
+	 public boolean handleResponseBody(Map<String, Object> map, String expectedResponseBody, String actualResponseBody, String responseBodyType, 
+			 Map<String, String> handledResponse, 
+			 String sessionId){
 	    	logger.info("开始处理响应消息");
 	    	webSocket.send6("处理response", sessionId);
 	    	webSocket.sendItem("预期结果", sessionId);
@@ -106,7 +108,9 @@ public class ApiResponseHandler {
 	    	//json响应消息
 	    	if(JSONOBJECT_PATTERN.matcher(expectedResponseBody).matches()){
 	    		if(JSONOBJECT_PATTERN.matcher(actualResponseBody).matches()){
-	    			result = apiHandlerUtils.compareJsonObj(JSONObject.parseObject(expectedResponseBody), JSONObject.parseObject(actualResponseBody), map, handledResponse, sessionId);
+	    			result = apiHandlerUtils.compareJsonObj(JSONObject.parseObject(expectedResponseBody), JSONObject.parseObject(actualResponseBody), map, 
+	    					handledResponse, 
+	    					sessionId);
 	    		}else{
 	    			logger.error("响应消息不是json格式");
 	    			webSocket.sendItem("响应消息不是json格式", sessionId);

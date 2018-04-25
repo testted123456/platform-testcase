@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -31,6 +33,7 @@ import com.nonobank.testcase.entity.TestCaseInterface;
 import com.nonobank.testcase.service.SystemBranchService;
 import com.nonobank.testcase.service.TestCaseInterfaceService;
 import com.nonobank.testcase.service.TestCaseService;
+import com.nonobank.testcase.utils.UserUtil;
 
 @Controller
 @RequestMapping(value="testCase")
@@ -175,24 +178,36 @@ public class TestCaseController {
 	
 	@GetMapping(value="execute")
 	@ResponseBody
-	public Result executeCase(@CookieValue(value="JSESSIONID", required=false) String sessionId,  @RequestParam Integer id){
+	public Result executeCase(@RequestParam Integer id){
 		logger.info("开始执行用例,id:{}", id);
+		
+		String user = UserUtil.getUser();
+		
+		String sessionId = id + user + "1";
 		
 		TestCase testCase = testCaseService.findById(id);
 		
 		webSocket.sendMsgTo("### " + "开始执行用例：" + testCase.getName(), "123");
 		
+	    int totalSize = testCase.getTestCaseInterfaces().size();
+		
 		String env = testCase.getEnv();
 		List<TestCaseInterface> testCaseInterfaces = testCaseInterfaceService.findByTestCaseId(id);
-	    testCaseExecutor.asyncRunCase(sessionId, env, testCaseInterfaces);
+	    testCaseExecutor.asyncRunCase(sessionId, env, id, testCaseInterfaces, totalSize);
 	    return ResultUtil.success(testCase);
 	}
 	
 	@PostMapping(value="executeApis")
 	@ResponseBody
-	public Result executeApis(@CookieValue(value="JSESSIONID", required=false) String sessionId, @RequestBody JSONObject jsonObj){
+	public Result executeApis( @RequestBody JSONObject jsonObj){
+		
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		Integer tcId = jsonObj.getInteger("tcId");
 		JSONArray jsonArrOfApiIds = jsonObj.getJSONArray("apiIds");
+		
+		String user = UserUtil.getUser();
+		
+		String sessionId = tcId + user + "1";
 		
 		TestCase testCase = testCaseService.findById(tcId);
 		webSocket.sendMsgTo("### " + "开始执行用例：" + testCase.getName(), "123");
@@ -209,8 +224,9 @@ public class TestCaseController {
 			tcis.add(tci);
 		}
 		
+		int totalsize = testCase.getTestCaseInterfaces().size();
 		
-		testCaseExecutor.asyncRunCase(sessionId, env, tcis);
+		testCaseExecutor.asyncRunCase(sessionId, env, tcId, tcis, totalsize);
 		return ResultUtil.success(testCase);
 	}
 }

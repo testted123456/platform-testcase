@@ -14,7 +14,7 @@ public class SystemCfg {
 	@Column(nullable = false, columnDefinition = "varchar(20) COMMENT '系统名称'")
 	String system;
 
-	@Column(nullable = false, columnDefinition = "varchar(20) COMMENT 'git地址'")
+	@Column(nullable = false, columnDefinition = "varchar(500) COMMENT 'git地址'")
 	String gitAddress;
 
 	@Column(nullable = false, columnDefinition = "varchar(20) COMMENT '系统别名'")

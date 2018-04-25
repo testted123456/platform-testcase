@@ -37,7 +37,7 @@ public class SystemCfgServiceImpl implements SystemCfgService{
 	@Override
 	public SystemCfg update(SystemCfg systemCfg) {
 		
-		SystemCfg scfg = systemCfgRepository.findBySystemOrAlias(systemCfg.getSystem(), systemCfg.getAlias());
+		SystemCfg scfg = systemCfgRepository.findById(systemCfg.getId());
 		
 		if(!scfg.getId().equals(systemCfg.getId())){
 			throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "名称或别名不能重复");

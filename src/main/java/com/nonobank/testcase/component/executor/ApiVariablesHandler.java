@@ -2,6 +2,8 @@ package com.nonobank.testcase.component.executor;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,15 +28,18 @@ public class ApiVariablesHandler {
     ApiHandlerUtils apiHandlerUtils;
     
     /**
-	 * 处理自定义变量
-	 * @param map
-	 * @param variables
-	 * @throws ExecutorException 
-	 */
+     * 处理自定义变量
+     * @param map 存放自定义变量
+     * @param variables
+     * @param sessionId
+     * @param env
+     * @return
+     */
 	public Map<String, String> handleAllVariables(Map<String, Object> map, String variables, String sessionId, String env) {
 		Map<String, String> HandledVariables = new HashMap<String, String>();
 		
 		variables = ApiHandlerUtils.removeCRLF(variables);
+//		variables = ApiHandlerUtils.removeEnter(variables);
 		JSONArray varJsonArray = JSONArray.parseArray(variables);
 		String res = null;
 		webSocket.send6("处理变量", sessionId);
@@ -88,13 +93,63 @@ public class ApiVariablesHandler {
 							String valueAfterReplace = resultMap.get(true);
 							res = "变量" + varName + "中方法替换成功，处理后值为：" + valueAfterReplace;
 							webSocket.sendMsgTo(res, sessionId);
-							HandledVariables.put(varName, valueAfterReplace);
-							map.put(varName, valueAfterReplace);
+							
+							if(varName.contains(",")){//赋值多个变量
+								String [] varArray = varName.split(",");
+								
+								Pattern p = Pattern.compile("\\[" + "(.+?)" + "\\]");
+								Matcher m = p.matcher(valueAfterReplace);
+								
+								while(m.find()){
+									valueAfterReplace = m.group(1);
+								}
+								
+								String [] valueArray = valueAfterReplace.split(",");
+								
+								if(varArray.length != valueArray.length){
+									throw new CaseExecutionException(ResultCode.EXCEPTION_ERROR.getCode(), 
+											varName + ": 变量个数和获得值个数不一致");
+								}else{
+									for(int i=0;i<varArray.length;i++){
+										HandledVariables.put(varArray[i], valueArray[i]);
+										map.put(varArray[i], valueArray[i]);
+									}
+								}
+							}else{
+								HandledVariables.put(varName, valueAfterReplace);
+								map.put(varName, valueAfterReplace);
+							}
+							
 						}else{//没有方法要替换
-							HandledVariables.put(varName, varValue);
+//							HandledVariables.put(varName, varValue);
 							
 							if(!map.containsKey(varValue)){
-								map.put(varName, varValue);
+//								map.put(varName, varValue);
+								if(varName.contains(",")){//赋值多个变量
+									String [] varArray = varName.split(",");
+									
+									Pattern p = Pattern.compile("\\[" + "(.+?)" + "\\]");
+									Matcher m = p.matcher(varValue);
+									
+									while(m.find()){
+										varValue = m.group(1);
+									}
+									
+									String [] valueArray = varValue.split(",");
+									
+									if(varArray.length != valueArray.length){
+										throw new CaseExecutionException(ResultCode.EXCEPTION_ERROR.getCode(), 
+												varName + ": 变量个数和获得值个数不一致");
+									}else{
+										for(int i=0;i<varArray.length;i++){
+											HandledVariables.put(varArray[i], valueArray[i]);
+											map.put(varArray[i], valueArray[i]);
+										}
+									}
+								}else{
+									HandledVariables.put(varName, varValue);
+									map.put(varName, varValue);
+								}
 							}
 						}
 					}
@@ -103,6 +158,24 @@ public class ApiVariablesHandler {
 		}
 		
 		return HandledVariables;
+	}
+	
+	public static void main(String [] args){
+		String var = "[var1,var2,var3]";
+		
+		Pattern p2 = 
+//				Pattern.compile("(.+?)(,|$)");
+				Pattern.compile("\\[" + "(.+?)" + "\\]");
+//				Pattern.compile("(.+?)([,(.+?)]|$)");
+		
+		Matcher m2 = p2.matcher(var);
+		System.out.println(m2.groupCount());
+		
+		while(m2.find()){
+			System.out.println(m2.group(1));
+//			System.out.println(m2.group(2));
+		}
+	
 	}
 
 }

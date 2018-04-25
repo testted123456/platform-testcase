@@ -1,6 +1,5 @@
 package com.nonobank.testcase.component.executor;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,12 +8,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.testcase.component.ws.WebSocket;
@@ -22,7 +19,6 @@ import com.nonobank.testcase.entity.DBCfg;
 import com.nonobank.testcase.entity.Env;
 import com.nonobank.testcase.service.DBCfgService;
 import com.nonobank.testcase.service.EnvService;
-import com.nonobank.testcase.utils.JSONUtils;
 import com.nonobank.testcase.utils.dll.InvokeUtils;
 
 @Component
@@ -32,9 +28,13 @@ public class ApiHandlerUtils {
 
 	private final static Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\{(\\w*\\[*\\d*\\]*\\.*)\\}");
 
-	private final static Pattern METHODNAME_PATTERN = Pattern.compile("^\\$\\{(\\w+)\\((.*?)\\)\\}$");
+	private final static Pattern METHODNAME_PATTERN = 
+			Pattern.compile("^\\$\\{(\\w+)\\((.*?)\\)\\}$");
+//	 Pattern.compile("\\$\\{(\\w+)\\(.*?\\)\\}");
 
-	private final static Pattern CRLF_PATTERN = Pattern.compile("(\r\n|\r|\n|\n\r|\t)");
+	private final static Pattern CRLF_PATTERN = Pattern.compile("(\r\n|\r|\n|\n\r|\t|\\\\n)");
+	
+	private final static Pattern ENTER_PATTERN = Pattern.compile("\\\\\\\\n");
 	
 	private final static Pattern SAVE_PATTERN = Pattern.compile("\\&\\{(\\w*\\d*\\.*)\\}");
 	
@@ -47,7 +47,9 @@ public class ApiHandlerUtils {
 	@Autowired
 	DBCfgService dbCfgService;
 
-	public  void compareStr(String key, String expectedStr, String actualStr, Map<String, Object> map, Map<String, String> handledResult, String sessionId) {
+	public  void compareStr(String key, String expectedStr, String actualStr, Map<String, Object> map, 
+			Map<String, String> handledResult, 
+			String sessionId) {
 		if(null == expectedStr ){
 			if(null == actualStr){
 				webSocket.sendVar("**" + key + "** 预期结果、实际结果相同，结果为：" + expectedStr, sessionId);
@@ -93,7 +95,9 @@ public class ApiHandlerUtils {
 
 			if (expectedValue instanceof JSONObject) {
 				if (actualValue instanceof JSONObject) {
-					compareJsonObj((JSONObject) expectedValue, (JSONObject) actualValue, map, handledResult, sessionId);
+					compareJsonObj((JSONObject) expectedValue, (JSONObject) actualValue, map, 
+							handledResult, 
+							sessionId);
 				} else {
 					logger.warn("false: " + key + "的预期值：" + expectedValue + ",但实际值为：" + actualValue);
 //					webSocket.sendMsgTo("###" + key + "的预期值：" + expectedValue + ",但实际值为：" + actualValue, "123");
@@ -107,7 +111,9 @@ public class ApiHandlerUtils {
 				handledResult.put(key, "预期结果暂不支持数组，" + expectedValue);
 				result = false;
 			} else {
-				compareStr(key, expectedJsonObj.getString(key), actualJsonObj.getString(key), map, handledResult, sessionId);
+				compareStr(key, expectedJsonObj.getString(key), actualJsonObj.getString(key), map, 
+						handledResult, 
+						sessionId);
 			}
 		}
 
@@ -143,7 +149,17 @@ public class ApiHandlerUtils {
 	 * @return
 	 */
 	public static String removeCRLF(String str) {
+		System.out.println(str);
 		Matcher matcher = CRLF_PATTERN.matcher(str);
+		if (matcher.find()) {
+			return matcher.replaceAll("");
+		} else {
+			return str;
+		}
+	}
+	
+	public static String removeEnter(String str){
+		Matcher matcher = ENTER_PATTERN.matcher(str);
 		if (matcher.find()) {
 			return matcher.replaceAll("");
 		} else {
@@ -261,11 +277,17 @@ public class ApiHandlerUtils {
 					Env envEntity = envService.findByName(env);
 					Integer dbGroupId = envEntity.getDbGroup().getId();
 					
-					String sql = array[0];
+					String sql = null;
+					
+					if(array.length > 0){//函数有参数，第一个参数为待执行sql
+						 sql = array[0];
+					}
+					
+					//如果没有指定数据库分组，则分组名默认为default
 					String dbGroupName = "default";
 					
 					if(array.length == 2){
-						dbGroupName = array[1];
+						dbGroupName = array[1];		
 					}
 
 					DBCfg dbCfg = dbCfgService.findByDbGroupIdAndName(dbGroupId, dbGroupName);
@@ -274,12 +296,21 @@ public class ApiHandlerUtils {
 					String mySql_url = "jdbc:mysql://" + dbCfg.getIp() + ":" + "3306" + "/" + db_name;
 					String user_name = dbCfg.getUserName();
 					String db_password = dbCfg.getPassword();
-					String [] funcArray = new String[5];
+					
+					String [] funcArray = null;
+					
+					if(null != sql){
+						funcArray = new String[5];
+						funcArray[4] = sql;
+					}else{
+						funcArray = new String[4];
+					}
+					
 					funcArray[0] = mySql_driver;
 					funcArray[1] = mySql_url;
 					funcArray[2] = user_name;
 					funcArray[3] = db_password;
-					funcArray[4] = sql;
+					
 					array = funcArray;
 				}
 				
@@ -295,5 +326,16 @@ public class ApiHandlerUtils {
 		}
 
 		return map;
+	}
+	
+	public static void main(String [] args){
+		String str = "${getMultField_db(\"SELECT id,userid FROM debtsale WHERE status =3 and optype IN (1,3) AND debtsale.title='缺钱' ORDER BY id DESC LIMIT 1\")}";
+		
+//	  Pattern cp = Pattern.compile("(\\\\n)");
+//	  System.out.println(cp.matcher(str).find());
+		
+		System.out.println(Pattern.compile("\\$\\{(\\w+)\\(.*?\\)\\}").matcher(str).find());
+	  System.out.println(METHODNAME_PATTERN.matcher(str).find());
+
 	}
 }

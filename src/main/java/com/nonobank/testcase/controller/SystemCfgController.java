@@ -50,7 +50,7 @@ public class SystemCfgController {
 	@ResponseBody
 	public Result delete(@RequestBody SystemCfg systemCfg){
 		logger.info("开始删除系统{}", systemCfg.getSystem());
-		SystemCfgService.update(systemCfg);
+		SystemCfgService.delete(systemCfg);
 		logger.info("更新删除{}成功", systemCfg.getSystem());
 		return ResultUtil.success();
 	}

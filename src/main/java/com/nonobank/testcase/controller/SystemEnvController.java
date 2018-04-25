@@ -45,7 +45,7 @@ public class SystemEnvController {
 		return ResultUtil.success(systemEnv);
 	}
 	
-	@PostMapping(value="del")
+	@GetMapping(value="del")
 	@ResponseBody
 	public Result del(@RequestParam Integer id){
 		
