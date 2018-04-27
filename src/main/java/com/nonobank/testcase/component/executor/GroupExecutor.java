@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +13,13 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 
+import com.alibaba.fastjson.JSONObject;
+import com.nonobank.testcase.entity.FlowCase;
 import com.nonobank.testcase.entity.GlobalVariable;
 import com.nonobank.testcase.entity.ResultHistory;
 import com.nonobank.testcase.entity.TestCase;
 import com.nonobank.testcase.entity.TestCaseInterface;
+import com.nonobank.testcase.service.FlowCaseService;
 import com.nonobank.testcase.service.GlobalVariableService;
 import com.nonobank.testcase.service.ResultHistoryService;
 import com.nonobank.testcase.service.TestCaseInterfaceService;
@@ -31,10 +35,16 @@ public class GroupExecutor {
 	TestCaseExecutor testCaseExecutor;
 	
 	@Autowired
+	FlowCaseExecutor flowCaseExecutor;
+	
+	@Autowired
 	TestCaseInterfaceService testCaseInterfaceService;
 	
 	@Autowired
 	TestCaseService testCaseService;
+	
+	@Autowired
+	FlowCaseService flowCaseService;
 	
 	@Autowired
 	ResultHistoryService resultHistoryService;
@@ -77,13 +87,18 @@ public class GroupExecutor {
 	}
 
 	@Async
-	public void runGroup(Integer groupId, String env, Integer totalSize, List<Integer> tcIDs){
+	public void runGroup(Integer groupId, String env, Integer totalSize, List<Object> tcs){
 		try{
 			
 			logger.info("开始执行group，id：{}", groupId);
 			
-			int size = tcIDs.size();
+			int size = tcs.size();
 			Map<String, Integer> groupMap = map.get(groupId);
+			
+			List<Integer> tcIDs = tcs.stream().map(x->{
+				JSONObject jsonObj = (JSONObject)x;
+				return jsonObj.getInteger("id");
+			}).collect(Collectors.toList());
 					
 //			new HashMap<String, Integer>();
 //			groupMap.put("totalCount", size);
@@ -100,23 +115,61 @@ public class GroupExecutor {
 				varMap.put(name, value);	
 			});
 			
-			for(Integer tcId : tcIDs){
-				TestCase tc = testCaseService.findById(tcId);
-				String name = tc.getName();
-				logger.info("开始执行用例：{}", name);
-				List<TestCaseInterface> tcis = testCaseInterfaceService.findByTestCaseId(tcId);
+			for(Object obj : tcs){
+				JSONObject tcOfJson = (JSONObject)obj;
+				Integer tcId = tcOfJson.getInteger("id");
+				Integer caseType = tcOfJson.getInteger("caseType");
 				
-				try{
-					testCaseExecutor.runCase(resultHistory, tc.getId(), null, env, tcis, varMap);
-				}catch(Exception e){
-					e.printStackTrace();
-					logger.error("group中case执行抛异常，case：" + name);
+				if(caseType == 0){
+					TestCase tc = testCaseService.findById(tcId);
+					String name = tc.getName();
+					logger.info("开始执行用例：{}", name);
+					List<TestCaseInterface> tcis = testCaseInterfaceService.findByTestCaseId(tcId);
+					
+					try{
+						testCaseExecutor.runCase(resultHistory, tc.getId(), null, env, tcis, varMap);
+					}catch(Exception e){
+						e.printStackTrace();
+						logger.error("group中case执行抛异常，case：" + name);
+					}
+					
+					logger.info("用例:{}执行完成", name);
+				}else{
+					FlowCase flowCase = flowCaseService.getById(tcId);
+					String name = flowCase.getName();
+					logger.info("开始执行用例：{}", name);
+					
+					try{
+						flowCaseExecutor.runFlowCase(null, flowCase.getId(), flowCase.getEnv(), flowCase.getTestCases().size(), flowCase.getTestCases());
+					}catch(Exception e){
+						e.printStackTrace();
+						logger.error("group中case执行抛异常，case：" + name);
+					}
+					
+					logger.info("用例:{}执行完成", name);
 				}
 				
 				int executedCount = map.get(groupId).get("executedCount");
 				groupMap.put("executedCount", ++executedCount);
-				logger.info("用例:{}执行完成", name);
 			}
+			
+//			for(Integer tcId : tcIDs){
+//				TestCase tc = testCaseService.findById(tcId);
+//				String name = tc.getName();
+//				logger.info("开始执行用例：{}", name);
+//				List<TestCaseInterface> tcis = testCaseInterfaceService.findByTestCaseId(tcId);
+//				
+//				try{
+//					testCaseExecutor.runCase(resultHistory, tc.getId(), null, env, tcis, varMap);
+//				}catch(Exception e){
+//					e.printStackTrace();
+//					logger.error("group中case执行抛异常，case：" + name);
+//				}
+//				
+//				int executedCount = map.get(groupId).get("executedCount");
+//				groupMap.put("executedCount", ++executedCount);
+//				logger.info("用例:{}执行完成", name);
+//			}
 			
 			logger.info("group执行完成，id：{}", groupId);
 		}catch(Exception e){

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultUtil;
 import com.nonobank.testcase.entity.ResultDetail;
@@ -88,10 +88,88 @@ public class ResultReportController {
 	
 	@GetMapping(value="getCaseReport")
 	@ResponseBody
-	public Result getCaseReport(@RequestParam Integer id){
+	public Result getCaseReport(@RequestParam Integer id, @RequestParam Character type){
 		logger.info("查找用例最新执行记录，id：{}", id);
-		ResultHistory resultHistory = resultHistoryService.findLastByTcId(id);
+		ResultHistory resultHistory = resultHistoryService.findLastByTcIdAndTcType(id, type);
 		List<ResultDetail> resultDetails = getReport(resultHistory);
+		
+		JSONArray jsonArr = new JSONArray();
+		
+		resultDetails.forEach(x->{
+			JSONObject jsonObj = new JSONObject();
+			jsonObj.put("url", x.getUrl());
+			jsonObj.put("exception", x.getException());
+			String headers = x.getHeaders();
+			
+			if(null != headers && !headers.equals("null")){
+				jsonObj.put("headers", JSONArray.parseArray(headers));
+			}else{
+				jsonObj.put("headers", new JSONArray());
+			}
+			
+			String variables = x.getVariables();
+			
+			if(null != variables){
+				jsonObj.put("variables", JSONArray.parseArray(variables));
+			}else{
+				jsonObj.put("variables", new JSONArray());
+			}
+			
+			String requestBody = x.getRequestBody();
+			
+			if(requestBody != null ){
+				if(JSONUtils.isJsonObject(requestBody)){
+					jsonObj.put("requestBody", JSONObject.parseObject(requestBody));
+				}else{
+					jsonObj.put("requestBody", requestBody);
+				}
+			}else{
+				jsonObj.put("requestBody", null);
+			}
+			
+			String responseBody = x.getResponseBody();
+			
+			if(responseBody != null ){
+				if(JSONUtils.isJsonObject(responseBody)){
+					jsonObj.put("responseBody", JSONObject.parseObject(responseBody));
+				}else{
+					jsonObj.put("responseBody", responseBody);
+				}
+			}else{
+				jsonObj.put("responseBody", null);
+			}
+			
+			String assertions = x.getAssertions();
+			
+			if(assertions != null ){
+				if(JSONUtils.isJsonArray(assertions)){
+					jsonObj.put("assertions", JSONArray.parseArray(assertions));
+				}else{
+					jsonObj.put("assertions", assertions);
+				}
+			}else{
+				jsonObj.put("assertions", new JSONArray());
+			}
+			
+			String actualResponseBody = x.getActualResponseBody();
+			
+			if(actualResponseBody != null ){
+				if(JSONUtils.isJsonObject(actualResponseBody)){
+					jsonObj.put("actualResponseBody", JSONObject.parseObject(actualResponseBody));
+				}else{
+					jsonObj.put("actualResponseBody", actualResponseBody);
+				}
+			}else{
+				jsonObj.put("actualResponseBody", null);
+			}
+			
+			jsonObj.put("apiName", x.getApiName());
+			jsonObj.put("apiStepName", x.getApiStepName());
+			jsonObj.put("createdTime", x.getCreatedTime());
+			jsonObj.put("result", x.getResult());
+			
+			jsonArr.add(jsonObj);
+		});
 //		List<ResultDetail> resultDetails = resultDetailService.findByResultHistory(resultHistory);
 //		
 //		resultDetails.forEach(x->{
@@ -135,7 +213,7 @@ public class ResultReportController {
 //				}
 //			}
 //		});
-		return ResultUtil.success(resultDetails);
+		return ResultUtil.success(jsonArr);
 	}
 	
 	@GetMapping(value="getGroupRunHistory")

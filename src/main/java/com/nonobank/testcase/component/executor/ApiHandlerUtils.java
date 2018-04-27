@@ -47,14 +47,15 @@ public class ApiHandlerUtils {
 	@Autowired
 	DBCfgService dbCfgService;
 
-	public  void compareStr(String key, String expectedStr, String actualStr, Map<String, Object> map, 
+	public void compareStr(String key, String expectedStr, String actualStr, Map<String, Object> map, 
 			Map<String, String> handledResult, 
-			String sessionId) {
+			String sessionId, Map<String, Boolean> resultOfMap) {
 		if(null == expectedStr ){
 			if(null == actualStr){
 				webSocket.sendVar("**" + key + "** 预期结果、实际结果相同，结果为：" + expectedStr, sessionId);
 			}else{
 				webSocket.sendVar("**" + key + "** 预期值：" + expectedStr + "，实际值：" + actualStr, sessionId);
+				resultOfMap.put("result", false);
 			}
 			
 			return;
@@ -71,7 +72,7 @@ public class ApiHandlerUtils {
 		} else {
 			if (!expectedStr.equals(actualStr)) {
 				logger.warn("false: " + key + " 预期结果是：" + expectedStr + ",但实际结果是：" + actualStr);
-				
+				resultOfMap.put("result", false);
 				webSocket.sendVar("**" + key + "** 预期值：" + expectedStr + "，实际值：" + actualStr, sessionId);
 				handledResult.put(key, "预期值：" + expectedStr + "，实际值：" + actualStr);
 			} else {
@@ -82,12 +83,12 @@ public class ApiHandlerUtils {
 		}
 	}
 
-	public boolean compareJsonObj(JSONObject expectedJsonObj, JSONObject actualJsonObj, Map<String, Object> map,
+	public void compareJsonObj(JSONObject expectedJsonObj, JSONObject actualJsonObj, Map<String, Object> map,
 			Map<String, String> handledResult,
-			String sessionId) {
+			String sessionId, Map<String, Boolean> resultOfMap) {
 		Set<String> keys = expectedJsonObj.keySet();
 
-		boolean result = true;
+//		boolean result = true;
 
 		for (String key : keys) {
 			Object expectedValue = expectedJsonObj.get(key);
@@ -97,27 +98,25 @@ public class ApiHandlerUtils {
 				if (actualValue instanceof JSONObject) {
 					compareJsonObj((JSONObject) expectedValue, (JSONObject) actualValue, map, 
 							handledResult, 
-							sessionId);
+							sessionId, resultOfMap);
 				} else {
 					logger.warn("false: " + key + "的预期值：" + expectedValue + ",但实际值为：" + actualValue);
 //					webSocket.sendMsgTo("###" + key + "的预期值：" + expectedValue + ",但实际值为：" + actualValue, "123");
 					webSocket.sendVar("**" + key + "** 预期值：" + expectedValue + "，实际值：" + actualValue, sessionId);
 					handledResult.put(key, "预期值：" + expectedValue + "，实际值：" + actualValue);
-					result = false;
+					resultOfMap.put("result", false);
 				}
 			} else if (expectedValue instanceof JSONArray) {
 				logger.warn("false: 预期结果暂不支持数组, " + key + " : " + expectedValue);
 				webSocket.sendVar("预期结果暂不支持数组，" + key + " : " + expectedValue, sessionId);
 				handledResult.put(key, "预期结果暂不支持数组，" + expectedValue);
-				result = false;
+				resultOfMap.put("result", false);
 			} else {
 				compareStr(key, expectedJsonObj.getString(key), actualJsonObj.getString(key), map, 
 						handledResult, 
-						sessionId);
+						sessionId, resultOfMap);
 			}
 		}
-
-		return result;
 	}
 
 	/**

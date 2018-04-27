@@ -2,6 +2,8 @@ package com.nonobank.testcase.component.security.manager;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpException;
@@ -19,6 +21,7 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.stereotype.Component;
 
 import com.nonobank.testcase.component.remoteEntity.RemoteUser;
+import com.nonobank.testcase.repository.RoleUrlPathRepository;
 import com.nonobank.testcase.utils.IpAdrressUtil;
 
 @Component
@@ -39,17 +42,17 @@ public class MyAccessDecisionManager implements AccessDecisionManager {
     String ipIgnore;
     
     @Autowired
-    RemoteUser remoteUser;
+    RoleUrlPathRepository roleUrlPathRepository;
     
     @EventListener(ApplicationReadyEvent.class)
     public void initUrlMap() {
-        try {
-            urlMap = remoteUser.getUrlMap();
-            if (urlMap == null || urlMap.keySet().size() == 0) {
-            }
-        } catch (IOException | HttpException ex) {
-            ex.printStackTrace();
-        }
+    	List<Object[]> list = roleUrlPathRepository.findUrlAndRole();
+    	
+    	urlMap = new HashMap<>();
+    	
+    	list.forEach(x->{
+    		urlMap.put(String.valueOf(x[0]), String.valueOf(x[1]));
+    	});
     }
 
     public boolean checkIgnore(String value, String ignoreConf) {

@@ -307,7 +307,10 @@ public class TestCaseExecutor {
 			 result = apiResponseHandler.handleResponseBody(map, expectedResponseBody, actualResponseBody, responseBodyType, 
 					 handledResponse, 
 					 sessionId);
-			 resultDetail.setResponseBody(JSONObject.toJSONString(handledResponse));
+			 JSONObject responseJson = new JSONObject();
+			 responseJson.put("staus", result);
+			 responseJson.put("result", handledResponse);
+			 resultDetail.setResponseBody(JSONObject.toJSONString(responseJson));
 		}else{
 			webSocket.sendItem("实际结果", sessionId);
 			
@@ -346,7 +349,13 @@ public class TestCaseExecutor {
 		});
 		
 		String apiIds = testCaseInterfaces.stream().map(x->x.getId()).collect(Collectors.toList()).toString();
-		ResultHistory resultHistory = resultHistoryService.add(null, tcId, null, apiIds, totalSize);
+		ResultHistory resultHistory = new ResultHistory();
+		resultHistory.setTcType('0');
+		resultHistory.setTcId(tcId);
+		resultHistory.setApiIds(apiIds);
+		resultHistory.setTotalSize(totalSize);
+//				resultHistoryService.add(null, tcId, null, apiIds, totalSize);
+		resultHistoryService.add(resultHistory);
 		runCase(resultHistory, tcId, sessionId, env, testCaseInterfaces, varMap);
 	}
 	
@@ -365,7 +374,7 @@ public class TestCaseExecutor {
 		logger.info("开始执行用例，id：{}", tcId);
 		
 		for(TestCaseInterface tcf : testCaseInterfaces){
-			TestCase testCase = tcf.getTestCase();
+			TestCase testCase = testCaseService.findById(tcId);
 			
 			boolean isflow = false;
 			
@@ -406,7 +415,7 @@ public class TestCaseExecutor {
 			}
 		}
 		
-//		webSocket.send6("用例执行完成", "123");
+		webSocket.send6("用例执行结束...", sessionId);
 		logger.info("用例执行完成");
 	}
 	

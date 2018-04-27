@@ -15,11 +15,14 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 
+import com.nonobank.testcase.component.ws.WebSocket;
+import com.nonobank.testcase.entity.FlowCase;
 import com.nonobank.testcase.entity.GlobalVariable;
 import com.nonobank.testcase.entity.ResultDetail;
 import com.nonobank.testcase.entity.ResultHistory;
 import com.nonobank.testcase.entity.TestCase;
 import com.nonobank.testcase.entity.TestCaseInterface;
+import com.nonobank.testcase.service.FlowCaseService;
 import com.nonobank.testcase.service.GlobalVariableService;
 import com.nonobank.testcase.service.ResultDetailService;
 import com.nonobank.testcase.service.ResultHistoryService;
@@ -34,6 +37,9 @@ public class FlowCaseExecutor {
 	TestCaseExecutor testCaseExecutor;
 	
 	@Autowired
+	WebSocket webSocket;
+	
+	@Autowired
 	ResultHistoryService resultHistoryService;
 	
 	@Autowired
@@ -42,9 +48,58 @@ public class FlowCaseExecutor {
 	@Autowired
 	ResultDetailService resultDetailService;
 	
+	@Autowired
+	FlowCaseService flowCaseService;
+	
 	@Async
-	public void runFlowCase(Integer id, String env, Integer totalSize, List<TestCase> tcs){
+	public void runFlowCase(String user, FlowCase flowCase){
+		logger.info("开始执行flowCase，id：{}", flowCase.getId());
+		
+		String sessionId = null;
+		
+		if(null != user){
+			sessionId = flowCase.getId() + user + "2";
+		}
+		
+		webSocket.sendH5("执行用例：" + flowCase.getName(), sessionId);
+		
+		List<TestCase> tcs = flowCase.getTestCases();
+		List<Integer> tcIds = tcs.stream().map(x->{return x.getId();}).collect(Collectors.toList());
+		String env = flowCase.getEnv();
+		
+		ResultHistory resultHistory = new ResultHistory();
+		resultHistory.setCreatedTime(LocalDateTime.now());
+		resultHistory.setTcId(flowCase.getId());
+		resultHistory.setTcType('1');
+		resultHistory.setTcIds(tcIds == null ? null : tcIds.toString());
+		resultHistoryService.add(resultHistory);
+		
+		Map<String, Object> varMap = new HashMap<String, Object>();
+		List<GlobalVariable> listOfGlobalVars = globalVariableService.getAll();
+		listOfGlobalVars.forEach(g->{
+			String name = g.getName();
+			String value = g.getValue();
+			varMap.put(name, value);	
+		});
+		
+		for(TestCase tc : tcs){
+			List<TestCaseInterface> tcis = tc.getTestCaseInterfaces();
+			testCaseExecutor.runCase(resultHistory, tc.getId(), sessionId, env, tcis, varMap);
+		}
+		
+		webSocket.sendH5("用例执行结束...", sessionId);
+		
+	}
+	
+	@Async
+	public void runFlowCase(String user, Integer id, String env, Integer totalSize, List<TestCase> tcs){
 			logger.info("开始执行flowCase，id：{}", id);
+			
+			String sessionId = null;
+			
+			if(null != user){
+				sessionId = id + user + "2";
+			}
 			
 			List<TestCaseInterface> tcis = new ArrayList<>();
 			
@@ -57,6 +112,7 @@ public class FlowCaseExecutor {
 			ResultHistory resultHistory = new ResultHistory();
 			resultHistory.setCreatedTime(LocalDateTime.now());
 			resultHistory.setTcId(id);
+			resultHistory.setTcType('1');
 			
 			if(null != apiIds){
 				resultHistory.setApiIds(
@@ -68,7 +124,6 @@ public class FlowCaseExecutor {
 			
 			resultHistory.setTotalSize(totalSize);
 			resultHistoryService.add(resultHistory);
-			
 			
 			Map<String, Object> varMap = new HashMap<String, Object>();
 			List<GlobalVariable> listOfGlobalVars = globalVariableService.getAll();
@@ -97,7 +152,7 @@ public class FlowCaseExecutor {
 						
 				try{
 					res =
-					testCaseExecutor.runApi(resultHistory, id, "123", env, varMap, tci, resultDetail);
+					testCaseExecutor.runApi(resultHistory, id, sessionId, env, varMap, tci, resultDetail);
 				}catch(Exception e){
 					e.printStackTrace();
 				}

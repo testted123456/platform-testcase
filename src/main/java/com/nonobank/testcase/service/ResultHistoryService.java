@@ -11,7 +11,7 @@ public interface ResultHistoryService {
 	
 	public ResultHistory add(Integer groupId, Integer tcId, String tcIds, String apiIds, Integer totalSize);
 	
-	public ResultHistory findLastByTcId(Integer id);
+	public ResultHistory findLastByTcIdAndTcType(Integer id, Character tcType);
 	
 	public List<ResultHistory> findLast10ByGroupId(Integer id);
 

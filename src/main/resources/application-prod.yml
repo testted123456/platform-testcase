@@ -1,7 +1,38 @@
 server:
- port: 8082
- context-path: /inter
-girl:
- cupSize: B
- age: 18
- content: "cupSize is ${cupSize}, age is ${age}"
+ port: 9090
+ context-path: /case
+httpServer:
+  interfaceServer: "http://192.168.1.43:9090/inter/"
+  user:
+    baseUrl: http://192.168.1.44:9090
+    roleUrlpath: /user/getRoleUrlPathBySystem?system=group
+spring:
+  redis:
+    host: 192.168.1.46
+#    host: 127.0.0.1
+    port: 6379
+    timeout: 20000
+  session:
+    store-type: redis
+  datasource:
+    url: jdbc:mysql://192.168.1.51:3306/platform?useUnicode=true&amp;characterEncoding=utf-8
+#    url: jdbc:mysql://127.0.0.1:3306/platform?u#seUnicode#=true&amp;characterEncoding=utf-8
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  task:
+    pool:
+     corePoolSize: 10
+     maxPoolSize: 20
+     keepAliveSeconds: 120
+     queueCapacity: 10
+     
+ignore:
+  urlPath:
+  ip: 192.168.1.43,192.168.1.44,192.168.1.47,192.168.1.49
+     
+      

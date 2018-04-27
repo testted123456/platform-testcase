@@ -19,6 +19,7 @@ import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.component.result.ResultUtil;
 import com.nonobank.testcase.entity.FlowCase;
 import com.nonobank.testcase.service.FlowCaseService;
+import com.nonobank.testcase.utils.UserUtil;
 
 @Controller
 @RequestMapping(value="flowCase")
@@ -38,10 +39,14 @@ public class FlowCaseController {
 	public Result addOrUpdate(@RequestBody FlowCase flowCase){
 		logger.info("开始新增流用例：{}", flowCase.getName());
 		
+		String userName = UserUtil.getUser();
+		
 		if(flowCase.getId() != null){
+			flowCase.setUpdatedBy(userName);
 			flowCase.setUpdatedTime(LocalDateTime.now());
 			flowCase.setOptstatus((short)0);
 		}else{
+			flowCase.setCreatedBy(userName);
 			flowCase.setCreatedTime(LocalDateTime.now());
 			flowCase.setOptstatus((short)0);
 		}
@@ -55,17 +60,20 @@ public class FlowCaseController {
 	@PostMapping(value="update")
 	@ResponseBody
 	public Result update(@RequestBody FlowCase flowCase){
-		logger.info("开始新增流用例：{}", flowCase.getName());
+		logger.info("开始更新流用例：{}", flowCase.getName());
+		
+		String userName = UserUtil.getUser();
 		
 		if(flowCase.getId() == null){
 			return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "流用例id不存在！");
 		}
 		
-		flowCase.setCreatedTime(LocalDateTime.now());
+		flowCase.setUpdatedBy(userName);
+		flowCase.setUpdatedTime(LocalDateTime.now());
 		flowCase.setOptstatus((short)0);
 		
 		flowCase = flowCaseService.add(flowCase);
-		logger.info("新增流用例成功，{}", flowCase.getName());
+		logger.info("更新流用例成功，{}", flowCase.getName());
 		return ResultUtil.success(flowCase);
 	}
 	
@@ -74,12 +82,15 @@ public class FlowCaseController {
 	public Result delte(@RequestParam Integer id){
 		logger.info("开始删除流用例,id:：{}", id);
 		
+		String userName = UserUtil.getUser();
+		
 		FlowCase flowCase = flowCaseService.getById(id);
 		
 		if(flowCase == null){
 			return ResultUtil.success();
 		}
 		
+		flowCase.setUpdatedBy(userName);
 		flowCase.setUpdatedTime(LocalDateTime.now());
 		flowCase = flowCaseService.delete(flowCase);
 		return ResultUtil.success();
@@ -112,7 +123,9 @@ public class FlowCaseController {
 	@ResponseBody
 	public Result execute(@RequestBody FlowCase flowCase){
 		logger.info("开始执行流用例，id：{}", flowCase.getId());
-		flowCaseExecutor.runFlowCase(flowCase.getId(), flowCase.getEnv(), flowCase.getTestCases().size(), flowCase.getTestCases());
+		String user = UserUtil.getUser();
+		flowCaseExecutor.runFlowCase(user, flowCase);
+//		flowCaseExecutor.runFlowCase(user, flowCase.getId(), flowCase.getEnv(), flowCase.getTestCases().size(), flowCase.getTestCases());
 		return ResultUtil.success();
 	}
 }

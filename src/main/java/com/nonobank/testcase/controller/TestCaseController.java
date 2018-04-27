@@ -62,8 +62,10 @@ public class TestCaseController {
 	
 	@PostMapping(value="addCase")
 	@ResponseBody
-	public Result addCase(@CookieValue(value="nonousername",required=false) String userName, @RequestBody TestCaseFront testCaseFront){
+	public Result addCase(@RequestBody TestCaseFront testCaseFront){
 		logger.info("开始新增用例");
+		
+		String userName = UserUtil.getUser();
 		
 		TestCase testCase = testCaseService.add(userName, testCaseFront, true);
 		
@@ -75,9 +77,10 @@ public class TestCaseController {
 	
 	@PostMapping(value="addCaseDir")
 	@ResponseBody
-	public Result addCaseDir(@CookieValue(value="nonousername",required=false) String userName, @RequestBody TestCaseFront testCaseFront){
+	public Result addCaseDir(@RequestBody TestCaseFront testCaseFront){
 		logger.info("开始新增用例目录");
 		
+		String userName = UserUtil.getUser();
 		TestCase testCase = testCaseService.add(userName, testCaseFront, false);
 		
 		if(null != testCase){
@@ -111,9 +114,10 @@ public class TestCaseController {
 	
 	@PostMapping(value="updateCase")
 	@ResponseBody
-	public Result updateCase(@CookieValue(value="nonousername",required=false) String userName, @RequestBody TestCaseFront testCaseFront){
+	public Result updateCase(@RequestBody TestCaseFront testCaseFront){
 		logger.info("开始更新用例");
 		
+		String userName = UserUtil.getUser();
 		TestCase testCase = testCaseService.update(userName, testCaseFront);
 		testCaseFront = testCase.convert();
 		return ResultUtil.success(testCaseFront);
@@ -121,16 +125,18 @@ public class TestCaseController {
 	
 	@GetMapping(value="deleteCase")
 	@ResponseBody
-	public Result deleteCase(@CookieValue(value="nonousername",required=false) String userName, Integer id){
+	public Result deleteCase(Integer id){
 		logger.info("开始删除用例");
+		String userName = UserUtil.getUser();
 		testCaseService.deleteTestCase(userName, id);
 		return ResultUtil.success();
 	}
 	
 	@GetMapping(value="deleteTestCaseDir")
 	@ResponseBody
-	public Result deleteTestCaseDir(@CookieValue(value="nonousername",required=false) String userName, Integer id){
+	public Result deleteTestCaseDir(Integer id){
 		logger.info("开始删除用例");
+		String userName = UserUtil.getUser();
 		testCaseService.deleteTestCaseDir(userName, id);
 		return ResultUtil.success();
 	}
@@ -200,8 +206,6 @@ public class TestCaseController {
 	@PostMapping(value="executeApis")
 	@ResponseBody
 	public Result executeApis( @RequestBody JSONObject jsonObj){
-		
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		Integer tcId = jsonObj.getInteger("tcId");
 		JSONArray jsonArrOfApiIds = jsonObj.getJSONArray("apiIds");
 		

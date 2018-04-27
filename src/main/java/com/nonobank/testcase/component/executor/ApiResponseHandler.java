@@ -108,9 +108,14 @@ public class ApiResponseHandler {
 	    	//json响应消息
 	    	if(JSONOBJECT_PATTERN.matcher(expectedResponseBody).matches()){
 	    		if(JSONOBJECT_PATTERN.matcher(actualResponseBody).matches()){
-	    			result = apiHandlerUtils.compareJsonObj(JSONObject.parseObject(expectedResponseBody), JSONObject.parseObject(actualResponseBody), map, 
+	    			Map<String, Boolean> resultOfMap = new HashMap<>();
+	    			resultOfMap.put("result", true);
+	    			
+	    			apiHandlerUtils.compareJsonObj(JSONObject.parseObject(expectedResponseBody), JSONObject.parseObject(actualResponseBody), map, 
 	    					handledResponse, 
-	    					sessionId);
+	    					sessionId, resultOfMap);
+	    			return resultOfMap.get("result");
+	    			
 	    		}else{
 	    			logger.error("响应消息不是json格式");
 	    			webSocket.sendItem("响应消息不是json格式", sessionId);

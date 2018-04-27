@@ -65,6 +65,9 @@ public class ResultDetail {
 	@Column(nullable=true, columnDefinition="bit(1) COMMENT '0:失败，1:成功'")
 	private Boolean result;
 	
+	@Column(nullable = true, columnDefinition="char(1) COMMENT '0:case，1:flowCase'")
+	Character tcType;
+	
 	private LocalDateTime createdTime;
 	
 	public Integer getId() {
@@ -195,6 +198,14 @@ public class ResultDetail {
 		this.result = result;
 	}
 	
+	public Character getTcType() {
+		return tcType;
+	}
+
+	public void setTcType(Character tcType) {
+		this.tcType = tcType;
+	}
+
 	public String getCreatedTime() {
 
 		if (null != this.createdTime) {

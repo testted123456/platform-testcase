@@ -32,8 +32,8 @@ public class ResultHistoryServiceImpl implements ResultHistoryService {
 	}
 
 	@Override
-	public ResultHistory findLastByTcId(Integer id) {
-		return resultHistoryRepository.findFirst1ByTcIdOrderByIdDesc(id);
+	public ResultHistory findLastByTcIdAndTcType(Integer id, Character tcType) {
+		return resultHistoryRepository.findFirst1ByTcIdAndTcTypeOrderByIdDesc(id, tcType);
 	}
 	
 	public List<ResultHistory> findLast10ByGroupId(Integer id){

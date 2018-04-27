@@ -31,6 +31,7 @@ import com.nonobank.testcase.service.SystemBranchService;
 import com.nonobank.testcase.service.TestCaseInterfaceService;
 import com.nonobank.testcase.service.TestCaseService;
 import com.nonobank.testcase.utils.JSONUtils;
+import com.nonobank.testcase.utils.UserUtil;
 
 @Controller
 @RequestMapping(value="testCaseInterface")
@@ -92,16 +93,18 @@ public class TestCaseInterfaceController {
 	
 	@PostMapping(value="addCaseInterfaces")
 	@ResponseBody
-	public Result add(@CookieValue(value="nonousername",required=false) String userName, @RequestBody List<TestCaseInterfaceFront> tcifs){
+	public Result add(@RequestBody List<TestCaseInterfaceFront> tcifs){
 		logger.info("开始新增用例接口");
+		String userName = UserUtil.getUser();
 		testCaseInterfaceService.add(userName, tcifs);
 		return ResultUtil.success(tcifs);
 	}
 	
 	@PostMapping(value="updateCaseInterfaces")
 	@ResponseBody
-	public Result update(@CookieValue(value="nonousername",required=false) String userName, @RequestBody List<TestCaseInterfaceFront> tcifs){
+	public Result update( @RequestBody List<TestCaseInterfaceFront> tcifs){
 		logger.info("开始新增用例接口");
+		String userName = UserUtil.getUser();
 		List<TestCaseInterfaceFront> result = testCaseInterfaceService.update(userName, tcifs);
 		return ResultUtil.success(result);
 	}

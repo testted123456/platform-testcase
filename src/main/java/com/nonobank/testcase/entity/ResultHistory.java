@@ -28,6 +28,9 @@ public class ResultHistory {
 
 	@Column(nullable = true, columnDefinition = "int(11) COMMENT 'group中的case数量或case中的api数量'")
 	private Integer totalSize;
+	
+	@Column(nullable = true, columnDefinition="char(1) COMMENT '0:case，1:flowCase'")
+	Character tcType;
 
 	@Column(nullable = true, columnDefinition = "datetime")
 	private LocalDateTime createdTime;
@@ -87,6 +90,14 @@ public class ResultHistory {
 		} else {
 			return null;
 		}
+	}
+
+	public Character getTcType() {
+		return tcType;
+	}
+
+	public void setTcType(Character tcType) {
+		this.tcType = tcType;
 	}
 
 	public void setCreatedTime(String createdTime) {
