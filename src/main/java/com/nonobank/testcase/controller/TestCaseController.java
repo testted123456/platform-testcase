@@ -7,10 +7,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +22,7 @@ import com.nonobank.testcase.component.executor.TestCaseExecutor;
 import com.nonobank.testcase.component.remoteEntity.RemoteApi;
 import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultUtil;
+import com.nonobank.testcase.component.security.manager.MyAccessDecisionManager;
 import com.nonobank.testcase.component.ws.WebSocket;
 import com.nonobank.testcase.entity.SystemBranch;
 import com.nonobank.testcase.entity.TestCase;
@@ -59,6 +57,20 @@ public class TestCaseController {
 	
 	@Autowired
 	SystemBranchService systemBranchService;
+	
+	@Autowired
+	MyAccessDecisionManager myAccessDecisionManager;
+	
+	/**
+	 * reload url权限
+	 * @return
+	 */
+	@GetMapping(value="initUrlRole")
+	@ResponseBody
+	public Result initUrlRole(){
+		myAccessDecisionManager.initUrlMap();
+		return ResultUtil.success();
+	}
 	
 	@PostMapping(value="addCase")
 	@ResponseBody
