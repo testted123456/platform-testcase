@@ -1,1 +1,8 @@
-{ "name": "example", "version": "0.1.0", "description": "apiDoc basic example", "apidoc": { "title": "Custom apiDoc browser title", "url" : "https://api.github.com/v1" } }
+{ 
+	"name": "测试平台帮助函数", 
+	"version": "1.0.0", 
+	"apidoc": 
+	  { 
+		  "title": "测试平台帮助文档"
+	  } 
+}

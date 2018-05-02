@@ -18,8 +18,9 @@ public class DBOperator {
 	 * @apiGroup DB_OPER
 	 * @apiVersion 0.1.0
 	 * @apiParam (入参) {String} sql sql语句
+	 *  @apiParam (入参) {String} args 可选参数，数据库配置名称，默认default
 	 * @apiSuccessExample {invoke} 调用说明:
-	 * ${getOneField_db("select name from user_info")}
+	 * ${getOneField_db("select name from user_info", "default")}
 	 */
 	public static void getOneField_db(String sql, String...args) {
 	}
@@ -30,10 +31,6 @@ public class DBOperator {
 		Object obj = DBUtils.getOneObject(con, sql);
 		return String.valueOf(obj);
 	}
-
-	@Info(name = "getOneField2", desc = "查询数据库一个字段")
-	@Param(type = { "String", "String" }, name = { "db_Config", "sql" }, desc = { "数据源配置", "sql语句" })
-	@Return(type = "String", desc = "查询数据库一个字段")
 
 	/**
 	 * @api {函数} getOneField2("db_Config","sql") 按数据源查询单字段
@@ -50,19 +47,16 @@ public class DBOperator {
 		return String.valueOf(obj);
 	}
 
-	@Info(name = "getMultField_db", desc = "getMultField_db(\"select * from user_info;\")")
-	@Param(type = { "String" }, name = { "sql" }, desc = { "sql语句" })
-	@Return(type = "String", desc = "查询数据库多个字段")
-
 	/**
 	 * @api {函数} getMultField_db("sql") 多字段查询
 	 * @apiGroup DB_OPER
 	 * @apiVersion 0.1.0
 	 * @apiParam (入参) {String} sql sql语句
+	 * @apiParam (入参) {String} args 可选参数，数据库配置名称，默认default
 	 * @apiSuccessExample {invoke} 调用说明:
-	 * ${getMultField_db("select id,name from user_info;")}
+	 * ${getMultField_db("select id,name from user_info;", "default")}
 	 */
-	public static void getMultField_db(String sql) {
+	public static void getMultField_db(String sql, String...args) {
 	}
 
 	public static String getMultField(String mySql_driver, String mySql_url, String db_name, String db_password,
@@ -71,10 +65,6 @@ public class DBOperator {
 		Object obj = DBUtils.getMultObject(con, sql);
 		return String.valueOf(obj);
 	}
-
-	@Info(name = "getMultField2", desc = "指定数据库信息，查询数据库多个字段")
-	@Param(type = { "String", "String" }, name = { "db_Config", "sql" }, desc = { "数据源配置", "sql语句" })
-	@Return(type = "String", desc = "指定数据库信息，查询数据库多个字段")
 
 	/**
 	 * @api {函数} getMultField2("db_Config","sql") 按数据源查询多字段
@@ -91,19 +81,16 @@ public class DBOperator {
 		return String.valueOf(obj);
 	}
 
-	@Info(name = "insertValues_db", desc = "insertValues_db(\"insert into user_info values('1')\")")
-	@Param(type = { "String" }, name = { "sql" }, desc = { "插入sql语句" })
-	@Return(type = "String", desc = "返回插入的数据")
-
 	/**
 	 * @api {函数} insertValues_db("sql") 插数据
 	 * @apiGroup DB_OPER
 	 * @apiVersion 0.1.0
 	 * @apiParam (入参) {String} sql 插入sql语句
+	 * @apiParam (入参) {String} args 可选参数，数据库配置名称，默认default
 	 * @apiSuccessExample {invoke} 调用说明:
-	 * ${insertValues_db("insert into user_info values('1')")}
+	 * ${insertValues_db("insert into user_info values('1')", "default")}
 	 */
-	public static void insertValues_db(String sql) {
+	public static void insertValues_db(String sql, String...args) {
 	}
 
 	public static String insertValues(String mySql_driver, String mySql_url, String db_name, String db_password,
@@ -124,10 +111,6 @@ public class DBOperator {
 		}
 		return str.trim();
 	}
-
-	@Info(name = "insertValues2", desc = "插入表数据")
-	@Param(type = { "String", "String" }, name = { "db_Config", "sql" }, desc = { "数据源配置", "sql语句" })
-	@Return(type = "String", desc = "返回插入的数据")
 
 	/**
 	 * @api {函数} insertValues2("db_Config","sql") 按数据源插入数据
@@ -156,19 +139,16 @@ public class DBOperator {
 		return str.trim();
 	}
 
-	@Info(name = "updateValues_db", desc = "updateValues_db(\"update user_info set user_name='user1' where id=1;\")")
-	@Param(type = { "String" }, name = { "sql" }, desc = { "sql修改语句" })
-	@Return(type = "String", desc = "返回被更新的行数")
-
 	/**
 	 * @api {函数} updateValues_db("sql") 修改数据
 	 * @apiGroup DB_OPER
 	 * @apiVersion 0.1.0
 	 * @apiParam (入参) {String} sql sql修改语句
+	 * @apiParam (入参) {String} args 可选参数，数据库配置名称，默认default
 	 * @apiSuccessExample {invoke} 调用说明:
 	 * ${updateValues_db("update user_info set user_name='user1' where id=1;")}
 	 */
-	public static void updateValues_db(String sql) {
+	public static void updateValues_db(String sql, String...args) {
 	}
 
 	public static String updateValues(String mySql_driver, String mySql_url, String db_name, String db_password,
@@ -178,10 +158,6 @@ public class DBOperator {
 		String str = Integer.toString(obj);
 		return str;
 	}
-
-	@Info(name = "updateValues2", desc = "修改表数据")
-	@Param(type = { "String", "String" }, name = { "db_Config", "sql" }, desc = { "数据源配置", "sql语句" })
-	@Return(type = "String", desc = "返回被更新的行数")
 
 	/**
 	 * @api {函数} updateValues2("db_Config","sql") 按数据源修改数据

@@ -4,22 +4,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-
 import com.alibaba.fastjson.JSONObject;
-import com.nonobank.testcase.component.dataProvider.annotation.Info;
-import com.nonobank.testcase.component.dataProvider.annotation.Param;
-import com.nonobank.testcase.component.dataProvider.annotation.Return;
 import com.nonobank.testcase.utils.dll.MD5Util;
 
 public class SignatureUtils {
 
-	@Info(name="getSignature_db",desc="获取签名")
-	@Param(type={},name={},desc={})
-	@Return(type="String",desc="获取签名")
-
 	/**
 	 * @api {函数} getSignature_db() 获取签名
-	 * @apiGroup OTHER
+	 * @apiGroup SIGNATURE
 	 * @apiVersion 0.1.0
 	 * @apiSuccessExample {invoke} 调用说明:
 	 * ${getSignature_db()}

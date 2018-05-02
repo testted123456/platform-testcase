@@ -8,10 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-
-import com.nonobank.testcase.component.dataProvider.annotation.Info;
-import com.nonobank.testcase.component.dataProvider.annotation.Param;
-import com.nonobank.testcase.component.dataProvider.annotation.Return;
 import com.nonobank.testcase.utils.dll.DBUtils;
 
 public class BankCardUtils {
@@ -131,10 +127,6 @@ public class BankCardUtils {
 		return str;
 	}
 
-	@Info(name = "getUnUseBankcard_db", desc = "getUnUseBankcard_db()")
-	@Param(type = { }, name = { }, desc = {  })
-	@Return(type = "String", desc = "获取未使用的银行卡号码")
-
 	/**
 	 * @api {函数} getUnUseBankcard_db() 未使用的卡号
 	 * @apiGroup BANKCARD
@@ -159,15 +151,11 @@ public class BankCardUtils {
 		return bankCard;
 	}
 
-	@Info(name = "getBankcardByBankName", desc = "getBankcardByBankName(\"CCB\")")
-	@Param(type = {"String"}, name = {"bankName"}, desc = { "银行名称" })
-	@Return(type = "String", desc = "根据银行名称获取银行卡号码")
-
 	/**
 	 * @api {函数} getBankcardByBankName("bankName") 按银行名获取卡号
 	 * @apiGroup BANKCARD
 	 * @apiVersion 0.1.0
-	 * @apiParam (入参) {String} bankName 银行名称,银行名称,如:CCB:建设,CITIC:中信,HXB:华夏,GDB:广发,PAB:平安,ABC:农业,BOC:中国,CMB:招商,CEB:光大,BCOM:民生,SPDB:浦发,ICBC:工商,CIB:兴业,PSBC:邮政
+	 * @apiParam (入参) {String} bankName 银行名称,如:CCB:建设,CITIC:中信,HXB:华夏,GDB:广发,PAB:平安,ABC:农业,BOC:中国,CMB:招商,CEB:光大,BCOM:民生,SPDB:浦发,ICBC:工商,CIB:兴业,PSBC:邮政
 	 * @apiSuccessExample {invoke} 调用说明:
 	 * ${getBankcardByBankName("CCB")}
 	 */
@@ -176,10 +164,6 @@ public class BankCardUtils {
 		String bankCard = BankCardUtils.getBankCard(prefix);
 		return bankCard;
 	}
-
-	@Info(name = "getUnUseBankcardByBankName_db", desc = "getUnUseBankcardByBankName_db(\"CCB\")")
-	@Param(type = {"String"}, name = {"bankName"}, desc = { "银行名称，如：CCB:建设,CITIC:中信,HXB:华夏,GDB:广发,PAB:平安,ABC:农业,BOC:中国,CMB:招商,CEB:光大,BCOM:民生,SPDB:浦发,ICBC:工商,CIB:兴业,PSBC:邮政"})
-	@Return(type = "String", desc = "根据银行名称获取未使用的银行卡")
 
 	/**
 	 * @api {函数} getUnUseBankcardByBankName_db("bankName") 按名称获取未使用的卡号
@@ -209,10 +193,6 @@ public class BankCardUtils {
 		return bankCard;
 	}
 
-	@Info(name = "getUsedBankcardByBankName_db", desc = "getUsedBankcardByBankName_db(\"CCB\")")
-	@Param(type = {"String"}, name = {"bankName"}, desc = { "银行名称，如：CCB:建设,CITIC:中信,HXB:华夏,GDB:广发,PAB:平安,ABC:农业,BOC:中国,CMB:招商,CEB:光大,BCOM:民生,SPDB:浦发,ICBC:工商,CIB:兴业,PSBC:邮政" })
-	@Return(type = "String", desc = "根据银行名称获取已使用的银行卡")
-
 	/**
 	 * @api {函数} getUsedBankcardByBankName_db("bankName") 按名称获取已使用的卡号
 	 * @apiGroup BANKCARD
@@ -234,12 +214,8 @@ public class BankCardUtils {
 		return bankCard;
 	}
 
-	@Info(name = "getUseBankcardRandom_db", desc = "getUseBankcardRandom_db()")
-	@Param(type = {  }, name = {  }, desc = { })
-	@Return(type = "String", desc = "随机获取已经存在的银行卡号码")
-
 	/**
-	 * @api {函数} getUseBankcardRandom_db() 已使用的卡号
+	 * @api {函数} getUseBankcardRandom_db() 随机获取已经存在的银行卡号码
 	 * @apiGroup BANKCARD
 	 * @apiVersion 0.1.0
 	 * @apiSuccessExample {invoke} 调用说明:
@@ -256,10 +232,6 @@ public class BankCardUtils {
 		DBUtils.closeConnection(conn);
 		return bankCard;
 	}
-
-	@Info(name = "getBankcardByUserId_db", desc = "getBankcardByUserId_db(\"123\")")
-	@Param(type = {"String"}, name = {"userId"}, desc = {"用户id"})
-	@Return(type = "String", desc = "根据userId获得用户的银行卡号码")
 
 	/**
 	 * @api {函数} getBankcardByUserId_db("userId") 按userid获取卡号
@@ -279,19 +251,6 @@ public class BankCardUtils {
 		String bankcard = String.valueOf(DBUtils.getOneObject(conn, sql));
 		DBUtils.closeConnection(conn);
 		return bankcard;
-	}
-
-	public static void main(String [] args) throws Exception{
-		try {
-			for(int i =0;i<1000;i++){
-				String str = MobileUtil.getUnRegisterMobile("com.mysql.jdbc.Driver","jdbc:mysql://192.168.4.13:3306/db_nono?autoReconnect=true", "tester", "r5emEot%");
-
-				System.out.println(str);
-			}
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 }

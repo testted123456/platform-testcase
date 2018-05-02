@@ -5,19 +5,11 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-
-import com.nonobank.testcase.component.dataProvider.annotation.Info;
-import com.nonobank.testcase.component.dataProvider.annotation.Param;
-import com.nonobank.testcase.component.dataProvider.annotation.Return;
 import com.nonobank.testcase.utils.dll.DBUtils;
 import com.nonobank.testcase.utils.dll.IdCardGeneratorUtil;
 
 public class IdCardGenerator {
 	public static final Map<String, Integer> areaCode = new HashMap<String, Integer>();
-
-	@Info(name="generate", desc="generate()")
-	@Param(type={},name={},desc={})
-	@Return(type="String",desc="随机生成身份证号码")
 
 	/**
 	 * @api {函数} generate() 随机生成身份证号
@@ -36,10 +28,6 @@ public class IdCardGenerator {
 		return generater.toString();
 	}
 
-	@Info(name="generateByYear", desc="generateByYear(\"1992\")")
-	@Param(type={"int"},name={"year"},desc={"出生年份"})
-	@Return(type="String",desc="根据出生年份生成身份证号码")
-
 	/**
 	 * @api {函数} generateByYear(year) 按年生成身份证号
 	 * @apiGroup IDCARD
@@ -57,10 +45,6 @@ public class IdCardGenerator {
 		generater.append(IdCardGeneratorUtil.calcTrailingNumber(generater.toString().toCharArray()));
 		return generater.toString();
 	}
-
-	@Info(name="generateByYear", desc="根据地区生成身份证号码")
-	@Param(type={"String"},name={"area"},desc={"地区"})
-	@Return(type="String",desc="根据地区生成身份证号码")
 
 	/**
 	 * @api {函数} generateByYear("area") 按地区生成身份证号
@@ -178,10 +162,6 @@ public class IdCardGenerator {
 		return count;
 	}
 
-	@Info(name="getUnRegisterIDCard_db",desc="getUnRegisterIDCard_db()")
-	@Param(type={},name={},desc={})
-	@Return(type="String",desc="获取未使用的身份证号码")
-
 	/**
 	 * @api {函数} getUnRegisterIDCard_db() 未使用的身份证号
 	 * @apiGroup IDCARD
@@ -207,10 +187,6 @@ public class IdCardGenerator {
 		DBUtils.closeConnection(conn);
 		return idCard;
 	}
-
-	@Info(name="getUnRegisterByAdultIDCard_db",desc="getUnRegisterByAdultIDCard_db()")
-	@Param(type={},name={},desc={})
-	@Return(type="String",desc="获取未使用的年龄在16-40岁之间的身份证号码")
 
 	/**
 	 * @api {函数} getUnRegisterByAdultIDCard_db() 未使用的身份证号码(16-40岁)
@@ -240,10 +216,6 @@ public class IdCardGenerator {
 		return idCard;
 	}
 
-	@Info(name="getRegisterIDCardRandom_db",desc="getRegisterIDCardRandom_db()")
-	@Param(type={},name={},desc={})
-	@Return(type="String",desc="随机获得已经存在的身份证号码")
-
 	/**
 	 * @api {函数} getRegisterIDCardRandom_db() 已注册的身份证号
 	 * @apiGroup IDCARD
@@ -262,10 +234,6 @@ public class IdCardGenerator {
 		String idCard =  String.valueOf(DBUtils.getOneObject(conn, sql));
 		return idCard;
 	}
-
-	@Info(name="getUnRegisterIDCardByYear_db",desc="getUnRegisterIDCardByYear_db(\"1990\")")
-	@Param(type={"String"},name={"year"},desc={"出生年份"})
-	@Return(type="String",desc="通过year(出生年份)生成未使用的身份证号码")
 
 	/**
 	 * @api {函数} getUnRegisterIDCardByYear_db("year") 按年生成未注册的身份证号
@@ -291,6 +259,55 @@ public class IdCardGenerator {
 		}
 		DBUtils.closeConnection(conn);
 		return idCard;
+	}
+	
+	/**
+	 * @api {函数} generateEndWithX("year") 生成X结尾的身份证
+	 * @apiGroup IDCARD
+	 * @apiVersion 0.1.0
+	 * @apiSuccessExample {invoke} 调用说明:
+	 * ${generateEndWithX()}
+	 */
+	public static String generateEndWithX(){
+		String id = generate();
+		
+		while(!id.endsWith("X")){
+			id = generate();
+		}
+		
+		return id;
+	}
+	
+	
+	/**
+	 * @api {函数} generateByYearEndWithX("year") 根据年份生成X结尾的身份证
+	 * @apiGroup IDCARD
+	 * @apiVersion 0.1.0
+	 * @apiParam (入参) {String} year 出生年份
+	 * @apiSuccessExample {invoke} 调用说明:
+	 * ${generateByYearEndWithX("1990")}
+	 */
+	public static String generateByYearEndWithX(String year){
+		String id = generateByYear(year);
+		
+		while(!id.endsWith("X")){
+			id = generateByYear(year);
+		}
+		
+		return id;
+	}
+	
+	/**
+	 * @api {函数} generateByYearEndWithLowerCase("year") 根据年份生成x结尾的身份证
+	 * @apiGroup IDCARD
+	 * @apiVersion 0.1.0
+	 * @apiParam (入参) {String} year 出生年份
+	 * @apiSuccessExample {invoke} 调用说明:
+	 * ${generateByYearEndWithLowerCase("1990")}
+	 */
+	public static String generateByYearEndWithLowerCase(String year){
+		String id = generateByYearEndWithX(year);
+		return id.toLowerCase();
 	}
 
 }

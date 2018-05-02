@@ -4,19 +4,11 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import com.nonobank.testcase.component.dataProvider.annotation.Info;
-import com.nonobank.testcase.component.dataProvider.annotation.Param;
-import com.nonobank.testcase.component.dataProvider.annotation.Return;
 import com.nonobank.testcase.utils.dll.DBUtils;
 import com.nonobank.testcase.utils.dll.MD5Util;
 import com.nonobank.testcase.utils.dll.RandomUtils;
 
 public class MobileUtil {
-
-	@Info(name="getUnRegisterMobile_db",desc="getUnRegisterMobile_db()")
-	@Param(type={},name={},desc={})
-	@Return(type="String",desc="生成未注册的手机号码")
 
 	/**
 	 * @api {函数} getUnRegisterMobile_db() 未注册号码
@@ -44,10 +36,6 @@ public class MobileUtil {
 	}
 
 
-	@Info(name="getUnRegisterAmericaMobile_db",desc="获取未注册的美国手机号码")
-	@Param(type={},name={},desc={})
-	@Return(type="String",desc="获取未注册的美国手机号码")
-
 	/**
 	 * @api {函数} getUnRegisterAmericaMobile_db() 美国未注册号码
 	 * @apiGroup MOBILE
@@ -73,10 +61,6 @@ public class MobileUtil {
 		return mobile;
 	}
 
-	@Info(name="getRegisterMobileRandom_db",desc="随机获得已经注册未实名认证的手机号码")
-	@Param(type={},name={},desc={"测试参数"})
-	@Return(type="String",desc="随机获得已经注册未实名认证的手机号码")
-
 	/**
 	 * @api {函数} getRegisterMobileRandom_db() 已注册号码
 	 * @apiGroup MOBILE
@@ -96,10 +80,6 @@ public class MobileUtil {
 		return mobile;
 	}
 
-	@Info(name="getRealnameMobileRandom_db",desc="getRealnameMobileRandom_db()")
-	@Param(type={},name={},desc={})
-	@Return(type="String",desc="随机获得已经实名认证的手机号码")
-
 	/**
 	 * @api {函数} getRealnameMobileRandom_db() 已实名号码
 	 * @apiGroup MOBILE
@@ -118,10 +98,6 @@ public class MobileUtil {
 		DBUtils.closeConnection(conn);
 		return mobile;
 	}
-
-	@Info(name="getBankcardMobile_db",desc="获得已经绑卡的手机号码")
-	@Param(type={},name={},desc={})
-	@Return(type="String",desc="获得已经绑卡的手机号码")
 
 	/**
 	 * @api {函数} getBankcardMobile_db() 已绑卡号码
@@ -145,11 +121,6 @@ public class MobileUtil {
 		return mobile;
 	}
 
-
-	@Info(name="getUserId_db",desc="getUserId_db(\"180123123123\")")
-	@Param(type={"String"},name={"mobile"},desc={"手机号码"})
-	@Return(type="String",desc="根据手机号码获取userId")
-
 	/**
 	 * @api {函数} getUserId_db("phoneNo") 按手机号获取UserId
 	 * @apiGroup MOBILE
@@ -169,10 +140,6 @@ public class MobileUtil {
 		DBUtils.closeConnection(conn);
 		return userId;
 	}
-
-	@Info(name="getUserName_db",desc="getUserName_db(\"180123123123\")")
-	@Param(type={"String"},name={"mobile"},desc={"测试参数"})
-	@Return(type="String",desc="根据手机号码获取username")
 
 	/**
 	 * @api {函数} getUserName_db("phoneNo") 按手机号获取UserName
@@ -194,10 +161,6 @@ public class MobileUtil {
 		return userName;
 	}
 
-	@Info(name="getLoginPassword_db",desc="根据手机号码获取登录密码")
-	@Param(type={"String"},name={"mobile"},desc={"手机号码"})
-	@Return(type="String",desc="根据手机号码获取登录密码")
-
 	/**
 	 * @api {函数} getLoginPassword_db("mobile") 按手机号获取登陆密码
 	 * @apiGroup MOBILE
@@ -217,10 +180,6 @@ public class MobileUtil {
 		DBUtils.closeConnection(conn);
 		return loginPassword;
 	}
-
-	@Info(name="getPayPassword_db",desc="根据手机号码获取支付密码")
-	@Param(type={"String"},name={"mobile"},desc={"手机号码"})
-	@Return(type="String",desc="test")
 
 	/**
 	 * @api {函数} getPayPassword_db("mobile") 按手机号获取支付密码
@@ -242,10 +201,6 @@ public class MobileUtil {
 		return payPassword;
 	}
 
-	@Info(name="getRealName_db",desc="根据手机号码获取真实姓名")
-	@Param(type={"String"},name={"mobile"},desc={"手机号码"})
-	@Return(type="String",desc="test")
-
 	/**
 	 * @api {函数} getRealName_db("mobile") 按手机号获取真实姓名
 	 * @apiGroup MOBILE
@@ -266,10 +221,6 @@ public class MobileUtil {
 		return realName;
 	}
 
-	@Info(name="getIdCard_db",desc="根据手机号码获取身份证号码")
-	@Param(type={"String"},name={"mobile"},desc={"手机号码"})
-	@Return(type="String",desc="test")
-
 	/**
 	 * @api {函数} getIdCard_db("mobile") 按手机号获取身份证号
 	 * @apiGroup MOBILE
@@ -289,10 +240,6 @@ public class MobileUtil {
 		DBUtils.closeConnection(conn);
 		return idCard;
 	}
-
-	@Info(name="md5MobileDate", desc="MD5加密手机号码和当前日期")
-	@Param(type={"String"}, name={"mobile"},desc={"手机号码"})
-	@Return(type="String",desc="MD5加密手机号码和当前日期")
 
 	/**
 	 * @api {函数} md5MobileDate("mobile") MD5加密手机号码和当前日期

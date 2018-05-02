@@ -16,10 +16,6 @@ import com.nonobank.testcase.component.dataProvider.annotation.Return;
 
 public class Arithmetic {
 
-	@Info(name = "operator", desc = "operator(\"1+2*5\")")
-	@Param(type = { "String" }, name = { "str" }, desc = { "四则运算表达式" })
-	@Return(type = "String", desc = "返回四则运算结果")
-
 	/**
 	 * @api {函数} operator("str") 四则运算
 	 * @apiGroup CAL
@@ -40,10 +36,6 @@ public class Arithmetic {
 		return bd.toPlainString();
 	}
 
-	@Info(name = "md5Encode", desc = "md5Encode(\"it789123\")")
-	@Param(type = { "String" }, name = { "str" }, desc = { "待加密字符串" })
-	@Return(type = "String", desc = "返回md5加密结果")
-
 	/**
 	 * @api {函数} md5Encode("str") md5加密
 	 * @apiGroup CAL
@@ -57,10 +49,6 @@ public class Arithmetic {
 		md.update(str.getBytes());
 		return new BigInteger(1, md.digest()).toString(16);
 	}
-
-	@Info(name = "get36Hex1", desc = "get36Hex1(\"123\") ")
-	@Param(type = { "String" }, name = { "bId" }, desc = { "bpId" })
-	@Return(type = "String", desc = "根据bpId生成bo_identity")
 
 	/**
 	 * @api {函数} get36Hex1("bId") 生成bo_identity

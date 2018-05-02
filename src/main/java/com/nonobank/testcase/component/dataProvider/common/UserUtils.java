@@ -2,18 +2,10 @@ package com.nonobank.testcase.component.dataProvider.common;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-
-import com.nonobank.testcase.component.dataProvider.annotation.Info;
-import com.nonobank.testcase.component.dataProvider.annotation.Param;
-import com.nonobank.testcase.component.dataProvider.annotation.Return;
 import com.nonobank.testcase.utils.dll.DBUtils;
 import com.nonobank.testcase.utils.dll.RandomUtils;
 
 public class UserUtils {
-
-	@Info(name="getUnRegisterUserName_db",desc="获取未注册的用户名username")
-	@Param(type={},name={},desc={})
-	@Return(type="String",desc="获取未注册的用户名username")
 
 	/**
 	 * @api {函数} getUnRegisterUserName_db() 获取未注册的用户名
@@ -40,10 +32,6 @@ public class UserUtils {
 		return username;
 	}
 
-	@Info(name="getRegisterUserNameByRandom_db",desc="随机获得已经存在的用户名username")
-	@Param(type={},name={},desc={})
-	@Return(type="String",desc="随机获得已经存在的用户名username")
-
 	/**
 	 * @api {函数} getRegisterUserNameByRandom_db() 获取已经存在的用户名
 	 * @apiGroup USER
@@ -63,10 +51,6 @@ public class UserUtils {
 		DBUtils.closeConnection(conn);
 		return mobile;
 	}
-
-	@Info(name="getUnRegisterEmail_db",desc="获取未使用的email")
-	@Param(type={},name={},desc={})
-	@Return(type="String",desc="获取未使用的email")
 
 	/**
 	 * @api {函数} getUnRegisterEmail_db() 获取未使用的email
@@ -93,10 +77,6 @@ public class UserUtils {
 		DBUtils.closeConnection(conn);
 		return email;
 	}
-
-	@Info(name="getRegisterEmailByRandom_db",desc="随机获得已经存在的email")
-	@Param(type={},name={},desc={"测试参数"})
-	@Return(type="String",desc="test")
 
 	/**
 	 * @api {函数} getRegisterEmailByRandom_db() 获取已经存在的email

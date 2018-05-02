@@ -3,10 +3,6 @@ package com.nonobank.testcase.component.dataProvider.common;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Random;
-
-import com.nonobank.testcase.component.dataProvider.annotation.Info;
-import com.nonobank.testcase.component.dataProvider.annotation.Param;
-import com.nonobank.testcase.component.dataProvider.annotation.Return;
 import com.nonobank.testcase.utils.dll.DBUtils;
 
 public class RateCutCodeUtils {
@@ -21,10 +17,6 @@ public class RateCutCodeUtils {
 		}
 		return sb.toString();
 	}
-
-	@Info(name="getRateCutCode_db",desc="获得未使用的减息券码")
-	@Param(type={},name={},desc={})
-	@Return(type="String",desc="获得未使用的减息券码")
 
 	/**
 	 * @api {函数} getRateCutCode_db() 获得未使用的减息券
