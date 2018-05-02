@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.nonobank.testcase.component.result.Result;
+import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.component.result.ResultUtil;
 import com.nonobank.testcase.entity.SystemBranch;
 import com.nonobank.testcase.service.SystemBranchService;
@@ -46,12 +47,56 @@ public class SystemBranchController {
 		systemBranchService.update(systemBranch);
 		return ResultUtil.success();
 	}
+	 
+	/**
+	 * 更新last字段
+	 * @param systemBranch
+	 * @return
+	 */
+	@PostMapping(value="updateLast")
+	@ResponseBody
+	public Result updateLast(@RequestBody SystemBranch systemBranch){
+		if(null == systemBranch.getId()){
+			return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "系统分支还未保存！");
+		}
+		
+		SystemBranch sb = systemBranchService.findById(systemBranch.getId());
+		
+		if(null == sb){
+			return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "系统分支还未保存！");
+		}
+		
+		sb.setLast(systemBranch.getLast());
+		systemBranchService.update(sb);
+		return ResultUtil.success();
+	}
 	
+	/**
+	 * 查找所有
+	 * @return
+	 */
 	@GetMapping(value="getAll")
 	@ResponseBody
 	public Result getAll(){
 		logger.info("开始获取系统分支配置");
 		return ResultUtil.success(systemBranchService.findall());
+	}
+	
+	/**
+	 * 根据系统查找，系统为空则返回所有
+	 * @param system
+	 * @return
+	 */
+	@GetMapping(value="getBySystem")
+	@ResponseBody
+	public Result getBySystem(@RequestParam String system){
+		logger.info("开始获取系统分支配置");
+		
+		if(null == system || "null".equals(system) || "".equals(system)){
+			return ResultUtil.success(systemBranchService.findall());
+		}
+		
+		return ResultUtil.success(systemBranchService.findBySystem(system));
 	}
 
 }

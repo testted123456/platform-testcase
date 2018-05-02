@@ -34,9 +34,11 @@ public interface SystemBranchService {
 	 */
 	SystemBranch findBySystemAndBranch(String system, String branch);
 	
+	SystemBranch findById(Integer id);
 	
 	List<SystemBranch> findBySystemAndLast(String system, boolean last);
 	
+
 	List<SystemBranch> findall();
 	
 }

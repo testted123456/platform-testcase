@@ -83,4 +83,9 @@ public class SystemBranchServiceImpl implements SystemBranchService {
 	public List<SystemBranch> findall() {
 		return systemBranchRepository.findAll();
 	}
+
+	@Override
+	public SystemBranch findById(Integer id) {
+		return systemBranchRepository.findById(id);
+	}
 }

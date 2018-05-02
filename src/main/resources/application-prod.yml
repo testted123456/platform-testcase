@@ -15,9 +15,9 @@ spring:
   session:
     store-type: redis
   datasource:
-    url: jdbc:mysql://192.168.1.51:3306/platform?useUnicode=true&amp;characterEncoding=utf-8
+    url: jdbc:mysql://192.168.1.42:3306/testingplatform?useUnicode=true&amp;characterEncoding=utf-8
 #    url: jdbc:mysql://127.0.0.1:3306/platform?u#seUnicode#=true&amp;characterEncoding=utf-8
-    username: root
+    username: tester
     password: 123456
     driver-class-name: com.mysql.jdbc.Driver
   jpa:
