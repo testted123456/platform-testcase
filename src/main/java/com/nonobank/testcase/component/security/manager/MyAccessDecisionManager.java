@@ -99,6 +99,11 @@ public class MyAccessDecisionManager implements AccessDecisionManager {
       
 //      判断url是否需要忽略
       String url = ((FilterInvocation) object).getRequestUrl();
+      
+      if(url != null && url.startsWith("/webSocket")){
+    	  return;
+      }
+      
       if (url.indexOf("?") != -1) {
           url = url.substring(0, url.indexOf("?"));
       }
