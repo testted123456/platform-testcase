@@ -404,7 +404,7 @@ public class TestCaseExecutor {
 			}catch(Exception e){
 				String errMsg = ExceptionUtils.getStackTrace(e);
 				logger.error(errMsg);
-				webSocket.sendVar("接口测试发生异常：" + errMsg, sessionId);
+				webSocket.sendVar("接口测试发生异常：" + e.getLocalizedMessage(), sessionId);
 				resultDetail.setException(errMsg);
 				resultDetail.setResult(false);
 				resultDetailService.add(resultDetail);
