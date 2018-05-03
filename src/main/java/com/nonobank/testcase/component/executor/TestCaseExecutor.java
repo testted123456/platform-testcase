@@ -402,9 +402,10 @@ public class TestCaseExecutor {
 					continue;
 				}
 			}catch(Exception e){
-				logger.error(ExceptionUtils.getStackTrace(e));
-				webSocket.sendVar("接口测试发生异常：" + e.getMessage(), sessionId);
-				resultDetail.setException(e.getMessage());
+				String errMsg = ExceptionUtils.getStackTrace(e);
+				logger.error(errMsg);
+				webSocket.sendVar("接口测试发生异常：" + errMsg, sessionId);
+				resultDetail.setException(errMsg);
 				resultDetail.setResult(false);
 				resultDetailService.add(resultDetail);
 					
