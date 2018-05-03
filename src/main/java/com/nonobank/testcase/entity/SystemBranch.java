@@ -24,6 +24,9 @@ public class SystemBranch {
 	@Column(nullable = true, columnDefinition = "bit(1) COMMENT '是否是最新分支'")
 	Boolean last;
 	
+	@Column(nullable = true, columnDefinition = "bit(1) COMMENT '是否已经静态代码检测过,0:未检测，1:已检测'")
+	Boolean codeChecked;
+	
 	@Column(nullable=false, columnDefinition="smallint(1) COMMENT '0:正常，1:已更新，2:已删除,3:同步中，4:同步成功，5:同步失败'")
 	Short optstatus;
 

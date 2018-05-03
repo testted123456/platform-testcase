@@ -8,6 +8,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.HttpException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.slf4j.Logger;
@@ -400,7 +402,7 @@ public class TestCaseExecutor {
 					continue;
 				}
 			}catch(Exception e){
-				e.printStackTrace();
+				logger.error(ExceptionUtils.getStackTrace(e));
 				webSocket.sendVar("接口测试发生异常：" + e.getMessage(), sessionId);
 				resultDetail.setException(e.getMessage());
 				resultDetail.setResult(false);

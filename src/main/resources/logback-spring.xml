@@ -10,11 +10,9 @@
 		class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<filter class="ch.qos.logback.classic.filter.LevelFilter">
 			<level>info</level>
-			<!-- <onMatch>DENY</onMatch>
-			<onMismatch>ACCEPT</onMismatch> -->
 		</filter>
 		<encoder>
-			<pattern> %msg%n </pattern>
+			<pattern>%date [%thread] %-5level %logger{50}:%L - %msg%n</pattern>
 		</encoder> <!--滚动策略 -->
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"> <!--路径 -->
 			<fileNamePattern>./logs/info.%d.log</fileNamePattern>
@@ -26,7 +24,7 @@
 			<level>ERROR</level>
 		</filter>
 		<encoder>
-			<pattern> %msg%n </pattern>
+			<pattern>%date [%thread] %-5level %logger{50}:%L - %msg%n</pattern>
 		</encoder> <!--滚动策略 -->
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"> <!--路径 -->
 			<fileNamePattern>./logs/error.%d.log</fileNamePattern>

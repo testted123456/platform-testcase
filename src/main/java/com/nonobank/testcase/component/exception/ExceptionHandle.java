@@ -17,6 +17,10 @@ public class ExceptionHandle {
 	@ExceptionHandler(value = Exception.class)
 	@ResponseBody
 	public Result handle(Exception e){
+		if(null != e.getStackTrace()){
+			logger.error(e.getStackTrace().toString());
+		}
+		
 		if( e instanceof TestCaseException){
 			TestCaseException tcException = (TestCaseException)e;
 			return ResultUtil.error(tcException.getCode(), tcException.getMessage());
