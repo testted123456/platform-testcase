@@ -211,24 +211,32 @@ public class TestCaseExecutor {
 				
 		//处理接口url
 		if(!"thirdparty".equals(system)){
-			SystemCfg systemCfg = 
-					systemCfgService.findByAlias(system);
+			SystemCfg systemCfg = systemCfgService.findByAlias(system);
+			
+			if(null == systemCfg){
+				throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "系统：" + system + "没有配置");
+			}
+			
 		    Env e = envService.findByName(env);
 		    
-		    if(null != e){
-		    	SystemEnv systemEnv = systemEnvService.findBySystemCfgIdAndEnvId(systemCfg.getId(), e.getId());
+		    if(null == e){
+				throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "环境：" + e + "没有配置");
+			}
+		    
+	    	SystemEnv systemEnv = systemEnvService.findBySystemCfgIdAndEnvId(systemCfg.getId(), e.getId());
+	    	
+			if(null != systemEnv && null != systemEnv.getDomain()){
+				String domain = systemEnv.getDomain();
+				String dns = systemEnv.getDns();
 				
-				if(null != systemEnv && null != systemEnv.getDomain()){
-					String domain = systemEnv.getDomain();
-					String dns = systemEnv.getDns();
-					
-					if(null != dns){
-						dnsResolver.addResolve(domain, dns);
-					}
-					
-					url = handleUrl(apiType, domain, system, url);
+				if(null != dns){
+					dnsResolver.addResolve(domain, dns);
 				}
-		    }
+				
+				url = handleUrl(apiType, domain, system, url);
+			}else{
+				webSocket.sendItem("【提示】配置中没有查到系统<" + system + ">对应环境<" + env +">的URL", sessionId);
+			}
 		}
 		
 		if(apiHandlerUtils.variableMatched(url) == true){
