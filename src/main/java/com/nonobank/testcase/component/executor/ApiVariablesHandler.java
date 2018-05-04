@@ -42,7 +42,7 @@ public class ApiVariablesHandler {
 //		variables = ApiHandlerUtils.removeEnter(variables);
 		JSONArray varJsonArray = JSONArray.parseArray(variables);
 		String res = null;
-		webSocket.send6("处理变量", sessionId);
+		webSocket.sendH6("处理变量", sessionId);
 		
 		for(Object obj : varJsonArray){
 			JSONObject jsonObj = JSONObject.parseObject(obj.toString());

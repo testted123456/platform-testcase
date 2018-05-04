@@ -66,7 +66,7 @@ public class FlowCaseExecutor {
 			sessionId = flowCase.getId() + user + "2";
 		}
 		
-		webSocket.sendH5("执行用例：" + flowCase.getName(), sessionId);
+		webSocket.sendH5("执行用例流：" + flowCase.getName(), sessionId);
 		
 		List<FlowCaseTestCase> flowCaseTestCases = flowCase.getFlowCaseTestCases();
 		
@@ -74,8 +74,6 @@ public class FlowCaseExecutor {
 			return x.getTestCaseId();
 		}).collect(Collectors.toList());
 		
-//		List<TestCase> tcs = flowCase.getTestCases();
-//		List<Integer> tcIds = tcs.stream().map(x->{return x.getId();}).collect(Collectors.toList());
 		String env = flowCase.getEnv();
 		
 		ResultHistory resultHistory = new ResultHistory();
@@ -95,18 +93,14 @@ public class FlowCaseExecutor {
 		
 		for(Integer tcId : tcIds){
 			TestCase tc = testCaseService.findById(tcId);
-			testCaseExecutor.runCase(resultHistory, tc.getId(), sessionId, env, tc.getTestCaseInterfaces(), varMap);
+			testCaseExecutor.runCase(resultHistory, tc.getId(), sessionId, env, varMap);
 		}
 		
-//		for(TestCase tc : tcs){
-//			List<TestCaseInterface> tcis = tc.getTestCaseInterfaces();
-//			testCaseExecutor.runCase(resultHistory, tc.getId(), sessionId, env, tcis, varMap);
-//		}
-		
-		webSocket.sendH5("用例执行结束...", sessionId);
-		
+		webSocket.sendH5("用例流" + flowCase.getName() + "执行结束...", sessionId);
+		logger.info("用例流" + flowCase.getName() + "执行结束...");
 	}
 	
+	@Deprecated
 	@Async
 	public void runFlowCase(String user, Integer id, String env, Integer totalSize, List<TestCase> tcs){
 			logger.info("开始执行flowCase，id：{}", id);

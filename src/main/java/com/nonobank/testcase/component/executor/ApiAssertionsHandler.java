@@ -36,7 +36,7 @@ public class ApiAssertionsHandler {
 	public boolean handleAssertions(Map<String, Object> map, List<Map<String, String>> handledAssertions, String assertions, String sessionId, String env){
 		assertions = ApiHandlerUtils.removeCRLF(assertions);
 		JSONArray assertionsJsonArray = JSONArray.parseArray(assertions);
-		webSocket.send6("处理断言", sessionId);
+		webSocket.sendH6("处理断言", sessionId);
 		boolean res = true;
 		
 		for(Object object : assertionsJsonArray){

@@ -38,7 +38,7 @@ public class ApiResponseHandler {
 			 Map<String, String> handledResponse, 
 			 String sessionId){
 	    	logger.info("开始处理响应消息");
-	    	webSocket.send6("处理response", sessionId);
+	    	webSocket.sendH6("处理response", sessionId);
 	    	webSocket.sendItem("预期结果", sessionId);
 			
 			if(JSONUtils.isJsonArray(expectedResponseBody) || JSONUtils.isJsonObject(expectedResponseBody)){

@@ -90,7 +90,7 @@ public class WebSocket {
 		sendMsgTo("### " + msg, to);
 	}
 	
-	public void send6(String msg, String to){
+	public void sendH6(String msg, String to){
 		if(null == to){
 			return;
 		}

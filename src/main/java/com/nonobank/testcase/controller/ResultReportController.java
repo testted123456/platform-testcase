@@ -99,6 +99,7 @@ public class ResultReportController {
 			JSONObject jsonObj = new JSONObject();
 			jsonObj.put("url", x.getUrl());
 			jsonObj.put("exception", x.getException());
+			jsonObj.put("tcName", x.getTcName());
 			String headers = x.getHeaders();
 			
 			if(null != headers && !headers.equals("null")){

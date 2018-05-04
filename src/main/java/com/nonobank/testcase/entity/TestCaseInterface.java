@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -21,7 +22,7 @@ public class TestCaseInterface implements Cloneable {
 	@GeneratedValue
 	Integer id;
 
-	@ManyToOne
+	@ManyToOne(fetch=FetchType.LAZY)
 	@JsonIgnore
 	@JoinColumn(name = "testCaseId", nullable = false)
 	@Where(clause="optstatus != 2")

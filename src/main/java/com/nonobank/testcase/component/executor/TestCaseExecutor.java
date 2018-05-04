@@ -165,7 +165,7 @@ public class TestCaseExecutor {
 		
 		String responseBodyType = apiRespOfJson.getString("responseBodyType");
 		
-		webSocket.sendH5("执行接口：" + apiName, sessionId);
+		webSocket.sendH6("执行接口：" + apiName, sessionId);
 		
 		CloseableHttpResponse resp = null;
 		String url = testCaseInterface.getUrlAddress();
@@ -198,9 +198,9 @@ public class TestCaseExecutor {
 			
 			if(resultOfHeaders.containsKey(true)){
 				requestHeaders = resultOfHeaders.get(true);
-				webSocket.send6("请求消息头：", sessionId);
+				webSocket.sendH6("请求消息头：", sessionId);
 			}else{
-				webSocket.send6("请求消息头处理失败：", sessionId);
+				webSocket.sendH6("请求消息头处理失败：", sessionId);
 			}
 			
 			webSocket.sendJson(requestHeaders, sessionId);
@@ -246,7 +246,7 @@ public class TestCaseExecutor {
 			}
 		}
 		
-		webSocket.send6("接口地址", sessionId);
+		webSocket.sendH6("接口地址", sessionId);
 		webSocket.sendItem(url, sessionId);
 		
 		//处理请求消息体
@@ -370,7 +370,7 @@ public class TestCaseExecutor {
 	}
 	
 	/**
-	 * 
+	 * case执行调用
 	 * @param resultHistory
 	 * @param tcId
 	 * @param sessionId
@@ -426,8 +426,73 @@ public class TestCaseExecutor {
 			}
 		}
 		
-		webSocket.send6("用例执行结束...", sessionId);
+		webSocket.sendH6("用例执行结束...", sessionId);
 		logger.info("用例执行完成");
+	}
+	
+	/**
+	 * flowCase, group执行调用
+	 * @param resultHistory
+	 * @param tcId
+	 * @param sessionId
+	 * @param env
+	 * @param map
+	 */
+	public void runCase(ResultHistory resultHistory, Integer tcId, String sessionId, String env, 
+//			List<TestCaseInterface> testCaseInterfaces,
+			Map<String, Object> map) {
+		
+		logger.info("开始执行用例，id：{}", tcId);
+		
+		TestCase testCase = testCaseService.findById(tcId);
+		List<TestCaseInterface> testCaseInterfaces = testCase.getTestCaseInterfaces();
+		
+		webSocket.sendH6("执行用例：" + testCase.getName(), sessionId);
+		
+		for(TestCaseInterface tcf : testCaseInterfaces){
+			boolean isflow = false;
+			
+			if(null != testCase.getCaseType()){
+				 isflow = testCase.getCaseType();
+			}
+			
+			ResultDetail resultDetail = new ResultDetail();
+			resultDetail.setApiId(tcf.getInterfaceId());
+			resultDetail.setApiName(tcf.getInterfaceName());
+			resultDetail.setTcId(tcId);
+			resultDetail.setResultHistory(resultHistory);
+			resultDetail.setCreatedTime(LocalDateTime.now());
+			resultDetail.setTcName(testCase.getName());
+			
+			try{
+				boolean result = runApi(resultHistory, tcId, sessionId, env, map, tcf, resultDetail);
+				resultDetailService.add(resultDetail);
+				
+				if(isflow == true && result == false){
+					webSocket.sendH5("用例执行结束...", sessionId);
+					break;
+				}else{
+					continue;
+				}
+			}catch(Exception e){
+				String errMsg = ExceptionUtils.getStackTrace(e);
+				logger.error(errMsg);
+				webSocket.sendVar("接口测试发生异常：" + e.getLocalizedMessage(), sessionId);
+				resultDetail.setException(errMsg);
+				resultDetail.setResult(false);
+				resultDetailService.add(resultDetail);
+					
+				if(isflow == true){
+					webSocket.sendH5("用例执行结束...", sessionId);
+					throw new TestCaseException(ResultCode.EXCEPTION_ERROR);
+				}else{
+					continue;
+				}
+			}
+		}
+		
+		webSocket.sendH6("用例:"+ testCase.getName() + "执行结束...", sessionId);
+		logger.info("用例:"+ testCase.getName() + "执行结束...");
 	}
 	
 }

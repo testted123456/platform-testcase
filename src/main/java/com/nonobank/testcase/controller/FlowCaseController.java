@@ -126,10 +126,12 @@ public class FlowCaseController {
 	
 	@PostMapping(value="execute")
 	@ResponseBody
-	public Result execute(@RequestBody FlowCase flowCase){
-		logger.info("开始执行流用例，id：{}", flowCase.getId());
+	public Result execute(@RequestBody FlowCaseFront flowCaseFront){
+		logger.info("开始执行流用例，id：{}", flowCaseFront.getId());
 		String user = UserUtil.getUser();
+		FlowCase flowCase = flowCaseService.convert2Entity(flowCaseFront);
 		flowCaseExecutor.runFlowCase(user, flowCase);
+//		flowCaseExecutor.runFlowCase(user, flowCaseFront.getId(), flowCaseFront.getEnv(), flowCaseFront.getTestCases().size(), flowCaseFront.getTestCases());
 //		flowCaseExecutor.runFlowCase(user, flowCase.getId(), flowCase.getEnv(), flowCase.getTestCases().size(), flowCase.getTestCases());
 		return ResultUtil.success();
 	}

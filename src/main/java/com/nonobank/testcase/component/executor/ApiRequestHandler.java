@@ -30,7 +30,7 @@ public class ApiRequestHandler {
 	 */
 	public String handleRequest(Map<String, Object> map, String request, String sessionId) {
 		request = ApiHandlerUtils.removeCRLF(request);
-		webSocket.send6("处理request", sessionId);
+		webSocket.sendH6("处理request", sessionId);
 		webSocket.sendItem("处理前的request", sessionId);
 		
 		if(JSONUtils.isJsonArray(request) || JSONUtils.isJsonObject(request)){
