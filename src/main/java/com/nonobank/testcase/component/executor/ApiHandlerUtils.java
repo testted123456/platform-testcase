@@ -8,12 +8,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.nonobank.testcase.component.exception.TestCaseException;
+import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.component.ws.WebSocket;
 import com.nonobank.testcase.entity.DBCfg;
 import com.nonobank.testcase.entity.Env;
@@ -290,6 +294,13 @@ public class ApiHandlerUtils {
 					}
 
 					DBCfg dbCfg = dbCfgService.findByDbGroupIdAndName(dbGroupId, dbGroupName);
+					
+					if(null == dbCfg){
+						throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), 
+								"数据库分组<" + envEntity.getDbGroup().getGroupName() +
+								">, 名称<" + dbGroupName + ">没有配置地址");
+					}
+					
 					String mySql_driver = "com.mysql.jdbc.Driver";
 					String db_name = dbCfg.getDbName();
 					String mySql_url = "jdbc:mysql://" + dbCfg.getIp() + ":" + "3306" + "/" + db_name;
@@ -319,9 +330,10 @@ public class ApiHandlerUtils {
 			logger.info("函数" + funcName + "执行结果为：" + result);
 			map.put(true, result);
 		} catch (Exception e) {
-			logger.error("执行方法{}抛异常", method);
-			map.put(false, "执行方法" + method + "抛异常");
-			e.printStackTrace();
+			String errMsg = ExceptionUtils.getStackTrace(e);
+			logger.error("执行方法{" + method + "}抛异常:" + errMsg );
+			map.put(false,  e.getLocalizedMessage());
+//			e.printStackTrace();
 		}
 
 		return map;

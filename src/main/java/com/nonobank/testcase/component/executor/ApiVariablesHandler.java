@@ -85,7 +85,7 @@ public class ApiVariablesHandler {
 						String errorMsg = resultMap.get(false);
 						res = "变量" + varName + "中方法替换失败，失败原因为：" + errorMsg;
 						logger.error(res);
-						webSocket.sendMsgTo(res, sessionId);
+//						webSocket.sendMsgTo(res, sessionId);
 						HandledVariables.put(varName, errorMsg);
 						throw new CaseExecutionException(ResultCode.EXCEPTION_ERROR.getCode(), res);
 					}else{
@@ -110,7 +110,13 @@ public class ApiVariablesHandler {
 									throw new CaseExecutionException(ResultCode.EXCEPTION_ERROR.getCode(), 
 											varName + ": 变量个数和获得值个数不一致");
 								}else{
+									p = Pattern.compile("\"" + "(.+?)" + "\"");
+									
 									for(int i=0;i<varArray.length;i++){
+										m = p.matcher(valueArray[i]);
+										while(m.find()){
+											valueArray[i] = m.group(1);
+										}
 										HandledVariables.put(varArray[i], valueArray[i]);
 										map.put(varArray[i], valueArray[i]);
 									}
@@ -161,11 +167,11 @@ public class ApiVariablesHandler {
 	}
 	
 	public static void main(String [] args){
-		String var = "[var1,var2,var3]";
+		String var = "\"var1\"";
 		
 		Pattern p2 = 
 //				Pattern.compile("(.+?)(,|$)");
-				Pattern.compile("\\[" + "(.+?)" + "\\]");
+				Pattern.compile("\"" + "(.+?)" + "\"");
 //				Pattern.compile("(.+?)([,(.+?)]|$)");
 		
 		Matcher m2 = p2.matcher(var);

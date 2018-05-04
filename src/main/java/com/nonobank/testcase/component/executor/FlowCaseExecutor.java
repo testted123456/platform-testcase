@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import com.nonobank.testcase.component.ws.WebSocket;
 import com.nonobank.testcase.entity.FlowCase;
+import com.nonobank.testcase.entity.FlowCaseTestCase;
 import com.nonobank.testcase.entity.GlobalVariable;
 import com.nonobank.testcase.entity.ResultDetail;
 import com.nonobank.testcase.entity.ResultHistory;
@@ -26,6 +27,7 @@ import com.nonobank.testcase.service.FlowCaseService;
 import com.nonobank.testcase.service.GlobalVariableService;
 import com.nonobank.testcase.service.ResultDetailService;
 import com.nonobank.testcase.service.ResultHistoryService;
+import com.nonobank.testcase.service.TestCaseService;
 
 @Component
 @EnableAsync
@@ -51,6 +53,9 @@ public class FlowCaseExecutor {
 	@Autowired
 	FlowCaseService flowCaseService;
 	
+	@Autowired
+	TestCaseService testCaseService;
+	
 	@Async
 	public void runFlowCase(String user, FlowCase flowCase){
 		logger.info("开始执行flowCase，id：{}", flowCase.getId());
@@ -63,8 +68,14 @@ public class FlowCaseExecutor {
 		
 		webSocket.sendH5("执行用例：" + flowCase.getName(), sessionId);
 		
-		List<TestCase> tcs = flowCase.getTestCases();
-		List<Integer> tcIds = tcs.stream().map(x->{return x.getId();}).collect(Collectors.toList());
+		List<FlowCaseTestCase> flowCaseTestCases = flowCase.getFlowCaseTestCases();
+		
+		List<Integer> tcIds = flowCaseTestCases.stream().map(x->{
+			return x.getTestCaseId();
+		}).collect(Collectors.toList());
+		
+//		List<TestCase> tcs = flowCase.getTestCases();
+//		List<Integer> tcIds = tcs.stream().map(x->{return x.getId();}).collect(Collectors.toList());
 		String env = flowCase.getEnv();
 		
 		ResultHistory resultHistory = new ResultHistory();
@@ -82,10 +93,15 @@ public class FlowCaseExecutor {
 			varMap.put(name, value);	
 		});
 		
-		for(TestCase tc : tcs){
-			List<TestCaseInterface> tcis = tc.getTestCaseInterfaces();
-			testCaseExecutor.runCase(resultHistory, tc.getId(), sessionId, env, tcis, varMap);
+		for(Integer tcId : tcIds){
+			TestCase tc = testCaseService.findById(tcId);
+			testCaseExecutor.runCase(resultHistory, tc.getId(), sessionId, env, tc.getTestCaseInterfaces(), varMap);
 		}
+		
+//		for(TestCase tc : tcs){
+//			List<TestCaseInterface> tcis = tc.getTestCaseInterfaces();
+//			testCaseExecutor.runCase(resultHistory, tc.getId(), sessionId, env, tcis, varMap);
+//		}
 		
 		webSocket.sendH5("用例执行结束...", sessionId);
 		

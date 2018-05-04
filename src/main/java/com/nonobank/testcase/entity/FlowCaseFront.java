@@ -4,72 +4,36 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
 import javax.validation.constraints.NotNull;
-
-import org.hibernate.annotations.Where;
 import org.hibernate.validator.constraints.NotEmpty;
 
-@Entity
-public class FlowCase {
+public class FlowCaseFront {
 	
-	@Id
-	@GeneratedValue
 	Integer id;
 	
 	@NotNull(message="pId不能为空")	
 	Integer pId;
 	
 	@NotEmpty(message="名称不能为空")
-	@Column(nullable=false, columnDefinition="varchar(300) COMMENT 'case名称'")
 	String name;
 	
-	@Column(columnDefinition="varchar(20) COMMENT '运行环境'")
 	String env;
 	
-	@Column(nullable=true, columnDefinition="varchar(500) COMMENT 'case描述'")
 	String description;
 	
-//	@OneToMany(cascade={CascadeType.ALL})
-//	@JoinColumn(name="flowCaseId")
-//	@Where(clause="optstatus!=2")
-//	public List<FlowCaseRelation> flowCaseRelations;
-	
-//	@ManyToMany(cascade={CascadeType.REFRESH})
-//	@Where(clause="optstatus!=2")
-//	public List<TestCase> testCases;
-	
-	/**
-	 * mappedBy：关系定义在FlowCaseTestCase表中的flowCase，也就是关系由FlowCaseTestCase维护
-	 */
-	@OneToMany(mappedBy="flowCase", cascade={CascadeType.ALL})
-	@Where(clause="optstatus!=2")
-	public List<FlowCaseTestCase> flowCaseTestCases;
+	public List<TestCase> testCases;
 	
 	@NotNull
-	@Column(nullable=true, columnDefinition="bit(1) COMMENT '0:目录，1:flowCase'")
 	Boolean type;
 	
-	@Column(nullable=true, columnDefinition="varchar(100) COMMENT '创建人'")
 	String createdBy;
 	
-	@Column(nullable=true,columnDefinition="datetime")
 	LocalDateTime createdTime;
 	
-	@Column(nullable=true, columnDefinition="varchar(100) COMMENT '更新人'")
 	String updatedBy;
 	
-	@Column(nullable=true, columnDefinition=" datetime")
 	LocalDateTime updatedTime;
 	
-	@Column(nullable=false, columnDefinition="smallint(1) COMMENT '0:正常，1:已更新，2:已删除'")
 	Short optstatus;
 
 	public Integer getId() {
@@ -174,36 +138,19 @@ public class FlowCase {
 		this.updatedTime = updatedTime;
 	}
 
-//	public List<FlowCaseRelation> getFlowCaseRelations() {
-//		return flowCaseRelations;
-//	}
-//
-//	public void setFlowCaseRelations(List<FlowCaseRelation> flowCaseRelations) {
-//		this.flowCaseRelations = flowCaseRelations;
-//	}
-	
-	public List<FlowCaseTestCase> getFlowCaseTestCases() {
-		return flowCaseTestCases;
-	}
-
-	public void setFlowCaseTestCases(List<FlowCaseTestCase> flowCaseTestCases) {
-		this.flowCaseTestCases = flowCaseTestCases;
-	}
-
 	public Short getOptstatus() {
 		return optstatus;
 	}
 
-//	public List<TestCase> getTestCases() {
-//		return testCases;
-//	}
-//
-//	public void setTestCases(List<TestCase> testCases) {
-//		this.testCases = testCases;
-//	}
+	public List<TestCase> getTestCases() {
+		return testCases;
+	}
+
+	public void setTestCases(List<TestCase> testCases) {
+		this.testCases = testCases;
+	}
 
 	public void setOptstatus(Short optstatus) {
 		this.optstatus = optstatus;
 	}
-	
 }

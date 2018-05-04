@@ -140,7 +140,8 @@ public class GroupExecutor {
 					logger.info("开始执行用例：{}", name);
 					
 					try{
-						flowCaseExecutor.runFlowCase(null, flowCase.getId(), flowCase.getEnv(), flowCase.getTestCases().size(), flowCase.getTestCases());
+						flowCaseExecutor.runFlowCase(null, flowCase);
+//						flowCaseExecutor.runFlowCase(null, flowCase.getId(), flowCase.getEnv(), flowCase.getTestCases().size(), flowCase.getTestCases());
 					}catch(Exception e){
 						e.printStackTrace();
 						logger.error("group中case执行抛异常，case：" + name);

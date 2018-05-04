@@ -2,6 +2,7 @@ package com.nonobank.testcase.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +14,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
 import com.nonobank.testcase.component.executor.FlowCaseExecutor;
 import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.component.result.ResultUtil;
 import com.nonobank.testcase.entity.FlowCase;
+import com.nonobank.testcase.entity.FlowCaseFront;
 import com.nonobank.testcase.service.FlowCaseService;
 import com.nonobank.testcase.utils.UserUtil;
 
@@ -36,21 +39,23 @@ public class FlowCaseController {
 	
 	@PostMapping(value="addOrUpdate")
 	@ResponseBody
-	public Result addOrUpdate(@RequestBody FlowCase flowCase){
-		logger.info("开始新增流用例：{}", flowCase.getName());
+	public Result addOrUpdate(@RequestBody FlowCaseFront flowCaseFront){
+		logger.info("开始新增流用例：{}", flowCaseFront.getName());
 		
 		String userName = UserUtil.getUser();
 		
-		if(flowCase.getId() != null){
-			flowCase.setUpdatedBy(userName);
-			flowCase.setUpdatedTime(LocalDateTime.now());
-			flowCase.setOptstatus((short)0);
+		if(flowCaseFront.getId() != null){
+			flowCaseFront.setUpdatedBy(userName);
+			flowCaseFront.setUpdatedTime(LocalDateTime.now());
+			flowCaseFront.setOptstatus((short)0);
+			
 		}else{
-			flowCase.setCreatedBy(userName);
-			flowCase.setCreatedTime(LocalDateTime.now());
-			flowCase.setOptstatus((short)0);
+			flowCaseFront.setCreatedBy(userName);
+			flowCaseFront.setCreatedTime(LocalDateTime.now());
+			flowCaseFront.setOptstatus((short)0);
 		}
 		
+		FlowCase flowCase = flowCaseService.convert2Entity(flowCaseFront);
 		flowCase = flowCaseService.add(flowCase);
 		logger.info("新增流用例成功，{}", flowCase.getName());
 		return ResultUtil.success(flowCase);
@@ -102,7 +107,7 @@ public class FlowCaseController {
 		logger.info("开始查找流用例，ID：{}", id);
 		
 		FlowCase flowCase = flowCaseService.getById(id);
-		return ResultUtil.success(flowCase);
+		return ResultUtil.success(flowCaseService.convert2Front(flowCase));
 	}
 	
 	@GetMapping(value="getTreeByPId")
