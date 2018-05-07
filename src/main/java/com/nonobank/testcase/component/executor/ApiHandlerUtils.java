@@ -30,7 +30,17 @@ public class ApiHandlerUtils {
 
 	public static Logger logger = LoggerFactory.getLogger(ApiHandlerUtils.class);
 
-	private final static Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\{(\\w*\\[*\\d*\\]*\\.*)\\}");
+	private final static Pattern SINGLE_VARIABLE_PATTERN = 
+//			Pattern.compile("\\$\\{(\\w+.*)\\}");
+			Pattern.compile("\\$\\{(\\w*\\[*\\d*\\]*\\.*)\\}");
+	
+	private final static Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\{(\\w+.*)\\}");
+	
+	private final static Pattern JSONARRAY_PATTERN =   Pattern.compile("\\$\\{(\\w+)\\[(\\d+)\\]\\}");
+	
+	private final static Pattern JSONOBJECT_PATTERN =   
+//			Pattern.compile("\\$\\{[\\w|\\[|\\]]+\\.[\\w|\\[|\\]]+\\}");
+			Pattern.compile("\\$\\{([\\w|\\[|\\]|\\d]+?\\.[\\w|\\[|\\]\\d\\.]+?)\\}");
 
 	private final static Pattern METHODNAME_PATTERN = 
 			Pattern.compile("^\\$\\{(\\w+)\\((.*?)\\)\\}$");
@@ -130,7 +140,7 @@ public class ApiHandlerUtils {
 	 * @return
 	 */
 	public boolean variableMatched(String variable) {
-		Matcher matcher = VARIABLE_PATTERN.matcher(variable);
+		Matcher matcher = SINGLE_VARIABLE_PATTERN.matcher(variable);
 		return matcher.find();
 	}
 
@@ -169,32 +179,24 @@ public class ApiHandlerUtils {
 			return str;
 		}
 	}
+	
+	public Map<Boolean, String> handleSingleVariable(String variable, Map<String, Object> map){
 
-	/**
-	 * 替换api中的自定义变量
-	 * 
-	 * @param map
-	 * @param variable
-	 * @return
-	 */
-	public Map<Boolean, String> handleVariable(Map<String, Object> map, String variable) {
 		Map<Boolean, String> resultMap = new HashMap<Boolean, String>();
 
-		Matcher matcher = VARIABLE_PATTERN.matcher(variable);
+		Matcher matcher = SINGLE_VARIABLE_PATTERN.matcher(variable);
 		String allValue = null;
 
 		while (matcher.find()) {
-			int count = matcher.groupCount();
+//			int count = matcher.groupCount();
 
-			if (count == 1) {
+//			if (count == 1) {
 				String key = matcher.group(1);
 				logger.info("开始替换变量" + key);
-
 				Object value = map.get(key);
 
 				if (null == value) {
 					logger.error("变量" + key + "不在上下文中");
-
 					resultMap.put(false, "变量" + key + "不在上下文中");
 					break;
 				} else {
@@ -207,7 +209,7 @@ public class ApiHandlerUtils {
 						allValue = allValue.replaceAll("\\$\\{" + key + "\\}", replaceValue);
 					}
 				}
-			}
+//			}
 		}
 
 		if (!resultMap.containsKey(false) && allValue != null) {
@@ -215,6 +217,87 @@ public class ApiHandlerUtils {
 		}
 
 		return resultMap;
+	}
+	
+	/**
+	 * 替换api中的自定义变量
+	 * 
+	 * @param map
+	 * @param variable
+	 * @return
+	 */
+	public Map<Boolean, String> handleVariable(Map<String, Object> map, String variable) {
+		Map<Boolean, String> resultMap = new HashMap<Boolean, String>();
+		
+//		Matcher m = VARIABLE_PATTERN.matcher(variable);
+//		
+//		if(m.find()){
+//			String key = m.group(1);
+			
+			if(JSONARRAY_PATTERN.matcher(variable).find()){
+				resultMap = handleArrayVariable(variable, map);
+			}else if(JSONOBJECT_PATTERN.matcher(variable).find()){
+				resultMap = handleObject(variable, map);
+			}else if(VARIABLE_PATTERN.matcher(variable).find()){
+				resultMap = handleSingleVariable(variable, map);
+			}
+//		}
+		
+		return resultMap;
+			
+//		Map<Boolean, String> resultMap = new HashMap<Boolean, String>();
+//
+//		Matcher matcher = VARIABLE_PATTERN.matcher(variable);
+//		String allValue = null;
+//
+//		while (matcher.find()) {
+////			int count = matcher.groupCount();
+//
+////			if (count == 1) {
+//				String key = matcher.group(1);
+//				logger.info("开始替换变量" + key);
+//				Object value = null;
+//				
+//				if(JSONARRAY_PATTERN.matcher(key).find()){
+//					try{
+//						value = handleArrayVariable(key, map);
+//					}catch(Exception e){
+//						logger.error("替换变量{" + key + "}失败，" + e.getLocalizedMessage());
+//						value = null;
+//					}
+//				}else if(JSONOBJECT_PATTERN.matcher(key).find()){
+//					try{
+//						value = handleObject(variable, map);
+//					}catch(Exception e){
+//						logger.error("替换变量{" + key + "}失败，" + e.getLocalizedMessage());
+//						value = null;
+//					}
+//				}else{
+//					value = map.get(key);
+//				}
+//
+//				if (null == value) {
+//					logger.error("变量" + key + "不在上下文中");
+//					resultMap.put(false, "变量" + key + "不在上下文中");
+//					break;
+//				} else {
+//					String replaceValue = String.valueOf(value);
+//					logger.info("变量" + key + "值为：" + replaceValue);
+//
+//					if (null == allValue) {
+//						allValue = variable.replaceAll("\\$\\{" + key + "\\}", replaceValue);
+//					} else {
+//						allValue = allValue.replaceAll("\\$\\{" + key + "\\}", replaceValue);
+//					}
+//				}
+////			}
+//		}
+//
+//		if (!resultMap.containsKey(false) && allValue != null) {
+//			resultMap.put(true, allValue);
+//		}
+//
+//		return resultMap;
 	}
 
 	/**
@@ -250,9 +333,7 @@ public class ApiHandlerUtils {
 		
 		if (null != args) {
 			listArgs = new ArrayList<String>();
-
 			Pattern pattern = Pattern.compile("(\".+?\")");
-
 			matcher = pattern.matcher(args);
 
 			while (matcher.find()) {
@@ -339,14 +420,156 @@ public class ApiHandlerUtils {
 		return map;
 	}
 	
+	/**
+	 * 处理含有.的变量，当成JSONObject
+	 * @param variable
+	 * @param map
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public Map<Boolean, String> handleObject(String variable, Map<String, Object> map){
+		Map<Boolean, String> resultMap = new HashMap<>();
+		Map<Boolean, String> subResultMap = new HashMap<>();
+		Object object = null;
+		String replacedValue = null;
+		
+		try{
+			Matcher m = JSONOBJECT_PATTERN.matcher(variable);
+			
+			while(m.find()){
+				String subVariable = m.group(1);
+				String [] varArray = subVariable.split("\\.");
+				String var = varArray[0];
+				
+				if(var.matches("\\w*\\d*\\[\\d\\]")){
+					subResultMap = handleArrayVariable("${" + var + "}", map);
+				}else{
+					subResultMap = handleSingleVariable("${" + var + "}", map);
+				}
+				
+				if(subResultMap.size() == 0){
+					object = map.get(var);
+				}else if(subResultMap.containsKey(true)){
+					object = subResultMap.get(true);
+				}else  if(subResultMap.containsKey(false)){
+					resultMap.put(false, subResultMap.get(false));
+					break;
+				}
+				
+				int size = varArray.length;
+				
+				for(int i=1;i<size;i++){
+					var = varArray[i];
+					map = JSONObject.parseObject(String.valueOf(object), Map.class);
+//					subResultMap =  handleArrayVariable(var, map);
+					
+					if(var.matches("\\w*\\d*\\[\\d\\]")){
+						subResultMap = handleArrayVariable("${" + var + "}", map);
+					}else{
+						subResultMap = handleSingleVariable("${" + var + "}", map);
+					}
+					
+					if(subResultMap.size() == 0){
+						object = map.get(var);
+					}else if(subResultMap.containsKey(true)){
+						object = subResultMap.get(true);
+					}else  if(subResultMap.containsKey(false)){
+						resultMap.put(false, subResultMap.get(false));
+						break;
+					}
+				}
+				
+				if(resultMap.containsKey(false)){
+					break;
+				}else if(object != null){
+					if (null == replacedValue) {
+						replacedValue = variable.replaceAll("\\$\\{" + subVariable + "\\}", String.valueOf(object));
+					} else {
+						replacedValue = replacedValue.replaceAll("\\$\\{" + subVariable + "\\}", String.valueOf(object));
+					}
+				}
+				
+			}
+			
+		}catch(Exception e){
+			logger.error("替换变量{" + variable + "}失败，" + e.getLocalizedMessage());
+			resultMap.put(false, e.getLocalizedMessage());
+		}
+		
+		if(!resultMap.containsKey(false) && null != object){
+			resultMap.put(true, String.valueOf(object));
+		}
+		
+		return resultMap;
+	}
+	
+	/**
+	 * 处理数组变量
+	 * @param variable
+	 * @param map
+	 * @return
+	 */
+	public Map<Boolean, String> handleArrayVariable(String variable, Map<String, Object> map){
+		Map<Boolean, String> resultMap = new HashMap<>();
+		Object object = null;
+		String replacedValue = null;
+		
+		try{
+			Matcher m = JSONARRAY_PATTERN.matcher(variable);
+			
+			while(m.find()){
+				String key = m.group(1);
+				String index = m.group(2);
+				object = map.get(key);
+				JSONArray jsonArr = JSONArray.parseArray(String.valueOf(object));
+				String value = jsonArr.getString(Integer.valueOf(index));
+				
+				if(null == value){
+					resultMap.put(false, "变量{" + variable + "}可能不在上下文中");
+					break;
+				}else{
+					if (null == replacedValue) {
+						replacedValue = variable.replaceAll("\\$\\{" + key + "\\[" + index + "\\]" + "\\}", value);
+					} else {
+						replacedValue = replacedValue.replaceAll("\\$\\{" + key + "\\[" + index + "\\]" + "\\}", value);
+					}
+				}
+			}
+//			else{
+//				object = map.get(variable);
+//			}
+		}catch(Exception e){
+			logger.error("替换变量{" + variable + "}失败，" + e.getLocalizedMessage());
+			resultMap.put(false, e.getLocalizedMessage());
+			return resultMap;
+		}
+		
+		if (!resultMap.containsKey(false) && replacedValue != null) {
+			resultMap.put(true, replacedValue);
+		}
+		
+		return resultMap;
+	}
+	
 	public static void main(String [] args){
-		String str = "${getMultField_db(\"SELECT id,userid FROM debtsale WHERE status =3 and optype IN (1,3) AND debtsale.title='缺钱' ORDER BY id DESC LIMIT 1\")}";
+		ApiHandlerUtils tt = new ApiHandlerUtils();
+		String str2 = "abc[1]1";
 		
-//	  Pattern cp = Pattern.compile("(\\\\n)");
-//	  System.out.println(cp.matcher(str).find());
+		String str = "${abc.a[0].b}";
+		String str1 = "xyz${def[1]}abc${def[0]}";
 		
-		System.out.println(Pattern.compile("\\$\\{(\\w+)\\(.*?\\)\\}").matcher(str).find());
-	  System.out.println(METHODNAME_PATTERN.matcher(str).find());
-
+		Map<String, Object> map = new HashMap<>();
+		map.put("abc", "{\"a\":[{\"b\":2}, {\"c\":3}]}");
+		map.put("def", "[1,2]");
+		
+		Matcher m = 
+//				JSONARRAY_PATTERN.matcher(str1);
+				JSONOBJECT_PATTERN.matcher(str);
+		
+		Map<Boolean, String> resMap = 
+				tt.handleObject(str, map);
+//				handleArrayVariable(str1, map);
+		System.out.println(resMap.get(true));
+		System.out.println(resMap.get(false));
 	}
 }

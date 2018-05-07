@@ -2,7 +2,7 @@ server:
  port: 8083
  context-path: /case
 httpServer:
-  interfaceServer: "http://192.168.32.138:8082/inter/"
+  interfaceServer: "http://127.0.0.1:8082/inter/"
   user:
     baseUrl: http://192.168.1.44：9090
     roleUrlpath: /user/getRoleUrlPathBySystem?system=group
@@ -33,6 +33,6 @@ spring:
      
 ignore:
   urlPath:
-  ip: 192.168.32.138
+  ip: 127.0.0.1
      
       

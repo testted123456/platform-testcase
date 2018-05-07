@@ -89,6 +89,11 @@ public class SystemCfgServiceImpl implements SystemCfgService{
 		
 		return aliases;
 	}
+
+	@Override
+	public SystemCfg findBySystemAndBranch(String system, String branch) {
+		return null;
+	}
 	
 
 }

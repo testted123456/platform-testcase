@@ -15,4 +15,5 @@ public interface SystemCfgRepository extends JpaRepository<SystemCfg, Integer> {
 	SystemCfg findByAlias(String alias);
 	
 	SystemCfg findBySystemOrAlias(String system, String alias);
+	
 }

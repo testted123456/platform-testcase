@@ -20,6 +20,8 @@ public interface SystemCfgService {
 	
 	SystemCfg findBySystemOrAlias(String system, String alias);
 	
+	SystemCfg findBySystemAndBranch(String system, String branch);
+	
 	List<SystemCfg> findAll();
 	
 	List<String> findAllAlias();

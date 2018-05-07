@@ -98,5 +98,22 @@ public class SystemBranchController {
 		
 		return ResultUtil.success(systemBranchService.findBySystem(system));
 	}
+	
+	@GetMapping(value="noticeSyncResult")
+	@ResponseBody
+	public Result noticeSyncResult(@RequestParam Integer result, @RequestParam String system, @RequestParam String branch, @RequestParam String version ){
+		SystemBranch systemBranch = systemBranchService.findBySystemAndBranch(system, branch);
+		systemBranch.setVersion(version);
+		
+		if(result.equals(1)){//同步成功
+			systemBranch.setOptstatus((short)3);
+		}
+		if(result.equals(1)){//同步失败
+			systemBranch.setOptstatus((short)4);
+		}
+		
+		systemBranchService.update(systemBranch);
+		return ResultUtil.success();
+	}
 
 }
