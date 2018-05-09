@@ -72,6 +72,27 @@ public class SystemBranchController {
 	}
 	
 	/**
+	 * 更新codeChecked字段
+	 * @param systemBranch
+	 * @return
+	 */
+	@GetMapping(value="updateCodeChecked")
+	@ResponseBody
+	public Result updateCodeChecked(@RequestParam String system, @RequestParam String branch, @RequestParam String codeChecked){
+		logger.info("开始更新codeChecked");
+		SystemBranch systemBranch = systemBranchService.findBySystemAndBranch(system, branch);
+		
+		if("true".equals(codeChecked)){
+			systemBranch.setCodeChecked(true);
+		}else{
+			systemBranch.setCodeChecked(false);
+		}
+		
+		systemBranchService.update(systemBranch);
+		return ResultUtil.success();
+	}
+	
+	/**
 	 * 查找所有
 	 * @return
 	 */

@@ -1,7 +1,10 @@
 package com.nonobank.testcase.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.nonobank.testcase.component.exception.TestCaseException;
 import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.entity.TestCase;
@@ -155,5 +160,76 @@ public class TestCaseServiceImpl implements TestCaseService {
 				deleteTestCaseDir(userName, tCase.getId());
 			}
 		}
+	}
+
+	/**
+	 * 根据名称、创建人模糊查询
+	 */
+	@Override
+	public List<JSONObject> findByNameAndCreatedBy(String name, String createdBy) {
+		//存放用例文件夹
+		Map<Integer, JSONObject> map = new HashMap<Integer, JSONObject>();
+		List<Object []> objs = testCaseRepository.findByNameAndCreatedBy(name, createdBy);
+		
+		objs.stream().forEach(x->{
+			Object id = x[0];
+			Object pId = x[1];
+			Object caseName = x[2];
+			Object type = x[3];
+			JSONObject tc = new JSONObject();
+			tc.put("id", id);
+			tc.put("pId", pId);
+			tc.put("name", caseName);
+			tc.put("type", type);
+			
+			if("0".equals(String.valueOf(pId))){
+				map.put(Integer.valueOf(String.valueOf(id)), tc);
+			}
+			
+			while(!"0".equals(String.valueOf(pId))){
+				JSONObject p_tc = null;
+				
+				if(map.containsKey(pId)){
+					p_tc = map.get(pId);
+					JSONArray children = p_tc.getJSONArray("children");
+					children.add(tc);
+					break;
+				}else{
+					p_tc = new JSONObject();
+					List<Object []> objs2 = testCaseRepository.findById(Integer.parseInt(String.valueOf(pId)));
+					
+					JSONArray children = new JSONArray();
+					children.add(tc);
+					
+					id = objs2.get(0)[0];
+					pId = objs2.get(0)[1];
+					caseName = objs2.get(0)[2];
+					type = objs2.get(0)[3];
+					
+					p_tc.put("id", id);
+					p_tc.put("pId", pId);
+					p_tc.put("name", caseName);
+					p_tc.put("type", type);
+					p_tc.put("children", children);
+					
+					map.put(Integer.valueOf(String.valueOf(id)), p_tc);
+					tc = p_tc;
+					
+					if("0".equals(String.valueOf(pId))){
+						break;
+					}
+				}
+			}
+		});
+		
+		List<JSONObject> list = new ArrayList<>();
+		
+		map.forEach((k,v)->{
+			if(v.getString("pId").equals("0")){
+				list.add(v);
+			}
+		});
+		
+		return list;
 	}
 }

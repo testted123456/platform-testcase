@@ -245,4 +245,13 @@ public class TestCaseController {
 		testCaseExecutor.asyncRunCase(sessionId, env, tcId, tcis, totalsize);
 		return ResultUtil.success(testCase);
 	}
+	
+	@GetMapping(value="searchCase")
+	@ResponseBody
+	public Result searchCase(@RequestParam String name, @RequestParam String createdBy){
+		logger.info("开始搜索用例,名称：{},创建人：{}",name, createdBy);
+		List<JSONObject> testCases = testCaseService.findByNameAndCreatedBy(name, createdBy);
+		return ResultUtil.success(testCases);
+	}
+	
 }

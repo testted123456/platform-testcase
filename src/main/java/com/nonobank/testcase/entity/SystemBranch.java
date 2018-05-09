@@ -77,4 +77,13 @@ public class SystemBranch {
 	public void setOptstatus(Short optstatus) {
 		this.optstatus = optstatus;
 	}
+
+	public Boolean getCodeChecked() {
+		return codeChecked;
+	}
+
+	public void setCodeChecked(Boolean codeChecked) {
+		this.codeChecked = codeChecked;
+	}
+	
 }

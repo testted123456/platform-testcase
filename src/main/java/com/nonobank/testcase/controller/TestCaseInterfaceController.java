@@ -167,6 +167,11 @@ public class TestCaseInterfaceController {
 		return ResultUtil.success(resultJson);
 	}
 	
+	/**
+	 * 查找具有相同接口的用例，并以树展示
+	 * @param apiId
+	 * @return
+	 */
 	@GetMapping(value="getSameCasesByApiId")
 	@ResponseBody
 	public Result getSameCasesByApiId(@RequestParam Integer apiId){
