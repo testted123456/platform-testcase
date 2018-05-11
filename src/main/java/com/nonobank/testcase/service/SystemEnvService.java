@@ -17,4 +17,6 @@ public interface SystemEnvService {
 	
 	List<SystemEnv> findAll();
 	
+	List<SystemEnv> findBySystemCfgId(Integer systemCfgId);
+	
 }

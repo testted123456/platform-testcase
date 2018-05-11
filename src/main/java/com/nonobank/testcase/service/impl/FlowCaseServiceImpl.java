@@ -115,6 +115,11 @@ public class FlowCaseServiceImpl implements FlowCaseService {
 		flowCase.setUpdatedBy(flowCaseFront.getUpdatedBy());
 		flowCase.setUpdatedTime(flowCaseFront.getUpdatedTime());
 		flowCase.setOptstatus(flowCaseFront.getOptstatus());
+		
+		if(flowCaseFront.getType() == false){
+			return flowCase;
+		}
+		
 		flowCase.setFlowCaseTestCases(new ArrayList<FlowCaseTestCase>());
 		
 		int size = flowCaseFront.getTestCases().size();

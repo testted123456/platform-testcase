@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.nonobank.testcase.component.executor.ApiHandlerUtils;
 import com.nonobank.testcase.component.remoteEntity.RemoteApi;
 import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultUtil;
@@ -120,49 +121,51 @@ public class TestCaseInterfaceController {
 		String module = currentJsonApi.getString("module");
 		String urlAddress = currentJsonApi.getString("urlAddress");
 		String currentRequestBody = currentJsonApi.getString("requestBody");
-		String currentResponseBody = currentJsonApi.getString("responseBody");
+		currentRequestBody = ApiHandlerUtils.removeCRLF(currentRequestBody);
+//		String currentResponseBody = currentJsonApi.getString("responseBody");
 		
 		//最新分支接口
 		JSONObject lastJsonApi = remoteApi.getLastApi(system, module, lastBranch, urlAddress);
 		String lastRequestBody = lastJsonApi.getString("requestBody");
-		String lastResponseBody = lastJsonApi.getString("responseBody");
+		lastRequestBody = ApiHandlerUtils.removeCRLF(lastRequestBody);
+//		String lastResponseBody = lastJsonApi.getString("responseBody");
 		
 		TestCaseInterface tci = testCaseInterfaceService.findById(id);
 		String requestBody = tci.getRequestBody();
-		String responseBody = tci.getResponseBody();
+//		String responseBody = tci.getResponseBody();
 		
 		Object compareRequest = null;
-		Object compareResponse = null;
+//		Object compareResponse = null;
 		Object comprareApiRequest = null;
-		Object compareApiResponse = null;
+//		Object compareApiResponse = null;
 		
 		if(JSONUtils.isJsonArray(currentRequestBody) && JSONUtils.isJsonArray(lastRequestBody)){
 			comprareApiRequest = JSONUtils.compareJsonArray(JSONArray.parseArray(currentRequestBody), JSONArray.parseArray(lastRequestBody));
 			compareRequest = JSONUtils.compareJsonArray(JSONArray.parseArray(requestBody), JSONArray.parseArray(lastRequestBody));
 		}else if(JSONUtils.isJsonObject(currentRequestBody) && JSONUtils.isJsonObject(currentRequestBody)){
 			comprareApiRequest = JSONUtils.compareJsonObj(JSONObject.parseObject(currentRequestBody), JSONObject.parseObject(lastRequestBody));
-			compareRequest = JSONUtils.compareJsonObj(JSONObject.parseObject(responseBody), JSONObject.parseObject(lastRequestBody));
+			compareRequest = JSONUtils.compareJsonObj(JSONObject.parseObject(requestBody), JSONObject.parseObject(lastRequestBody));
 		}
 		
-		if(JSONUtils.isJsonArray(currentResponseBody) && JSONUtils.isJsonArray(lastResponseBody)){
-			compareApiResponse = JSONUtils.compareJsonArray(JSONArray.parseArray(currentResponseBody), JSONArray.parseArray(lastResponseBody));
-			compareResponse = JSONUtils.compareJsonArray(JSONArray.parseArray(responseBody), JSONArray.parseArray(lastResponseBody));
-		}else if(JSONUtils.isJsonObject(currentResponseBody) && JSONUtils.isJsonObject(lastResponseBody)){
-			compareApiResponse = JSONUtils.compareJsonObj(JSONObject.parseObject(currentResponseBody), JSONObject.parseObject(lastResponseBody));
-			compareResponse = JSONUtils.compareJsonObj(JSONObject.parseObject(responseBody), JSONObject.parseObject(lastResponseBody));
-		}
+//		if(JSONUtils.isJsonArray(currentResponseBody) && JSONUtils.isJsonArray(lastResponseBody)){
+//			compareApiResponse = JSONUtils.compareJsonArray(JSONArray.parseArray(currentResponseBody), JSONArray.parseArray(lastResponseBody));
+//			compareResponse = JSONUtils.compareJsonArray(JSONArray.parseArray(responseBody), JSONArray.parseArray(lastResponseBody));
+//		}else if(JSONUtils.isJsonObject(currentResponseBody) && JSONUtils.isJsonObject(lastResponseBody)){
+//			compareApiResponse = JSONUtils.compareJsonObj(JSONObject.parseObject(currentResponseBody), JSONObject.parseObject(lastResponseBody));
+//			compareResponse = JSONUtils.compareJsonObj(JSONObject.parseObject(responseBody), JSONObject.parseObject(lastResponseBody));
+//		}
 		
 		JSONObject resultJson = new JSONObject();
 		resultJson.put("currentRequestBody", currentRequestBody);
-		resultJson.put("currentResponseBody", currentResponseBody);
+//		resultJson.put("currentResponseBody", currentResponseBody);
 		resultJson.put("lastRequestBody", lastRequestBody);
-		resultJson.put("lastResponseBody", lastResponseBody);
+//		resultJson.put("lastResponseBody", lastResponseBody);
 		resultJson.put("compareRequest", compareRequest);
-		resultJson.put("compareResponse", compareResponse);
+//		resultJson.put("compareResponse", compareResponse);
 		resultJson.put("comprareApiRequest", comprareApiRequest);
-		resultJson.put("compareApiResponse", compareApiResponse);
+//		resultJson.put("compareApiResponse", compareApiResponse);
 		resultJson.put("requestBody", requestBody);
-		resultJson.put("responseBody", responseBody);
+//		resultJson.put("responseBody", responseBody);
 		
 		return ResultUtil.success(resultJson);
 	}
@@ -345,6 +348,24 @@ public class TestCaseInterfaceController {
 //		}).collect(Collectors.toList());
 		
 		return ResultUtil.success(list);
+	}
+	
+	public static void main(String [] args){
+		String str1 ="{\"id\":1}";
+		String str2 = "{\"id\":1,\"name\":2}";
+		
+		Object
+		comprareApiRequest = 
+				JSONUtils.compareJsonObj(JSONObject.parseObject(str1), JSONObject.parseObject(str2));
+		
+		System.out.println(String.valueOf(comprareApiRequest));
+		
+		Object compareRequest = 
+				JSONUtils.compareJsonObj(JSONObject.parseObject(str1), JSONObject.parseObject(str2));
+		
+		System.out.println(String.valueOf(compareRequest));
+
+
 	}
 	
 }

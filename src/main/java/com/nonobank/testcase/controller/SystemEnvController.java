@@ -1,6 +1,7 @@
 package com.nonobank.testcase.controller;
 
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,9 +13,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
 import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultUtil;
+import com.nonobank.testcase.entity.SystemCfg;
 import com.nonobank.testcase.entity.SystemEnv;
+import com.nonobank.testcase.service.SystemCfgService;
 import com.nonobank.testcase.service.SystemEnvService;
 
 @Controller
@@ -26,6 +30,9 @@ public class SystemEnvController {
 	
 	@Autowired
 	SystemEnvService systemEnvService;
+	
+	@Autowired
+	SystemCfgService systemCfgService;
 	
 	@PostMapping(value="add")
 	@ResponseBody
@@ -60,6 +67,22 @@ public class SystemEnvController {
 	public Result getAll(){
 		logger.info("开始查找所有系统配置");
 		List<SystemEnv> systemCfgs = systemEnvService.findAll();
+		logger.info("查找所有系统配置");
+		return ResultUtil.success(systemCfgs);
+	}
+	
+	@GetMapping(value="findBySystem")
+	@ResponseBody
+	public Result findBySystem(@RequestParam String system){
+		logger.info("开始查找所有系统配置");
+		SystemCfg systemCfg = systemCfgService.findByAlias(system);
+		
+		if(null == systemCfg){
+			logger.warn("系统别名{}不存在", system);
+			return ResultUtil.success();
+		}
+		
+		List<SystemEnv> systemCfgs = systemEnvService.findBySystemCfgId(systemCfg.getId());
 		logger.info("查找所有系统配置");
 		return ResultUtil.success(systemCfgs);
 	}

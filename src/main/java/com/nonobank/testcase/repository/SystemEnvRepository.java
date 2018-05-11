@@ -1,6 +1,9 @@
 package com.nonobank.testcase.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import com.nonobank.testcase.entity.SystemEnv;
 
 public interface SystemEnvRepository extends JpaRepository<SystemEnv, Integer> {
@@ -16,4 +19,6 @@ public interface SystemEnvRepository extends JpaRepository<SystemEnv, Integer> {
 //	List<SystemEnv> findBySystemNameOrEnvName(String systemName, String envName);
 	
 	SystemEnv findBySystemCfgIdAndEnvId(Integer systemCfgId, Integer envId);
+	
+	List<SystemEnv> findBySystemCfgId(Integer systemCfgId);
 }

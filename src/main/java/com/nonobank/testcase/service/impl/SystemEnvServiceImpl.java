@@ -60,5 +60,10 @@ public class SystemEnvServiceImpl implements SystemEnvService {
 	public List<SystemEnv> findAll() {
 		return systemEnvRepository.findAll();
 	}
+	
+	@Override
+	public List<SystemEnv> findBySystemCfgId(Integer systemCfgId){
+		return systemEnvRepository.findBySystemCfgId(systemCfgId);
+	}
 
 }

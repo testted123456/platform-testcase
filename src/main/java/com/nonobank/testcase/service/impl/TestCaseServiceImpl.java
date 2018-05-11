@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,7 +120,12 @@ public class TestCaseServiceImpl implements TestCaseService {
 				}
 			});
 			
-			testCase = testCaseRepository.save(testCase);
+			testCaseRepository.save(testCase);
+			
+			List<TestCaseInterface> updatedTcis =
+			testCase.getTestCaseInterfaces().stream().filter(x->{return x.getOptstatus() != 2;}).collect(Collectors.toList());
+			
+			testCase.setTestCaseInterfaces(updatedTcis);
 			logger.info("更新用例{}成功", id);
 		}else{
 			throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "case不在数据库中");

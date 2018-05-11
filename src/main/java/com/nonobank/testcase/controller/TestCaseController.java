@@ -21,14 +21,17 @@ import com.alibaba.fastjson.JSONObject;
 import com.nonobank.testcase.component.executor.TestCaseExecutor;
 import com.nonobank.testcase.component.remoteEntity.RemoteApi;
 import com.nonobank.testcase.component.result.Result;
+import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.component.result.ResultUtil;
 import com.nonobank.testcase.component.security.manager.MyAccessDecisionManager;
 import com.nonobank.testcase.component.ws.WebSocket;
 import com.nonobank.testcase.entity.SystemBranch;
+import com.nonobank.testcase.entity.SystemCfg;
 import com.nonobank.testcase.entity.TestCase;
 import com.nonobank.testcase.entity.TestCaseFront;
 import com.nonobank.testcase.entity.TestCaseInterface;
 import com.nonobank.testcase.service.SystemBranchService;
+import com.nonobank.testcase.service.SystemCfgService;
 import com.nonobank.testcase.service.TestCaseInterfaceService;
 import com.nonobank.testcase.service.TestCaseService;
 import com.nonobank.testcase.utils.UserUtil;
@@ -48,6 +51,9 @@ public class TestCaseController {
 	
 	@Autowired
 	TestCaseExecutor testCaseExecutor;
+	
+	@Autowired
+	SystemCfgService systemCfgService;
 	
 	@Autowired
 	WebSocket webSocket;
@@ -130,6 +136,12 @@ public class TestCaseController {
 		logger.info("开始更新用例");
 		
 		String userName = UserUtil.getUser();
+		
+		String createdBy = testCaseFront.getCreatedBy();
+		
+		if(null != createdBy && !createdBy.equals(userName)){
+			return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "用例只能由创建人修改，创建人：{}" + createdBy);
+		}
 		TestCase testCase = testCaseService.update(userName, testCaseFront);
 		testCaseFront = testCase.convert();
 		return ResultUtil.success(testCaseFront);
@@ -158,7 +170,8 @@ public class TestCaseController {
 	public Result checkCase(@RequestParam Integer testCaseId){
 		logger.info("开始检查用例");
 		TestCase tc = testCaseService.findById(testCaseId);
-		List<TestCaseInterface> tcis = testCaseInterfaceService.findByTestCaseId(testCaseId);
+		List<TestCaseInterface> tcis = tc.getTestCaseInterfaces();
+//				testCaseInterfaceService.findByTestCaseId(testCaseId);
 		JSONArray jsonArr = new JSONArray();
 		
 		tcis.forEach(x->{
@@ -171,8 +184,9 @@ public class TestCaseController {
 			String system = jsonApi.getString("system");
 			String branch = jsonApi.getString("branch");
 			String name = jsonApi.getString("name");
-			List<SystemBranch> systemBranches = systemBranchService.findBySystemAndLast(system, true);
-			long count = systemBranches.stream().filter(y->{return y.getSystem().equals(system) && y.getBranch().equals(branch); }).count();
+			SystemCfg systemCfg = systemCfgService.findBySystemOrAlias(system, system);
+			List<SystemBranch> systemBranches = systemBranchService.findBySystemAndLast(systemCfg.getSystem(), true);
+			long count = systemBranches.stream().filter(y->{return y.getSystem().equals(systemCfg.getSystem()) && y.getBranch().equals(branch); }).count();
 		    
 			jsonObj.put("name", name);
 			jsonObj.put("currentBranch", branch);
