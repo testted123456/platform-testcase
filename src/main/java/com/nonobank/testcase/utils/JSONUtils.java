@@ -1,6 +1,7 @@
 package com.nonobank.testcase.utils;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -194,8 +195,23 @@ public class JSONUtils {
 	public static void main(String [] args) throws Exception{
 
 		
-		String str = "{\"a\":{\"b\":1}, \"c\":\"&{c}\", \"d\":12, \"e\":[{\"a\":1},{\"a\":1}]}";
-		String str1 = "{\"aaa\":{\"w\":1}, \"c\":\"&{c}\", \"d\":12, \"e\":[{\"c\":2}]}";
+		String str = "{\n" +
+				"\"a\":\"a\",\n" +
+				"\"b\":\"b\",\n" +
+				"\"as\":[\n" +
+				"   {\"as1\":\"as1\"},\n" +
+				"   {\"as1\":\"as1\"},\n" +
+				"   {\"as1\":\"as1\",\"as2\":\"as2\"}\n" +
+				"]\n" +
+				"}";
+
+		JSONObject jsonObject = JSON.parseObject(str);
+//		Set<String> keys = setJsonValue(jsonObject);
+		clearJsonValue(jsonObject);
+		System.out.println("ok");
+		System.out.println(jsonObject.toJSONString());
+//		System.out.println(keys);
+//		String str1 = "{\"aaa\":{\"w\":1}, \"c\":\"&{c}\", \"d\":12, \"e\":[{\"c\":2}]}";
 		/**
 		String str1 = "{\"a\":{\"b\":1}, \"c\":1}";
 		
@@ -211,10 +227,57 @@ public class JSONUtils {
 			System.out.println(x + ":" + y);
 		});
 		**/
-		JSONObject jsonObj = 
-		compareJsonObj(JSONObject.parseObject(str), JSONObject.parseObject(str1));
-		
-		System.out.println(format(jsonObj));
+//		JSONObject jsonObj =
+//		compareJsonObj(JSONObject.parseObject(str), JSONObject.parseObject(str1));
+//
+//		System.out.println(format(jsonObj));
 	}
+
+
+	/**
+	 * 将json的值设置为json的key
+	 * @param object
+	 * @return
+	 */
+	public static Set<String> setJsonValue(Object object){
+		if (object instanceof JSONObject){
+			JSONObject jobj = (JSONObject) object;
+			for (String key:jobj.keySet()){
+				jobj.put(key,"${"+key+"}");
+			}
+			return jobj.keySet();
+		}else{
+			return null;
+		}
+
+	}
+
+
+	/**
+	 * 清除json的value值
+	 * @param object
+	 */
+	public static void clearJsonValue(Object object){
+		if (object instanceof JSONObject){
+			JSONObject jobj = (JSONObject) object;
+			for(String key:jobj.keySet()){
+				Object valueObj = jobj.get(key);
+				if (valueObj instanceof JSONObject || valueObj instanceof JSONArray ){
+					clearJsonValue(valueObj);
+				}else{
+					jobj.put(key,"");
+				}
+			}
+		}else if(object instanceof JSONArray){
+			for (Object obj:(JSONArray)object){
+				if (obj instanceof JSONObject || obj instanceof JSONArray){
+					clearJsonValue(obj);
+				}
+			}
+
+		}
+	}
+
+
 
 }

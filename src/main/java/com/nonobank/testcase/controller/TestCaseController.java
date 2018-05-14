@@ -1,9 +1,10 @@
 package com.nonobank.testcase.controller;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import com.alibaba.fastjson.JSON;
+import com.nonobank.testcase.utils.JSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -267,5 +268,28 @@ public class TestCaseController {
 		List<JSONObject> testCases = testCaseService.findByNameAndCreatedBy(name, createdBy);
 		return ResultUtil.success(testCases);
 	}
+
+
+	@PostMapping(value="clearJsonValue")
+	@ResponseBody
+	public Result clearJsonValue( @RequestBody JSONObject jsonObj){
+		jsonObj = JSON.parseObject(jsonObj.toJSONString());
+		JSONUtils.clearJsonValue(jsonObj);
+		return ResultUtil.success(jsonObj);
+
+	}
+
+	@PostMapping(value="setJsonValue")
+	@ResponseBody
+	public Result setJsonValue( @RequestBody JSONObject jsonObj){
+		Set<String> keys = JSONUtils.setJsonValue(jsonObj);
+		Map<String,Object> remap =new HashMap<>();
+		remap.put("json",jsonObj);
+		remap.put("variables",keys==null?new HashSet<>():keys);
+		return ResultUtil.success(remap);
+
+	}
+
+
 	
 }
