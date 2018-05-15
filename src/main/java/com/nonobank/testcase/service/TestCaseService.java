@@ -20,5 +20,5 @@ public interface TestCaseService {
 	
 	void deleteTestCaseDir(String userName, Integer id);
 	
-	List<JSONObject> findByNameAndCreatedBy(String name, String createdBy);
+	List<JSONObject> searchCases(String name, String createdBy, String apiName, String urlAddress);
 }

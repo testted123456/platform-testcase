@@ -1,5 +1,6 @@
 package com.nonobank.testcase.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -14,11 +15,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.alibaba.fastjson.JSONArray;
+import com.nonobank.testcase.component.remoteEntity.RemoteApi;
 import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.component.result.ResultUtil;
 import com.nonobank.testcase.entity.SystemBranch;
+import com.nonobank.testcase.entity.SystemCfg;
 import com.nonobank.testcase.service.SystemBranchService;
+import com.nonobank.testcase.service.SystemCfgService;
 
 @Controller
 @RequestMapping(value="sysBranch")
@@ -30,14 +35,33 @@ public class SystemBranchController {
 	@Autowired
 	SystemBranchService systemBranchService;
 	
+	@Autowired
+	SystemCfgService systemCfgService;
+	
+	@Autowired
+	RemoteApi remoteApi;
+	
+	/**
+	 * 同步系统分支
+	 * @param system
+	 * @return
+	 */
 	@GetMapping(value="syncBranches")
 	@ResponseBody
 	public Result syncBranches(@RequestParam String system){
 		logger.info("开始同步系统 {} 分支", system);
 		
-		List<SystemBranch> systemBranches = null;
-		systemBranchService.add(system, systemBranches);
-		return ResultUtil.success();
+		SystemCfg systemCfg = systemCfgService.findBySystem(system);
+		String gitAddress = systemCfg.getGitAddress();
+		JSONArray branches = remoteApi.getSystemBranches(system, gitAddress);
+		List<String> list = new ArrayList<>();
+		
+		branches.forEach(x->{
+			list.add(x.toString());
+		});
+		
+		systemBranchService.update(system, list);
+		return ResultUtil.success(systemBranchService.findall());
 	}
 	
 	@PostMapping(value="updateBranch")

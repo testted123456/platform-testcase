@@ -1,19 +1,14 @@
 package com.nonobank.testcase.component.remoteEntity;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.http.HttpException;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -59,17 +54,10 @@ public class RemoteApi {
 				logger.error("查询api失败，" + resOfJson.getString("errorMessage"));
 				throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "获取api信息失败");
 			}
-		} catch (HttpException e) {
-			e.printStackTrace();
-			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
-		}
-		
+		} catch (Exception e) {
+			logger.error(e.getLocalizedMessage());
+			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getLocalizedMessage());
+		} 
 	}
 	
 	/**
@@ -107,16 +95,10 @@ public class RemoteApi {
 				logger.error("查询api失败，" + resOfJson.getString("errorMessage"));
 				throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "获取api信息失败");
 			}
-		} catch (HttpException e) {
-			e.printStackTrace();
-			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
-		}
+		} catch (Exception e) {
+			logger.error(e.getLocalizedMessage());
+			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getLocalizedMessage());
+		} 
 	}
 	
 	public JSONArray getApisById(List<Integer> ids){
@@ -141,17 +123,48 @@ public class RemoteApi {
 				logger.error("查询api失败，" + resOfJson.getString("errorMessage"));
 				throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "获取api信息失败");
 			}
-		} catch (HttpException e) {
-			e.printStackTrace();
-			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
-		} catch (ClientProtocolException e) {
-			e.printStackTrace();
-			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getClass().getName());
-		}
+		} catch (Exception e) {
+			logger.error(e.getLocalizedMessage());
+			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getLocalizedMessage());
+		} 
 	}
 	
+	/**
+	 * 查询系统git分支
+	 * @param system
+	 * @param gitAddress
+	 * @return
+	 */
+	public JSONArray getSystemBranches(String system, String gitAddress){
+		logger.info("开始查询系统git分支信息");
+		
+		HttpClient httpClient = new HttpClient();
+		CloseableHttpClient client = httpClient.getHttpClient();
+		CloseableHttpResponse response = null;
+		
+		JSONObject jsonObj = new JSONObject();
+		jsonObj.put("system", system);
+		jsonObj.put("gitAddress", gitAddress);
+		
+		try {
+			String httpServer = httpServerProperties.getInterfaceServer();
+			response = httpClient.doPostSendJson(client, null, httpServer + "api/getBranchs", jsonObj.toJSONString());
+			
+			String resOfString = httpClient.getResBody(response);
+			JSONObject resOfJson = JSON.parseObject(resOfString);
+			
+			if(resOfJson.getInteger("code").equals(10000)){
+				logger.info("查询系统git分支成功");
+				JSONArray apisOfJson = resOfJson.getJSONArray("data");
+				return apisOfJson;
+			}else{
+				logger.error("查询系统git分支失败，" + resOfJson.getString("msg"));
+				throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "获取系统git分支信息失败");
+			}
+		} catch (Exception e) {
+			logger.error(e.getLocalizedMessage());
+			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getLocalizedMessage());
+		} 
+	}
 	
 }

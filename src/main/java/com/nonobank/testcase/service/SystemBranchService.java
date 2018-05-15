@@ -19,6 +19,8 @@ public interface SystemBranchService {
 	 */
 	SystemBranch update(SystemBranch systemBranch);
 	
+	void update(String system, List<String> branches);
+	
 	/**
 	 * 获取未删除的系统分支
 	 * @param system
@@ -39,5 +41,4 @@ public interface SystemBranchService {
 	List<SystemBranch> findBySystemAndLast(String system, boolean last);
 
 	List<SystemBranch> findall();
-	
 }

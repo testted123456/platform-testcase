@@ -172,10 +172,10 @@ public class TestCaseServiceImpl implements TestCaseService {
 	 * 根据名称、创建人模糊查询
 	 */
 	@Override
-	public List<JSONObject> findByNameAndCreatedBy(String name, String createdBy) {
+	public List<JSONObject> searchCases(String name, String createdBy, String apiName, String urlAddress) {
 		//存放用例文件夹
 		Map<Integer, JSONObject> map = new HashMap<Integer, JSONObject>();
-		List<Object []> objs = testCaseRepository.findByNameAndCreatedBy(name, createdBy);
+		List<Object []> objs = testCaseRepository.searchCases(name, createdBy, apiName, urlAddress);
 		
 		objs.stream().forEach(x->{
 			Object id = x[0];

@@ -263,9 +263,9 @@ public class TestCaseController {
 	
 	@GetMapping(value="searchCase")
 	@ResponseBody
-	public Result searchCase(@RequestParam String name, @RequestParam String createdBy){
+	public Result searchCase(@RequestParam String name, @RequestParam String createdBy,  @RequestParam String apiName,  @RequestParam String urlAddress){
 		logger.info("开始搜索用例,名称：{},创建人：{}",name, createdBy);
-		List<JSONObject> testCases = testCaseService.findByNameAndCreatedBy(name, createdBy);
+		List<JSONObject> testCases = testCaseService.searchCases(name, createdBy, apiName, urlAddress);
 		return ResultUtil.success(testCases);
 	}
 

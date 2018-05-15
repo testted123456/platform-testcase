@@ -1,9 +1,9 @@
 package com.nonobank.testcase.service.impl;
 
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.nonobank.testcase.component.exception.TestCaseException;
 import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.entity.SystemBranch;
@@ -87,5 +87,19 @@ public class SystemBranchServiceImpl implements SystemBranchService {
 	@Override
 	public SystemBranch findById(Integer id) {
 		return systemBranchRepository.findById(id);
+	}
+
+	@Override
+	public void update(String system, List<String> branches) {
+		branches.forEach(x->{
+			SystemBranch systemBranch = findBySystemAndBranch(system, x);
+			if(null == systemBranch){
+				systemBranch = new SystemBranch();
+				systemBranch.setSystem(system);
+				systemBranch.setBranch(x);
+				systemBranch.setOptstatus((short)0);
+				systemBranchRepository.save(systemBranch);
+			}
+		});
 	}
 }
