@@ -62,6 +62,9 @@ public class TestCaseExecutor {
 	HttpExecutor httpExecutor;
 	
 	@Autowired
+	MQExecutor mqExecutor;
+	
+	@Autowired
 	RemoteApi remoteApi;
 	
 //	@Autowired
@@ -209,7 +212,7 @@ public class TestCaseExecutor {
 		//环境dns
 		NonoDnsResolver dnsResolver = new NonoDnsResolver();
 				
-		//处理接口url
+		//处理非第三方接口url
 		if(!"thirdparty".equals(system)){
 			SystemCfg systemCfg = systemCfgService.findByAlias(system);
 			
@@ -239,7 +242,7 @@ public class TestCaseExecutor {
 			}
 		}
 		
-		if(apiHandlerUtils.variableMatched(url) == true){
+		if(apiHandlerUtils.variableMatched(url) == true){//url中含有变量
 			Map<Boolean, String> urlMap = apiHandlerUtils.handleVariable(map, url);
 			if(urlMap.containsKey(true)){
 				url = urlMap.get(true);
@@ -265,7 +268,6 @@ public class TestCaseExecutor {
 					webSocket.sendVar(requestBody, sessionId);
 					webSocket.sendVar("```", sessionId);
 				}
-				
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new CaseExecutionException(ResultCode.EXCEPTION_ERROR.getCode(), "大前端加签失败！");
@@ -273,6 +275,12 @@ public class TestCaseExecutor {
 		}
 		
 		resultDetail.setRequestBody(requestBody);
+		
+		//预计结果
+		String expectedResponseBody = null;
+		
+		//实际响应消息
+		String actualResponseBody = null;
 		
 		//发送请求 
 		switch (apiType) {
@@ -290,22 +298,23 @@ public class TestCaseExecutor {
 				resp = httpExecutor.doHttpsPost(url, map, requestHeaders, requestBody, dnsResolver);
 			}
 			break;
-		case "2":
+		case "2"://MQ
+			actualResponseBody = mqExecutor.sendMessage(url, JSONObject.parseObject(requestBody));
 			break;
 		default:
 			break;
 		}
 		
-		String expectedResponseBody = testCaseInterface.getResponseBody();
-		
-		//处理响应消息
-		String actualResponseBody = null;
+		if(!"2".equals(apiType)){
+			expectedResponseBody = testCaseInterface.getResponseBody();
+		}
 		
 		if(resp != null){
 			try {
 				actualResponseBody = HttpClient.getResBody(resp);
 			} catch (Exception e) {
-				throw new CaseExecutionException(ResultCode.EXCEPTION_ERROR.getCode(), e.getMessage());
+				logger.error("解析响应消息失败，" + e.getLocalizedMessage());
+				throw new CaseExecutionException(ResultCode.EXCEPTION_ERROR.getCode(), e.getLocalizedMessage());
 			} 
 		}
 		
@@ -347,6 +356,14 @@ public class TestCaseExecutor {
 		return result;
 	}
 	
+	/**
+	 * 异步执行case
+	 * @param sessionId
+	 * @param env
+	 * @param tcId
+	 * @param testCaseInterfaces
+	 * @param totalSize
+	 */
 	@Async
 	public void asyncRunCase(String sessionId, String env, Integer tcId, List<TestCaseInterface> testCaseInterfaces, int totalSize){
 		Map<String, Object> varMap = new HashMap<String, Object>();

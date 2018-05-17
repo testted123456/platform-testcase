@@ -95,7 +95,7 @@ public class TestCaseServiceImpl implements TestCaseService {
 				TestCaseInterface tci = tcis.get(i);
 				tci.setOrderNo(i);
 				tci.setOptstatus((short)0);
-				System.out.println(tci.getApiType());
+//				System.out.println(tci.getApiType());
 				
 				if(null == tci.getId() ){//新增接口
 					tci.setTestCase(testCase);

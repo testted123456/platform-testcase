@@ -28,9 +28,9 @@ public class ApiVariablesHandler {
     ApiHandlerUtils apiHandlerUtils;
     
     /**
-     * 处理自定义变量
+     * 处理所有自定义变量
      * @param map 存放自定义变量
-     * @param variables
+     * @param variables 所有自定义变量字符串
      * @param sessionId
      * @param env
      * @return

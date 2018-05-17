@@ -42,15 +42,22 @@ public class ApiHandlerUtils {
 //			Pattern.compile("\\$\\{[\\w|\\[|\\]]+\\.[\\w|\\[|\\]]+\\}");
 			Pattern.compile("\\$\\{([\\w|\\[|\\]|\\d]+?\\.[\\w|\\[|\\]\\d\\.]+?)\\}");
 
+	//方法函数
 	private final static Pattern METHODNAME_PATTERN = 
 			Pattern.compile("^\\$\\{(\\w+)\\((.*?)\\)\\}$");
 //	 Pattern.compile("\\$\\{(\\w+)\\(.*?\\)\\}");
 
+	//换行
 	private final static Pattern CRLF_PATTERN = Pattern.compile("(\r\n|\r|\n|\n\r|\t|\\\\n)");
 	
+	//回车
 	private final static Pattern ENTER_PATTERN = Pattern.compile("\\\\\\\\n");
 	
+	//保存变量
 	private final static Pattern SAVE_PATTERN = Pattern.compile("\\&\\{(\\w*\\d*\\.*)\\}");
+	
+	//json中value视为对象，需去掉引号
+	private final static Pattern QUOTE_PATTERN = Pattern.compile("\\#\\{(\\w*\\d*\\.*)\\}");
 	
 	@Autowired
 	WebSocket webSocket;
@@ -75,7 +82,7 @@ public class ApiHandlerUtils {
 			return;
 		}
 		
-		if (SAVE_PATTERN.matcher(expectedStr).matches()) {
+		if (SAVE_PATTERN.matcher(expectedStr).matches()) {//保存变量
 			Matcher matcher = SAVE_PATTERN.matcher(expectedStr);
 			if (matcher.find()) {
 				map.put(matcher.group(1), actualStr);
@@ -180,6 +187,51 @@ public class ApiHandlerUtils {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param request
+	 * @param map
+	 * @return
+	 */
+	public Map<Boolean, String> handleQuoteVariable(String variable, Map<String, Object> map){
+		Map<Boolean, String> resultMap = new HashMap<Boolean, String>();
+		Matcher matcher = QUOTE_PATTERN.matcher(variable);
+		String allValue = null;
+		
+		while(matcher.find()){
+			String key = matcher.group(1);
+			logger.info("开始去除变量{}的引号", key);
+			Object value = map.get(key);
+			
+			if (null == value) {
+				logger.error("变量" + key + "不在上下文中");
+				resultMap.put(false, "变量" + key + "不在上下文中");
+				break;
+			} else {
+				String replaceValue = String.valueOf(value);
+				logger.info("变量" + key + "值为：" + replaceValue);
+
+				if (null == allValue) {
+					allValue = variable.replaceAll("\"#\\{" + key + "\\}\"", replaceValue);
+				} else {
+					allValue = allValue.replaceAll("\"#\\{" + key + "\\}\"", replaceValue);
+				}
+			}
+			
+			if (!resultMap.containsKey(false) && allValue != null) {
+				resultMap.put(true, allValue);
+			}
+		}
+		
+		return resultMap;
+	}
+	
+	/**
+	 * 处理非对象、数组的变量
+	 * @param variable
+	 * @param map
+	 * @return
+	 */
 	public Map<Boolean, String> handleSingleVariable(String variable, Map<String, Object> map){
 
 		Map<Boolean, String> resultMap = new HashMap<Boolean, String>();
@@ -238,9 +290,16 @@ public class ApiHandlerUtils {
 				resultMap = handleArrayVariable(variable, map);
 			}else if(JSONOBJECT_PATTERN.matcher(variable).find()){
 				resultMap = handleObject(variable, map);
-			}else if(VARIABLE_PATTERN.matcher(variable).find()){
-				resultMap = handleSingleVariable(variable, map);
+			}else {
+				if(VARIABLE_PATTERN.matcher(variable).find()){
+					resultMap = handleSingleVariable(variable, map);
+				}
+				if(QUOTE_PATTERN.matcher(variable).find()){
+					resultMap = handleQuoteVariable(variable, map);
+				}
 			}
+				
+			
 //		}
 		
 		return resultMap;
@@ -553,23 +612,30 @@ public class ApiHandlerUtils {
 	
 	public static void main(String [] args){
 		ApiHandlerUtils tt = new ApiHandlerUtils();
-		String str2 = "abc[1]1";
-		
-		String str = "${abc.a[0].b}";
-		String str1 = "xyz${def[1]}abc${def[0]}";
-		
-		Map<String, Object> map = new HashMap<>();
-		map.put("abc", "{\"a\":[{\"b\":2}, {\"c\":3}]}");
-		map.put("def", "[1,2]");
-		
-		Matcher m = 
-//				JSONARRAY_PATTERN.matcher(str1);
-				JSONOBJECT_PATTERN.matcher(str);
-		
-		Map<Boolean, String> resMap = 
-				tt.handleObject(str, map);
-//				handleArrayVariable(str1, map);
-		System.out.println(resMap.get(true));
-		System.out.println(resMap.get(false));
+		String str = "{\"a\":\"#{abc}\"}";
+		Matcher m = QUOTE_PATTERN.matcher(str);
+		while(m.find()){
+			System.out.println(m.group(1));
+			str = str.replaceAll("\"#\\{abc\\}\"", "123");
+			System.out.println(str);
+		}
+//		String str2 = "abc[1]1";
+//		
+//		String str = "${abc.a[0].b}";
+//		String str1 = "xyz${def[1]}abc${def[0]}";
+//		
+//		Map<String, Object> map = new HashMap<>();
+//		map.put("abc", "{\"a\":[{\"b\":2}, {\"c\":3}]}");
+//		map.put("def", "[1,2]");
+//		
+//		Matcher m = 
+////				JSONARRAY_PATTERN.matcher(str1);
+//				JSONOBJECT_PATTERN.matcher(str);
+//		
+//		Map<Boolean, String> resMap = 
+//				tt.handleObject(str, map);
+////				handleArrayVariable(str1, map);
+//		System.out.println(resMap.get(true));
+//		System.out.println(resMap.get(false));
 	}
 }
