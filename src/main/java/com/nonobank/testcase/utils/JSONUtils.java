@@ -1,14 +1,14 @@
 package com.nonobank.testcase.utils;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -16,8 +16,12 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nonobank.testcase.component.exception.TestCaseException;
+import com.nonobank.testcase.component.result.ResultCode;
 
 public class JSONUtils {
+	
+	public static Logger logger = LoggerFactory.getLogger(JSONUtils.class);
 	
 	private final static Pattern JSONARRAY_PATTERN = Pattern.compile("^\\[.*?\\]$");
     
@@ -26,31 +30,30 @@ public class JSONUtils {
     private final static Pattern SAVE_PATTERN = Pattern.compile("\\&\\{(\\w*\\d*\\.*)\\}");
 	
 	public static boolean isJsonObject(String jsonStr) {
-		if(JSONOBJECT_PATTERN.matcher(jsonStr).matches()){
-			try{
+		try{
+			if(JSONOBJECT_PATTERN.matcher(jsonStr).matches()){
 				JSONObject.parse(jsonStr);
-			}catch(Exception e){
+				return true;
+			}else{
 				return false;
 			}
-			return true;
-		}else{
-			return false;
+		}catch(Exception e){
+			logger.error(e.getLocalizedMessage());
+			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getLocalizedMessage());
 		}
 	}
 	
 	public static boolean isJsonArray(String jsonStr){
-		if(JSONARRAY_PATTERN.matcher(jsonStr).matches()){
-			
-			try{
+		try{
+			if(JSONARRAY_PATTERN.matcher(jsonStr).matches()){
 				JSONArray.parseArray(jsonStr);
-			}catch(Exception e){
-				e.printStackTrace();
+				return true;
+			}else{
 				return false;
 			}
-			
-			return true;
-		}else{
-			return false;
+		}catch(Exception e){
+			logger.error(e.getLocalizedMessage());
+			throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), e.getLocalizedMessage());
 		}
 	}
 	
