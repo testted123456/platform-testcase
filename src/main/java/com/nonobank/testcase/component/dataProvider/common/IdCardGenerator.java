@@ -230,7 +230,7 @@ public class IdCardGenerator {
 	public static String getRegisterIDCardRandom(String mySql_driver,String mySql_url,
 												 String db_name,String db_password) throws SQLException, Exception{
 		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
-		String sql = "SELECT id_num FROM user_info order by rand() LIMIT 1;";
+		String sql = "SELECT id_num FROM user_info where id_num is not null order by rand() LIMIT 1;";
 		String idCard =  String.valueOf(DBUtils.getOneObject(conn, sql));
 		return idCard;
 	}
