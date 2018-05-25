@@ -23,47 +23,6 @@ public class TestDataController {
     @Autowired
     TestDataService testDataService;
 
-    /**
-     *
-     * @param reqJson
-     * e.g.
-     * {
-     *     "env":"STB",
-     *     "isRegistered":true
-     * }
-     * env: 环境
-     * isRegistered: 注册| 未注册
-     * @return
-     * @throws Exception
-     */
-    @PostMapping(value="getIdCard")
-    @ResponseBody
-    public Result getIdCard(@RequestBody JSONObject reqJson) throws Exception {
-        String env = null;
-        Boolean isRegistered = false;
-
-        logger.info("检查请求参数env");
-        if (reqJson.containsKey("env")) {
-            env = reqJson.getString("env");
-            if (env.isEmpty()){
-                return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求提供环境参数为空");
-            }
-
-        }else{
-            return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求未提供环境参数env");
-        }
-
-        logger.info("检查请求参数isRegistered");
-        if (reqJson.containsKey("isRegistered")) {
-            isRegistered = reqJson.getBooleanValue("isRegistered");
-        }else{
-            return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求未提供是否注册参数isRegistered");
-        }
-
-        String idCardNum = testDataService.getIdCardByEnvIsRegistered(env, isRegistered);
-        return ResultUtil.success(idCardNum);
-    }
-
     @GetMapping(value="getAllProvince")
     @ResponseBody
     public Result getAllProvince(){
@@ -141,6 +100,66 @@ public class TestDataController {
         List<String> districts = testDataService.getDistrictList(province, city);
         return ResultUtil.success(districts);
 
+    }
+
+
+    /**
+     *
+     * @param reqJson
+     * e.g.
+     * {
+     *     "env":"STB",  //必选参数
+     *     "isRegistered":true,  //必选参数
+     *     "province":"江苏省",  //可选参数
+     *     "city":"南京市",  //可选参数
+     *     "district":"玄武区"  //可选参数
+     * }
+     * 注:
+     * province为空，则city和district无效
+     * province不为空，city为空，则district无效
+     * @return 身份证号
+     * @throws Exception
+     */
+    @PostMapping(value="getIdCard")
+    @ResponseBody
+    public Result getIdCard(@RequestBody JSONObject reqJson) throws Exception {
+        String env = null;
+        Boolean isRegistered = false;
+        String province = null;
+        String city = null;
+        String district = null;
+
+        logger.info("检查请求参数env -- 必选");
+        if (reqJson.containsKey("env")) {
+            env = reqJson.getString("env");
+            if (env.isEmpty()){
+                return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求提供环境参数为空");
+            }
+        }else{
+            return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求未提供环境参数env");
+        }
+
+        logger.info("检查请求参数isRegistered -- 必选");
+        if (reqJson.containsKey("isRegistered")) {
+            isRegistered = reqJson.getBooleanValue("isRegistered");
+        }else{
+            return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求未提供是否注册参数isRegistered");
+        }
+
+        if (reqJson.containsKey("province")) {
+            province = reqJson.getString("province");
+        }
+
+        if (reqJson.containsKey("city")) {
+            city = reqJson.getString("city");
+        }
+
+        if (reqJson.containsKey("district")) {
+            district = reqJson.getString("district");
+        }
+
+        String idCardNum = testDataService.getIdCardByEnvIsRegisteredProvinceCityDistrict(env, isRegistered, province, city, district);
+        return ResultUtil.success(idCardNum);
     }
 
 }

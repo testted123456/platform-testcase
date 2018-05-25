@@ -1,10 +1,8 @@
 package com.nonobank.testcase.utils.dll;
 
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class IdCardGeneratorUtil {
 	public static final Map<Integer, String> areaCode = new HashMap<Integer, String>();
@@ -3426,6 +3424,88 @@ public class IdCardGeneratorUtil {
 		return code;
 	}
 
+	/**
+	 *按参数: 省份(直辖市), 城市和区县 返回有效areaCode数字代码
+	 * @param province 省份(直辖市)
+	 * @param city  城市
+	 * @param district  区县
+	 * @return
+	 * 省份(直辖市)为空，都随机，等价于randomAreaCode
+	 * 省份(直辖市)不为空，城市和区县为空： 按省份(直辖市)过滤然后随机生成
+	 * 省份(直辖市)和城市不为空，区县为空： 按省份(直辖市)和城市过滤然后随机生成
+	 * 省份(直辖市)，城市和区县都不为空，按省份(直辖市)，城市和区县过滤返回第一个
+	 */
+	public static int getAreaCode(String province, String city, String district){
+
+		if (province == null || province.isEmpty()){
+			//都随机
+			return randomAreaCode();
+		}
+
+		String provinceCode = getProvinceCode(province);
+		if(provinceCode == null){
+			//省份(直辖市)不匹配
+			return -1;
+		}
+
+		List<Map.Entry<Integer, String>> listProvinceFilter = areaCode.entrySet().stream().filter(e -> {
+			String key = String.valueOf(e.getKey());
+			return !e.getValue().equals(province) && Pattern.compile("^" + provinceCode.substring(0,2) + "\\d+$").matcher(key).find();
+		}).collect(Collectors.toList());
+
+		int sizeProvinceFilter = listProvinceFilter.size();
+		if (sizeProvinceFilter == 0){
+			//过滤省份后，列表数量为0
+			return -2;
+		}
+
+		if (city == null || city.isEmpty()){
+			int index = (int) (Math.random() * sizeProvinceFilter);
+			//省份(直辖市)={province}, 其它随机
+			return listProvinceFilter.get(index).getKey();
+		}else{
+			Map.Entry<Integer, String> cityEntry = listProvinceFilter.stream().filter( e -> {
+				String key = String.valueOf(e.getKey());
+				return e.getValue().equals(city) && Pattern.compile("^" + provinceCode.substring(0,2) + "\\d+0{2}$").matcher(key).find();
+			}).findFirst().orElse(null);
+
+			if (cityEntry == null){
+				//城市参数不匹配
+				return -3;
+			}else{
+				String cityCode = String.valueOf(cityEntry.getKey());
+				List<Map.Entry<Integer, String>> listProvinceCityFilter = listProvinceFilter.stream().filter( e -> {
+					String key = String.valueOf(e.getKey());
+					return !e.getValue().equals(city) && Pattern.compile("^" + cityCode.substring(0,4) + "\\d+$").matcher(key).find();
+				}).collect(Collectors.toList());
+
+				int sizeProvinceCityFilter = listProvinceCityFilter.size();
+				if (sizeProvinceCityFilter == 0){
+					//过滤省份(直辖市) && 城市后，列表数量为0
+					return -4;
+				}else{
+					if (district == null || district.isEmpty()){
+						int index = (int) (Math.random() * listProvinceCityFilter.size());
+						//省份(直辖市)={province} && 城市={city}, 区县随机
+						return listProvinceCityFilter.get(index).getKey();
+					}else{
+						Map.Entry<Integer, String> districtEntry = listProvinceCityFilter.stream().filter( e -> {
+							return e.getValue().equals(district);
+						}).findFirst().orElse(null);
+
+						if (districtEntry == null){
+							//区县不匹配
+							return -4;
+						}else{
+							//省份(直辖市)={province} && 城市={city} && 区县={district}
+							return districtEntry.getKey();
+						}
+					}
+				}
+			}
+		}
+	}
+
 	// 通过出生年份year生成生日
 	public static String generateBirthdayByYear(int year) {
 		Calendar birthday = Calendar.getInstance();
@@ -3511,5 +3591,34 @@ public class IdCardGeneratorUtil {
 			return "" + code;
 		}
 	}
-	
+
+	/**
+	 *
+	 * @param province  省份(直辖市)
+	 * @return  获取代表省份(直辖市)的数字代码
+	 */
+	public static String getProvinceCode(String province){
+		Map.Entry<Integer, String> entry = areaCode.entrySet().stream().filter( e -> {
+			return e.getValue().equals(province);
+		}).findFirst().orElse(null);
+		return entry == null ?  null : String.valueOf(entry.getKey());
+	}
+
+	/**
+	 *
+	 * @param province 省份(直辖市)
+	 * @param city 城市
+	 * @return 获取代表省份(直辖市)/城市的数字代码
+	 */
+	public static String getCityCode(String province, String city){
+		String provinceCode = getProvinceCode(province);
+
+		Map.Entry<Integer, String> entry = IdCardGeneratorUtil.areaCode.entrySet().stream().filter( e -> {
+			String key = String.valueOf(e.getKey());
+			return e.getValue().equals(city) && Pattern.compile("^" + provinceCode.substring(0,2) + "\\d+0{2}$").matcher(key).find();
+		}).findFirst().orElse(null);
+		return entry == null ? null : String.valueOf(entry.getKey());
+
+	}
+
 }

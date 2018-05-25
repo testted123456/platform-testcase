@@ -1,6 +1,7 @@
 package com.nonobank.testcase.service.impl;
 
 import com.nonobank.testcase.component.dataProvider.common.IdCardGenerator;
+import com.nonobank.testcase.entity.DBCfg;
 import com.nonobank.testcase.service.TestDataService;
 import com.nonobank.testcase.utils.dll.DBUtils;
 import com.nonobank.testcase.utils.dll.IdCardGeneratorUtil;
@@ -8,8 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -35,45 +36,12 @@ public class TestDataServiceImpl implements TestDataService {
 
     /**
      *
-     * @param province  省份(直辖市)
-     * @return  获取代表省份(直辖市)的数字代码
+     * @param env  环境
+     * @return 根据env获取数据库配置信息
      */
-    private String getProvinceCode(String province){
-        Map.Entry<Integer, String> entry = IdCardGeneratorUtil.areaCode.entrySet().stream().filter( e -> {
-            return e.getValue().equals(province);
-        }).findFirst().get();
-        return String.valueOf(entry.getKey());
-    }
+    private DBCfg getDBCfgByEnv(String env) throws SQLException {
+        DBCfg dbCfg = new DBCfg();
 
-    /**
-     *
-     * @param province 省份(直辖市)
-     * @param city 城市
-     * @return 获取代表省份(直辖市)/城市的数字代码
-     */
-    private String getCityCode(String province, String city){
-        String provinceCode = getProvinceCode(province);
-
-        Map.Entry<Integer, String> entry = IdCardGeneratorUtil.areaCode.entrySet().stream().filter( e -> {
-            String key = String.valueOf(e.getKey());
-            return e.getValue().equals(city) && Pattern.compile("^" + provinceCode.substring(0,2) + "\\d+0{2}$").matcher(key).find();
-        }).findFirst().get();
-        return String.valueOf(entry.getKey());
-
-    }
-
-
-    /**
-     *根据环境，是否注册获取身份证号
-     * @param env 环境
-     * @param isRegistered 注册 | 未注册
-     * @return 身份证号
-     * @throws Exception
-     */
-    public String getIdCardByEnvIsRegistered(String env, boolean isRegistered) throws Exception {
-        String idCardNum = null;
-
-        logger.info("根据env获取数据库配置信息");
         String sql = "select e.name, c.ip, c.port, c.db_name, c.user_name, c.password from env e " +
                 "left join dbgroup g on e.db_group_id = g.id " +
                 "left join dbcfg c on g.id = c.db_group_id " +
@@ -83,25 +51,15 @@ public class TestDataServiceImpl implements TestDataService {
         DBUtils.closeConnection(connection);
 
         if (items.length < 1){
-            logger.error(String.format("数据库查询返回为空，请确认环境(%s)数据库是否配置到测试平台", env));
             return null;
         }
-        String envDbIp = String.valueOf(items[1]);
-        String envDBPort = String.valueOf(items[2]);
-        String envDBName = String.valueOf(items[3]);
-        String envDBUsername = String.valueOf(items[4]);
-        String envDBPassword = String.valueOf(items[5]);
-        String envMySQLUrl = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=utf-8", envDbIp, envDBPort, envDBName);
 
-        if (isRegistered){
-            logger.info(String.format("获取环境%s已注册身份证号",env));
-            idCardNum = IdCardGenerator.getRegisterIDCardRandom(tpMySQLDriver, envMySQLUrl, envDBUsername, envDBPassword);
-        }else{
-            logger.info(String.format("获取环境%s未注册身份证号", env));
-            idCardNum = IdCardGenerator.getUnRegisterIDCard(tpMySQLDriver, envMySQLUrl, envDBUsername, envDBPassword);
-        }
-
-        return idCardNum;
+        dbCfg.setIp(String.valueOf(items[1]));
+        dbCfg.setPort(String.valueOf(items[2]));
+        dbCfg.setDbName(String.valueOf(items[3]));
+        dbCfg.setUserName(String.valueOf(items[4]));
+        dbCfg.setPassword(String.valueOf(items[5]));
+        return dbCfg;
     }
 
     /**
@@ -123,13 +81,12 @@ public class TestDataServiceImpl implements TestDataService {
     }
 
     /**
-     *
      * @param province 省份(直辖市)
      * @return 省份(直辖市)下属的城市列表
      */
     public List<String> getCityList(String province){
 
-        String provinceCode = getProvinceCode(province);
+        String provinceCode = IdCardGeneratorUtil.getProvinceCode(province);
 
         List<String> list = IdCardGeneratorUtil.areaCode.entrySet().stream().filter( e -> {
             String key = String.valueOf(e.getKey());
@@ -148,7 +105,6 @@ public class TestDataServiceImpl implements TestDataService {
         return list;
     }
 
-
     /**
      *
      * @param province 省份(直辖市)
@@ -157,7 +113,7 @@ public class TestDataServiceImpl implements TestDataService {
      */
     public List<String> getDistrictList(String province, String city){
 
-        String cityCode = getCityCode(province, city);
+        String cityCode = IdCardGeneratorUtil.getCityCode(province, city);
 
         List<String> list = IdCardGeneratorUtil.areaCode.entrySet().stream().filter( e -> {
             String key = String.valueOf(e.getKey());
@@ -174,6 +130,36 @@ public class TestDataServiceImpl implements TestDataService {
         .collect(Collectors.toList());
 
         return list;
+    }
+
+    /**
+     *
+     * @param env  环境
+     * @param isRegistered  注册 | 未注册
+     * @param province  省份(直辖市)
+     * @param city  城市
+     * @param district  区县
+     * @return  身份证号
+     * @throws Exception
+     */
+    public String getIdCardByEnvIsRegisteredProvinceCityDistrict(String env, boolean isRegistered, String province, String city, String district) throws Exception{
+        String idCardNum = null;
+
+        DBCfg dbCfg = getDBCfgByEnv(env);
+        if (dbCfg == null){
+            logger.error(String.format("数据库查询返回为空，请确认环境(%s)数据库是否配置到测试平台", env));
+            return null;
+        }
+
+        String envMySQLUrl = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=utf-8", dbCfg.getIp(), dbCfg.getPort(), dbCfg.getDbName());
+
+        if(isRegistered){
+            idCardNum = IdCardGenerator.getRegisterIDCardByProvinceCityDistrict(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword(), province, city, district);
+        }else{
+            idCardNum = IdCardGenerator.getUnRegisterIDCardByProvinceCityDistrict(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword(), province, city, district);
+        }
+
+        return idCardNum;
     }
 
 }

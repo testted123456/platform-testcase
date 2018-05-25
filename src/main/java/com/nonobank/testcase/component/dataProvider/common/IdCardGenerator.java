@@ -1,12 +1,13 @@
 package com.nonobank.testcase.component.dataProvider.common;
 
+import com.nonobank.testcase.utils.dll.DBUtils;
+import com.nonobank.testcase.utils.dll.IdCardGeneratorUtil;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import com.nonobank.testcase.utils.dll.DBUtils;
-import com.nonobank.testcase.utils.dll.IdCardGeneratorUtil;
+import java.util.regex.Pattern;
 
 public class IdCardGenerator {
 	public static final Map<String, Integer> areaCode = new HashMap<String, Integer>();
@@ -308,6 +309,131 @@ public class IdCardGenerator {
 	public static String generateByYearEndWithLowerCase(String year){
 		String id = generateByYearEndWithX(year);
 		return id.toLowerCase();
+	}
+
+	public static String generateByProvinceCityDistrict(String province, String city, String district) {
+		StringBuilder generater = new StringBuilder();
+		int areaCode = IdCardGeneratorUtil.getAreaCode(province,city, district);
+		if (areaCode < 0){
+			return null;
+		}else {
+			generater.append(IdCardGeneratorUtil.getAreaCode(province, city, district));
+		}
+		generater.append(IdCardGeneratorUtil.randomBirthday());
+		generater.append(IdCardGeneratorUtil.randomCode());
+		generater.append(IdCardGeneratorUtil.calcTrailingNumber(generater.toString().toCharArray()));
+		return generater.toString();
+
+	}
+
+	/**
+	 *
+	 * @param mySql_driver e.g.com.mysql.jdbc.Driver
+	 * @param mySql_url 测试环境MySQL数据库连接串
+	 * @param db_name 数据库用户名
+	 * @param db_password 数据库密码
+	 * @param province 省份(直辖市)
+	 * @param city  城市
+	 * @param district  区县
+	 * @return  未注册身份证号
+	 * @throws SQLException
+	 * @throws Exception
+	 */
+	public static String getUnRegisterIDCardByProvinceCityDistrict(String mySql_driver,String mySql_url,
+													 String db_name,
+													 String db_password,
+													 String province,
+													 String city,
+													 String district) throws SQLException, Exception{
+		String idCard = IdCardGenerator.generateByProvinceCityDistrict(province,city, district);
+		if (idCard == null){
+			return null;
+		}
+		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
+		String sql = "select count(*) from user_info WHERE id_num='" + idCard + "'";
+		String count = DBUtils.getOneObject(conn, sql).toString();
+
+		int loop = 0;
+		while (Integer.parseInt(count) > 0 && loop < 100) {
+			idCard = IdCardGenerator.generateByProvinceCityDistrict(province,city, district);
+			if (idCard == null){
+				return null;
+			}
+			sql = "select count(*) from user_info WHERE id_num='" + idCard + "'";
+			count =  String.valueOf(DBUtils.getOneObject(conn, sql));
+			loop++;
+		}
+		DBUtils.closeConnection(conn);
+		return idCard;
+	}
+
+	/**
+	 *
+	 * @param mySql_driver  e.g.com.mysql.jdbc.Driver
+	 * @param mySql_url  测试环境MySQL数据库连接串
+	 * @param db_name  数据库用户名
+	 * @param db_password  数据库密码
+	 * @param province  省份(直辖市)
+	 * @param city  城市
+	 * @param district  区县
+	 * @return 已注册身份证号
+	 */
+	public static String getRegisterIDCardByProvinceCityDistrict(String mySql_driver,
+																 String mySql_url,
+																 String db_name,
+																 String db_password,
+																 String province,
+																 String city,
+																 String district
+																 )throws Exception{
+
+		if (province == null || province.isEmpty()){
+			return getRegisterIDCardRandom(mySql_driver, mySql_url,db_name,db_password);
+		}
+
+		String pattern = null;
+		String provinceCode = IdCardGeneratorUtil.getProvinceCode(province);
+		if (provinceCode == null){
+			//省份(直辖市)不匹配
+			return null;
+		}
+
+		if (city == null || city.isEmpty()){
+			pattern = "^" + provinceCode.substring(0, 2);
+		}else{
+			String cityCode = IdCardGeneratorUtil.getCityCode(province, city);
+			if (cityCode == null){
+				//城市不匹配
+				return null;
+			}
+
+			if (district == null || district.isEmpty()){
+				pattern = "^" + cityCode.substring(0, 4);
+			}else {
+				Map.Entry<Integer, String> entryDistrict = IdCardGeneratorUtil.areaCode.entrySet().stream().filter(e -> {
+					String key = String.valueOf(e.getKey());
+					return e.getValue().equals(district) && Pattern.compile("^" + cityCode.substring(0, 4) + "\\d+$").matcher(key).find();
+				}).findFirst().orElse(null);
+
+				String districtCode = entryDistrict == null ? null : String.valueOf(entryDistrict.getKey());
+				if (districtCode == null) {
+					//区县不匹配
+					return null;
+				} else {
+					pattern = "^" + districtCode;
+				}
+			}
+		}
+
+		String sql = String.format("SELECT id_num FROM user_info where id_num regexp \"%s\" order by rand() LIMIT 1;", pattern);
+		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
+		Object[] items = DBUtils.getOneLine(conn, sql);
+
+		if (items.length > 0){
+			return String.valueOf(items[0]);
+		}else{
+			return null;
+		}
 	}
 
 }

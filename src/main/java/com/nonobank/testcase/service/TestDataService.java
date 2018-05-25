@@ -4,12 +4,12 @@ import java.util.List;
 
 public interface TestDataService {
 
-    String getIdCardByEnvIsRegistered(String env, boolean isRegistered) throws Exception;
-
     List<String> getAllProvince();
 
     List<String> getCityList(String province);
 
     List<String> getDistrictList(String provice, String city);
+
+    String getIdCardByEnvIsRegisteredProvinceCityDistrict(String env, boolean isRegistered, String province, String city, String district) throws Exception;
 
 }
