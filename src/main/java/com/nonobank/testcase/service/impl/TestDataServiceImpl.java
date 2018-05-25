@@ -3,12 +3,18 @@ package com.nonobank.testcase.service.impl;
 import com.nonobank.testcase.component.dataProvider.common.IdCardGenerator;
 import com.nonobank.testcase.service.TestDataService;
 import com.nonobank.testcase.utils.dll.DBUtils;
+import com.nonobank.testcase.utils.dll.IdCardGeneratorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.sql.Connection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class TestDataServiceImpl implements TestDataService {
@@ -26,6 +32,36 @@ public class TestDataServiceImpl implements TestDataService {
 
     @Value("${spring.datasource.password}")
     String tpMySQLPassword;
+
+    /**
+     *
+     * @param province  省份(直辖市)
+     * @return  获取代表省份(直辖市)的数字代码
+     */
+    private String getProvinceCode(String province){
+        Map.Entry<Integer, String> entry = IdCardGeneratorUtil.areaCode.entrySet().stream().filter( e -> {
+            return e.getValue().equals(province);
+        }).findFirst().get();
+        return String.valueOf(entry.getKey());
+    }
+
+    /**
+     *
+     * @param province 省份(直辖市)
+     * @param city 城市
+     * @return 获取代表省份(直辖市)/城市的数字代码
+     */
+    private String getCityCode(String province, String city){
+        String provinceCode = getProvinceCode(province);
+
+        Map.Entry<Integer, String> entry = IdCardGeneratorUtil.areaCode.entrySet().stream().filter( e -> {
+            String key = String.valueOf(e.getKey());
+            return e.getValue().equals(city) && Pattern.compile("^" + provinceCode.substring(0,2) + "\\d+0{2}$").matcher(key).find();
+        }).findFirst().get();
+        return String.valueOf(entry.getKey());
+
+    }
+
 
     /**
      *根据环境，是否注册获取身份证号
@@ -66,6 +102,78 @@ public class TestDataServiceImpl implements TestDataService {
         }
 
         return idCardNum;
+    }
+
+    /**
+     * @return 获取所有省份(包含直辖市)
+     */
+    public List<String> getAllProvince(){
+        List<String> list = IdCardGeneratorUtil.areaCode.entrySet().stream().filter( e -> {
+            return Pattern.compile("^\\d+0{4}$").matcher(String.valueOf(e.getKey())).find();
+        }).sorted(new Comparator<Map.Entry<Integer, String>>() {
+            @Override
+            public int compare(Map.Entry<Integer, String> o1, Map.Entry<Integer, String> o2) {
+                return  o1.getKey().compareTo(o2.getKey());
+            }
+        })
+        .map( e -> e.getValue())
+        .collect(Collectors.toList());
+
+        return list;
+    }
+
+    /**
+     *
+     * @param province 省份(直辖市)
+     * @return 省份(直辖市)下属的城市列表
+     */
+    public List<String> getCityList(String province){
+
+        String provinceCode = getProvinceCode(province);
+
+        List<String> list = IdCardGeneratorUtil.areaCode.entrySet().stream().filter( e -> {
+            String key = String.valueOf(e.getKey());
+            //过滤前2位数字匹配省份(直辖市)，后2位为0, 排除省份(直辖市)
+            return !key.equals(provinceCode) && Pattern.compile("^" + provinceCode.substring(0,2) + "\\d+0{2}$").matcher(key).find();
+        })
+        .sorted(new Comparator<Map.Entry<Integer, String>>() {
+            @Override
+            public int compare(Map.Entry<Integer, String> o1, Map.Entry<Integer, String> o2) {
+                return  o1.getKey().compareTo(o2.getKey());
+            }
+        })
+        .map(e -> e.getValue())
+        .collect(Collectors.toList());
+
+        return list;
+    }
+
+
+    /**
+     *
+     * @param province 省份(直辖市)
+     * @param city 城市
+     * @return 省份(直辖市)城市下的区县列表
+     */
+    public List<String> getDistrictList(String province, String city){
+
+        String cityCode = getCityCode(province, city);
+
+        List<String> list = IdCardGeneratorUtil.areaCode.entrySet().stream().filter( e -> {
+            String key = String.valueOf(e.getKey());
+            //过滤前4位数字匹配城市数字代码, 排除城市
+            return !key.equals(cityCode) && Pattern.compile("^" + cityCode.substring(0, 4) +"\\d+$").matcher(key).find();
+        })
+        .sorted(new Comparator<Map.Entry<Integer, String>>() {
+            @Override
+            public int compare(Map.Entry<Integer, String> o1, Map.Entry<Integer, String> o2) {
+                return  o1.getKey().compareTo(o2.getKey());
+            }
+        })
+        .map(e -> e.getValue())
+        .collect(Collectors.toList());
+
+        return list;
     }
 
 }
