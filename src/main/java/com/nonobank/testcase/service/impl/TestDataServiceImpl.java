@@ -1,6 +1,8 @@
 package com.nonobank.testcase.service.impl;
 
+import com.nonobank.testcase.component.dataProvider.common.BankCardUtils;
 import com.nonobank.testcase.component.dataProvider.common.IdCardGenerator;
+import com.nonobank.testcase.component.exception.TestCaseException;
 import com.nonobank.testcase.entity.DBCfg;
 import com.nonobank.testcase.service.TestDataService;
 import com.nonobank.testcase.utils.dll.DBUtils;
@@ -160,6 +162,35 @@ public class TestDataServiceImpl implements TestDataService {
         }
 
         return idCardNum;
+    }
+
+    public List<String> getAllCNBankName(){
+        return BankCardUtils.getCNBankNames();
+    }
+
+    public String getBankCardByEnvBanknameIsRegistered(String env, String bankName, boolean isRegistered) throws SQLException, Exception{
+        String bankCard = null;
+
+        String enBankName = BankCardUtils.convertCNBankName2EN(bankName);
+        if (enBankName == null){
+            throw new TestCaseException(10003, "银行名称不匹配，请检查输入是否正确或更新测试平台银行数据");
+        }
+
+        DBCfg dbCfg = getDBCfgByEnv(env);
+        if (dbCfg == null){
+            throw new TestCaseException(10003, String.format("测试平台数据库查询返回为空，请确认环境(%s)数据库是否配置到测试平台", env));
+        }
+
+        String envMySQLUrl = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=utf-8", dbCfg.getIp(), dbCfg.getPort(), dbCfg.getDbName());
+        if(isRegistered){
+            bankCard = BankCardUtils.getUsedBankcardByBankName(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword(), enBankName);
+            if (bankCard == null || ( bankCard != null && bankCard.toLowerCase().equals("null"))){
+                throw new TestCaseException(10003, String.format("测试环境%s数据库不存在已注册%s卡", env, bankName));
+            }
+        }else{
+            bankCard = BankCardUtils.getUnUseBankcardByBankName(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword(), enBankName);
+        }
+        return bankCard;
     }
 
 }

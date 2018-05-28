@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.SQLException;
 import java.util.List;
 
 @Controller
@@ -160,6 +161,67 @@ public class TestDataController {
 
         String idCardNum = testDataService.getIdCardByEnvIsRegisteredProvinceCityDistrict(env, isRegistered, province, city, district);
         return ResultUtil.success(idCardNum);
+    }
+
+    /**
+     * @return 返回所有中文银行名列表
+     */
+    @GetMapping(value="getAllCNBankName")
+    @ResponseBody
+    public Result getAllCNBankName(){
+        List<String> cnBankNames = testDataService.getAllCNBankName();
+        return ResultUtil.success(cnBankNames);
+    }
+
+    /**
+     * @param reqJson
+     * e.g.
+     * {
+     *     "env": "STB",  //必选参数
+     *     "bankname": "广发银行",  //必选参数
+     *     "isRegistered": true  //必选参数
+     * }
+     * @return  根据指定的环境，中文银行名和是否注册，返回银行卡号
+     * @throws SQLException
+     * @throws Exception
+     */
+    @PostMapping(value="getBankCard")
+    @ResponseBody
+    public Result getBankCard(@RequestBody JSONObject reqJson) throws SQLException, Exception {
+
+        String env = null;
+        Boolean isRegistered = false;
+        String bankname = null;
+
+        logger.info("检查请求参数env -- 必选");
+        if (reqJson.containsKey("env")) {
+            env = reqJson.getString("env");
+            if (env.isEmpty()){
+                return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求提供环境参数env为空");
+            }
+        }else{
+            return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求未提供环境参数env");
+        }
+
+        logger.info("检查请求参数bankname -- 必选");
+        if (reqJson.containsKey("bankname")) {
+            bankname = reqJson.getString("bankname");
+            if (bankname.isEmpty()){
+                return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求提供银行参数bankname为空");
+            }
+        }else{
+            return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求未提供银行参数bankname");
+        }
+
+        logger.info("检查请求参数isRegistered -- 必选");
+        if (reqJson.containsKey("isRegistered")) {
+            isRegistered = reqJson.getBooleanValue("isRegistered");
+        }else{
+            return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求未提供是否注册参数isRegistered");
+        }
+
+        String bankcard = testDataService.getBankCardByEnvBanknameIsRegistered(env, bankname, isRegistered);
+        return ResultUtil.success(bankcard);
     }
 
 }

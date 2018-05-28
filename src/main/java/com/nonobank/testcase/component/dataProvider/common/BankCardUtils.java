@@ -1,14 +1,11 @@
 package com.nonobank.testcase.component.dataProvider.common;
 
+import com.nonobank.testcase.utils.dll.DBUtils;
+
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import com.nonobank.testcase.utils.dll.DBUtils;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class BankCardUtils {
 	// 436742121737-建设银行---------------CCB
@@ -31,6 +28,7 @@ public class BankCardUtils {
 	// 621799417365-邮政储蓄---------------PSBC
 
 	static Map<String, String> bankMap = new HashMap<String, String>();
+	static Map<String, String> bankNameMap = new LinkedHashMap<>();
 
 	static {
 		bankMap.put("CCB", "436742121737");
@@ -47,6 +45,21 @@ public class BankCardUtils {
 		bankMap.put("ICBC", "622202100112");
 		bankMap.put("CIB", "622908192090");
 		bankMap.put("PSBC", "621799417365");
+
+		bankNameMap.put("CCB", "建设银行");
+		bankNameMap.put("CITIC", "中信银行");
+		bankNameMap.put("HXB", "华夏银行");
+		bankNameMap.put("GDB", "广发银行");
+		bankNameMap.put("PAB", "平安银行");
+		bankNameMap.put("ABC", "农业银行");
+		bankNameMap.put("BOC", "中国银行");
+		bankNameMap.put("CMB", "招商银行");
+		bankNameMap.put("CEB", "光大银行");
+		bankNameMap.put("BCOM", "交通银行");
+		bankNameMap.put("SPDB", "浦发银行");
+		bankNameMap.put("ICBC", "工商银行");
+		bankNameMap.put("CIB", "兴业银行");
+		bankNameMap.put("PSBC", "邮政储蓄");
 	}
 
 //	static {
@@ -77,6 +90,15 @@ public class BankCardUtils {
 		List<String> list = new LinkedList<>();
 		list.addAll(bankNames);
 		return list;
+	}
+
+	/**
+	 * @return  返回中文银行列表
+	 */
+	public static List<String> getCNBankNames(){
+		return bankNameMap.entrySet().stream().map( e -> {
+			return e.getValue();
+		}).collect(Collectors.toList());
 	}
 
 	public static int getOSum(int oSum) {
@@ -251,6 +273,18 @@ public class BankCardUtils {
 		String bankcard = String.valueOf(DBUtils.getOneObject(conn, sql));
 		DBUtils.closeConnection(conn);
 		return bankcard;
+	}
+
+	/**
+	 * @param cnBankName  中文银行名
+	 * @return  返回从bankNameMap映射的Key（英文银行名缩写）
+	 */
+	public static String convertCNBankName2EN(String cnBankName){
+		Map.Entry<String, String> entry = bankNameMap.entrySet().stream().filter( e -> {
+			return e.getValue().equals(cnBankName);
+		}).findFirst().orElse(null);
+
+		return entry == null ? null : entry.getKey();
 	}
 
 }
