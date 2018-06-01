@@ -2,6 +2,7 @@ package com.nonobank.testcase.service.impl;
 
 import com.nonobank.testcase.component.dataProvider.common.BankCardUtils;
 import com.nonobank.testcase.component.dataProvider.common.IdCardGenerator;
+import com.nonobank.testcase.component.dataProvider.common.MobileUtil;
 import com.nonobank.testcase.component.exception.TestCaseException;
 import com.nonobank.testcase.entity.DBCfg;
 import com.nonobank.testcase.service.TestDataService;
@@ -191,6 +192,30 @@ public class TestDataServiceImpl implements TestDataService {
             bankCard = BankCardUtils.getUnUseBankcardByBankName(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword(), enBankName);
         }
         return bankCard;
+    }
+
+
+    public String getMobileNO(String env, boolean isRegistered) throws SQLException, Exception{
+
+        String mobileNO = null;
+
+        DBCfg dbCfg = getDBCfgByEnv(env);
+        if (dbCfg == null){
+            logger.error(String.format("数据库查询返回为空，请确认环境(%s)数据库是否配置到测试平台", env));
+            return null;
+        }
+
+        String envMySQLUrl = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=utf-8", dbCfg.getIp(), dbCfg.getPort(), dbCfg.getDbName());
+        if(isRegistered){
+            mobileNO = MobileUtil.getRegisterMobileRandom(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword());
+            if (mobileNO == null || ( mobileNO != null && mobileNO.toLowerCase().equals("null"))){
+                throw new TestCaseException(10003, String.format("测试环境%s数据库不存在已注册手机号", env));
+            }
+        }else{
+            mobileNO = MobileUtil.getUnRegisterMobile(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword());
+        }
+
+        return mobileNO;
     }
 
 }

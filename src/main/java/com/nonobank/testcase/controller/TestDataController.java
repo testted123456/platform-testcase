@@ -224,4 +224,41 @@ public class TestDataController {
         return ResultUtil.success(bankcard);
     }
 
+
+    /**
+     * @param reqJson
+     * {
+     * 	"env":"STB",
+     * 	"isRegistered":true
+     * }
+     * @return 根据环境返回已注册| 未注册手机号
+     * @throws SQLException
+     * @throws Exception
+     */
+    @PostMapping(value="getMobileNO")
+    @ResponseBody
+    public Result getMobileNO(@RequestBody JSONObject reqJson) throws SQLException, Exception {
+        String env = null;
+        Boolean isRegistered = false;
+
+        logger.info("检查请求参数env -- 必选");
+        if (reqJson.containsKey("env")) {
+            env = reqJson.getString("env");
+            if (env.isEmpty()){
+                return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求提供环境参数env为空");
+            }
+        }else{
+            return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求未提供环境参数env");
+        }
+
+        logger.info("检查请求参数isRegistered -- 必选");
+        if (reqJson.containsKey("isRegistered")) {
+            isRegistered = reqJson.getBooleanValue("isRegistered");
+        }else{
+            return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求未提供是否注册参数isRegistered");
+        }
+        String mobileNO = testDataService.getMobileNO(env, isRegistered);
+        return ResultUtil.success(mobileNO);
+    }
+
 }
