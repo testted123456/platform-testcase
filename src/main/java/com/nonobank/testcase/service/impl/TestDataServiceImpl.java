@@ -154,7 +154,7 @@ public class TestDataServiceImpl implements TestDataService {
             return null;
         }
 
-        String envMySQLUrl = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=utf-8", dbCfg.getIp(), dbCfg.getPort(), dbCfg.getDbName());
+        String envMySQLUrl = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=utf-8&useSSL=true", dbCfg.getIp(), dbCfg.getPort(), dbCfg.getDbName());
 
         if(isRegistered){
             idCardNum = IdCardGenerator.getRegisterIDCardByProvinceCityDistrict(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword(), province, city, district);
@@ -182,7 +182,7 @@ public class TestDataServiceImpl implements TestDataService {
             throw new TestCaseException(10003, String.format("测试平台数据库查询返回为空，请确认环境(%s)数据库是否配置到测试平台", env));
         }
 
-        String envMySQLUrl = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=utf-8", dbCfg.getIp(), dbCfg.getPort(), dbCfg.getDbName());
+        String envMySQLUrl = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=utf-8&useSSL=true", dbCfg.getIp(), dbCfg.getPort(), dbCfg.getDbName());
         if(isRegistered){
             bankCard = BankCardUtils.getUsedBankcardByBankName(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword(), enBankName);
             if (bankCard == null || ( bankCard != null && bankCard.toLowerCase().equals("null"))){
@@ -205,7 +205,7 @@ public class TestDataServiceImpl implements TestDataService {
             return null;
         }
 
-        String envMySQLUrl = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=utf-8", dbCfg.getIp(), dbCfg.getPort(), dbCfg.getDbName());
+        String envMySQLUrl = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=utf-8&useSSL=true", dbCfg.getIp(), dbCfg.getPort(), dbCfg.getDbName());
         if(isRegistered){
             mobileNO = MobileUtil.getRegisterMobileRandom(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword());
             if (mobileNO == null || ( mobileNO != null && mobileNO.toLowerCase().equals("null"))){

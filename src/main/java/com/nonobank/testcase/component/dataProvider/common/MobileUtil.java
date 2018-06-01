@@ -74,7 +74,8 @@ public class MobileUtil {
 	public static String getRegisterMobileRandom(String mySql_driver,String mySql_url,
 												 String db_name,String db_password) throws SQLException, Exception{
 		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
-		String sql = "SELECT mobile_num FROM user_info WHERE is_card=0 AND id_num IS NULL AND STATUS=1 AND mobile_num is not null order by rand() LIMIT 1;";
+		//String sql = "SELECT mobile_num FROM user_info WHERE is_card=0 AND id_num IS NULL AND STATUS=1 AND mobile_num is not null order by rand() LIMIT 1;";  //user_info表百万级，这句sql有性能问题
+		String sql = "select t.mobile_num FROM (SELECT mobile_num FROM user_info WHERE is_card=1 AND STATUS=1 AND mobile_num is not null LIMIT 1000) t order by rand() LIMIT 1";
 		String mobile =  String.valueOf(DBUtils.getOneObject(conn, sql));
 		DBUtils.closeConnection(conn);
 		return mobile;
