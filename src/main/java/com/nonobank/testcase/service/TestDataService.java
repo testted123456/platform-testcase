@@ -17,4 +17,6 @@ public interface TestDataService {
 
     String getBankCardByEnvBanknameIsRegistered(String env, String bankName, boolean isRegistered) throws SQLException, Exception;
 
+    String getMobileNO(String env, boolean isRegistered) throws SQLException, Exception;
+
 }
