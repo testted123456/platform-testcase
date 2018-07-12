@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import com.alibaba.fastjson.JSONObject;
-import com.nonobank.testcase.component.dataProvider.annotation.Info;
-import com.nonobank.testcase.component.dataProvider.annotation.Param;
-import com.nonobank.testcase.component.dataProvider.annotation.Return;
+//import com.nonobank.testcase.component.dataProvider.annotation.Info;
+//import com.nonobank.testcase.component.dataProvider.annotation.Param;
+//import com.nonobank.testcase.component.dataProvider.annotation.Return;
 
 public class InvokeUtils {
 
@@ -77,6 +77,7 @@ public class InvokeUtils {
         return value;
     }
 
+    /**
     public static List<JSONObject> getMethods() {
         List<JSONObject> listOfJson = new LinkedList<JSONObject>();
 
@@ -130,6 +131,7 @@ public class InvokeUtils {
 
         return listOfJson;
     }
+    **/
     
     public static String invokeMethod(String methodName) throws InstantiationException, 
     IllegalAccessException, NoSuchMethodException, SecurityException, IllegalArgumentException, InvocationTargetException{
@@ -158,7 +160,7 @@ public class InvokeUtils {
 		return result.toString();
     }
 
-
+    /**
     private static String joinMethod(Info mInfo, Param mParam) {
         String methodName = "";
         String[] paramNames = new String[0];
@@ -183,6 +185,7 @@ public class InvokeUtils {
         }
         return methodDesc;
     }
+    **/
     
     public static Class getClass(String methodName){
     	 List<Class<?>> claszes = DataProviderUtil.getClasses("com.nonobank.testcase.component.dataProvider.common");

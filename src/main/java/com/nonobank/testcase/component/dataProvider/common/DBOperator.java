@@ -2,16 +2,9 @@ package com.nonobank.testcase.component.dataProvider.common;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import com.nonobank.testcase.component.dataProvider.annotation.Info;
-import com.nonobank.testcase.component.dataProvider.annotation.Param;
-import com.nonobank.testcase.component.dataProvider.annotation.Return;
 import com.nonobank.testcase.utils.dll.DBUtils;
 
 public class DBOperator {
-
-	@Info(name = "getOneField_db", desc = "getOneField_db(\"select name from user_info;\")")
-	@Param(type = { "String" }, name = { "sql" }, desc = { "sql语句" })
-	@Return(type = "String", desc = "查询数据库单个字段")
 
 	/**
 	 * @api {函数} getOneField_db("sql") 单字段查询

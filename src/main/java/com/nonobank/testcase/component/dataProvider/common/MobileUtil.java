@@ -167,8 +167,24 @@ public class MobileUtil {
 	 * @apiGroup MOBILE
 	 * @apiVersion 0.1.0
 	 * @apiParam (入参) {String} mobile 手机号码
-	 * @apiSuccessExample {invoke} 调用说明:
-	 * ${getLoginPassword_db("180123123123")}
+	 * @apiParam (入参) {String} requestXML 请求xml	
+	 * @apiParam (入参) {String} id 用户id					
+	 * @apiParamExample {String} Request-Example:
+	 *    requestXML= 
+	 *    	"<xml>
+	 *    		<id>1234</id>
+	 *    	<xml>"
+	 * @apiSuccess (请求响应) {String} code 响应状态码
+	 * @apiSuccessExample {json} Success-Response:
+	 *     HTTP/1.1 200 OK
+	 *     {
+	 *       "code": "0000"
+	 *     }
+	 *     @apiSuccessExample {json} fail-Response:
+	 *     HTTP/1.1 200 OK
+	 *     {
+	 *       "code": "0001"
+	 *     }
 	 */
 	public static void getLoginPassword_db(String mobile){
 	}

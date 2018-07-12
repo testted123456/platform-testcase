@@ -150,7 +150,7 @@ public class TestCaseExecutor {
 	public boolean runApi(ResultHistory resultHistory , Integer tcId, String sessionId, String env, Map<String, Object> map, TestCaseInterface testCaseInterface, ResultDetail resultDetail){
 		logger.info("开始执行api，id：" + testCaseInterface.getId());
 		
-		boolean result = true;;
+		boolean result = true;
 		
 		//查询api的协议、url
 		Integer interfaceid = testCaseInterface.getInterfaceId();

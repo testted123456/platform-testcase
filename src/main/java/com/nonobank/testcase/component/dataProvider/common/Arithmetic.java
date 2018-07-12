@@ -10,9 +10,6 @@ import java.security.NoSuchAlgorithmException;
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
-import com.nonobank.testcase.component.dataProvider.annotation.Info;
-import com.nonobank.testcase.component.dataProvider.annotation.Param;
-import com.nonobank.testcase.component.dataProvider.annotation.Return;
 
 public class Arithmetic {
 
