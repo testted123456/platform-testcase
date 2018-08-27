@@ -120,7 +120,7 @@ public class GroupExecutor {
 				Integer tcId = tcOfJson.getInteger("id");
 				Integer caseType = tcOfJson.getInteger("caseType");
 				
-				if(caseType == 0){
+				if(caseType == 1){//case
 					TestCase tc = testCaseService.findById(tcId);
 					String name = tc.getName();
 					logger.info("开始执行用例：{}", name);
@@ -134,7 +134,7 @@ public class GroupExecutor {
 					}
 					
 					logger.info("用例:{}执行完成", name);
-				}else{
+				}else{//flowcase
 					FlowCase flowCase = flowCaseService.getById(tcId);
 					String name = flowCase.getName();
 					logger.info("开始执行用例：{}", name);

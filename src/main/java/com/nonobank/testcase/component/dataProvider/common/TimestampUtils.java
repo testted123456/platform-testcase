@@ -21,7 +21,7 @@ public class TimestampUtils {
 	}
 
 	/**
-	 * @api {函数} getServerTimeWithFormat("timeFormat") 按格式获取服务器时间
+	 * @api {函数} getServerTimeWithFormat("timeFormat") 按格式获取服务器时间,YYMMDD/hhmmss
 	 * @apiGroup TIME
 	 * @apiVersion 0.1.0
 	 * @apiParam (入参) {String} timeFormat 时间格式

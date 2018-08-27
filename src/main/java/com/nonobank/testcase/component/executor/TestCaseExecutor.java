@@ -1,5 +1,8 @@
 package com.nonobank.testcase.component.executor;
 
+import java.net.URLEncoder;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +13,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.http.HttpException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,16 +20,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.apps.HttpClient;
 import com.nonobank.apps.NonoDnsResolver;
 import com.nonobank.testcase.component.config.HttpServerProperties;
+import com.nonobank.testcase.component.dataProvider.common.SignatureUtils;
 import com.nonobank.testcase.component.exception.CaseExecutionException;
 import com.nonobank.testcase.component.exception.TestCaseException;
 import com.nonobank.testcase.component.remoteEntity.RemoteApi;
 import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.component.ws.WebSocket;
+import com.nonobank.testcase.entity.DBCfg;
 import com.nonobank.testcase.entity.Env;
 import com.nonobank.testcase.entity.GlobalVariable;
 import com.nonobank.testcase.entity.ResultDetail;
@@ -36,6 +41,7 @@ import com.nonobank.testcase.entity.SystemCfg;
 import com.nonobank.testcase.entity.SystemEnv;
 import com.nonobank.testcase.entity.TestCase;
 import com.nonobank.testcase.entity.TestCaseInterface;
+import com.nonobank.testcase.service.DBCfgService;
 import com.nonobank.testcase.service.EnvService;
 import com.nonobank.testcase.service.GlobalVariableService;
 import com.nonobank.testcase.service.ResultDetailService;
@@ -44,7 +50,7 @@ import com.nonobank.testcase.service.SystemCfgService;
 import com.nonobank.testcase.service.SystemEnvService;
 import com.nonobank.testcase.service.TestCaseService;
 import com.nonobank.testcase.utils.JSONUtils;
-import com.nonobank.testcase.utils.SecurityUtil;
+import com.nonobank.testcase.utils.dll.DBUtils;
 
 @Component
 @EnableAsync
@@ -106,6 +112,9 @@ public class TestCaseExecutor {
 	@Autowired
 	GlobalVariableService globalVariableService;
 	
+	@Autowired
+	DBCfgService dbCfgService;
+	
 	/**
 	 * 处理接口url
 	 * @param apiType
@@ -138,14 +147,14 @@ public class TestCaseExecutor {
 	
 	/**
 	 * 执行用例中的接口
+	 * @param resultHistory
+	 * @param tcId
 	 * @param sessionId
-	 * @param envName
+	 * @param env
 	 * @param map
 	 * @param testCaseInterface
-	 * @throws EntityException
-	 * @throws ExecutorException 
-	 * @throws HttpException 
-	 * @throws com.nonobank.testcase.component.exception.HttpExecutorException 
+	 * @param resultDetail
+	 * @return
 	 */
 	public boolean runApi(ResultHistory resultHistory , Integer tcId, String sessionId, String env, Map<String, Object> map, TestCaseInterface testCaseInterface, ResultDetail resultDetail){
 		logger.info("开始执行api，id：" + testCaseInterface.getId());
@@ -158,17 +167,15 @@ public class TestCaseExecutor {
 		
 		//0:get，1:post
 		String postWay = apiRespOfJson.getString("postWay");
-		
 		//0:Http;1:Https;2:MQ
-		String apiType =  apiRespOfJson.getString("apiType");
-		
-		String system = apiRespOfJson.getString("system");
-		
+		String apiType =  null;
+		String system = apiRespOfJson.getString("system"); 
 		String apiName = apiRespOfJson.getString("name");
-		
 		String responseBodyType = apiRespOfJson.getString("responseBodyType");
 		
 		webSocket.sendH6("执行接口：" + apiName, sessionId);
+		
+		SystemEnv systemEnv = systemEnvService.findBySystemAndEnv(system, env);
 		
 		CloseableHttpResponse resp = null;
 		String url = testCaseInterface.getUrlAddress();
@@ -177,6 +184,33 @@ public class TestCaseExecutor {
 		String variables = testCaseInterface.getVariables();
 		String assertions = testCaseInterface.getAssertions();
 		
+		if(null != systemEnv){//从配置中去接口协议、传输格式、消息体格式
+			
+			if(null != systemEnv.getApiType()){
+				apiType = systemEnv.getApiType();
+			}else{
+				apiType = apiRespOfJson.getString("apiType");
+			}
+			
+			String head = systemEnv.getHead();
+			
+			if(null != head ){
+				JSONObject jsonOfHead = JSONObject.parseObject(head);
+				String contentType = jsonOfHead.getString("Content-Type");
+				
+				if(null != contentType){
+					JSONObject jsonOfRequestHead = JSONObject.parseObject(requestHeaders);
+					jsonOfRequestHead.put("Content-Type", contentType);
+					requestHeaders = jsonOfRequestHead.toJSONString();
+				}
+			}
+			
+			requestBody = systemEnvService.getApiRequest(requestBody);
+		}else{
+			apiType = apiRespOfJson.getString("apiType");
+		}
+		
+		//记录日志
 		resultDetail.setHeaders(requestHeaders);
 		resultDetail.setApiName(testCaseInterface.getInterfaceName());
 		resultDetail.setApiStepName(testCaseInterface.getStep());
@@ -211,6 +245,8 @@ public class TestCaseExecutor {
 		
 		//环境dns
 		NonoDnsResolver dnsResolver = new NonoDnsResolver();
+		
+		Env e = null;
 				
 		//处理非第三方接口url
 		if(!"thirdparty".equals(system)){
@@ -220,13 +256,13 @@ public class TestCaseExecutor {
 				throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "系统：" + system + "没有配置");
 			}
 			
-		    Env e = envService.findByName(env);
+		    e = envService.findByName(env);
 		    
 		    if(null == e){
 				throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "环境：" + e + "没有配置");
 			}
 		    
-	    	SystemEnv systemEnv = systemEnvService.findBySystemCfgIdAndEnvId(systemCfg.getId(), e.getId());
+//	    	SystemEnv systemEnv = systemEnvService.findBySystemCfgIdAndEnvId(systemCfg.getId(), e.getId());
 	    	
 			if(null != systemEnv && null != systemEnv.getDomain()){
 				String domain = systemEnv.getDomain();
@@ -257,7 +293,7 @@ public class TestCaseExecutor {
 			requestBody = apiRequestHandler.handleRequest(map, requestBody, sessionId);
 		}
 		
-		if("大前端".equals(system) || "html5".equals(system)){//大前端加签
+		/*if("大前端".equals(system) || "html5".equals(system)){//大前端加签
 			try {
 				requestBody = SecurityUtil.doSecurity(requestBody, "mzjk").toJSONString();
 				
@@ -272,6 +308,60 @@ public class TestCaseExecutor {
 				e.printStackTrace();
 				throw new CaseExecutionException(ResultCode.EXCEPTION_ERROR.getCode(), "大前端加签失败！");
 			} 
+		}*/
+		
+		//前置系统加签
+		if(null != requestBody){
+			JSONObject jsonObj = JSONObject.parseObject(requestBody);
+			JSONObject reqXML = jsonObj.getJSONObject("requestXml");
+			String sign = reqXML.getString("sign");
+			String appUser = reqXML.getString("appUser");
+			String version = reqXML.getString("version");
+			String clientType = reqXML.getString("clientType");
+			
+			//查询密钥
+			Integer dbGroupId = e.getDbGroup().getId();
+			String dbGroupName = "qtpay";
+			DBCfg dbCfg = dbCfgService.findByDbGroupIdAndName(dbGroupId, dbGroupName);
+			
+			if(null == dbCfg){
+				dbGroupName = "default";
+				dbCfg = dbCfgService.findByDbGroupIdAndName(dbGroupId, dbGroupName);
+			}
+			
+			if("true".equals(sign) && null != dbCfg){
+//				String md5Key = DBOperator.getOneField("oracle.jdbc.driver.OracleDriver", mySql_url, db_name, db_password, sql);
+				try {
+				    Connection con = DBUtils.getConnection("oracle.jdbc.driver.OracleDriver", 
+							"jdbc:oracle:thin:@" + dbCfg.getIp() + ":" + dbCfg.getPort() + ":" + dbCfg.getDbName(), 
+							dbCfg.getUserName(), 
+							dbCfg.getPassword());
+				    String sql = "select key"
+				    		+ " from prep_client_version where client_type='" + clientType + "'"
+				    		+ " and client_version='" + version + "'"
+				    		+ " and appuser='" + appUser + "'";
+				    Object key = DBUtils.getOneObject(con, sql);
+				    logger.info("key is {}", String.valueOf(key));
+				    reqXML.put("sign", String.valueOf(key));
+				    String reqXMLOfStr = reqXML.toJSONString();
+				    String newSign =  SignatureUtils.md5(URLEncoder.encode(reqXMLOfStr, "UTF-8")).toUpperCase();
+				    logger.info("new sign is: {}",newSign);
+				    reqXMLOfStr = reqXMLOfStr.replace(String.valueOf(key), newSign);
+				    logger.info("requestXml:{}", reqXMLOfStr);
+				    jsonObj.put("requestXml", reqXMLOfStr);
+				    requestBody = jsonObj.toJSONString();
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+	
+//			jsonObj.put("requestXml", reqXML.toJSONString());
+//			requestBody = jsonObj.toJSONString();
+			logger.info("请求消息加签后内容：{}", requestBody);
 		}
 		
 		resultDetail.setRequestBody(requestBody);
@@ -312,9 +402,9 @@ public class TestCaseExecutor {
 		if(resp != null){
 			try {
 				actualResponseBody = HttpClient.getResBody(resp);
-			} catch (Exception e) {
-				logger.error("解析响应消息失败，" + e.getLocalizedMessage());
-				throw new CaseExecutionException(ResultCode.EXCEPTION_ERROR.getCode(), e.getLocalizedMessage());
+			} catch (Exception exp) {
+				logger.error("解析响应消息失败，" + exp.getLocalizedMessage());
+				throw new CaseExecutionException(ResultCode.EXCEPTION_ERROR.getCode(), exp.getLocalizedMessage());
 			} 
 		}
 		
@@ -387,7 +477,7 @@ public class TestCaseExecutor {
 	}
 	
 	/**
-	 * case执行调用
+	 * case执行调用、group执行调用
 	 * @param resultHistory
 	 * @param tcId
 	 * @param sessionId
@@ -448,7 +538,7 @@ public class TestCaseExecutor {
 	}
 	
 	/**
-	 * flowCase, group执行调用
+	 * flowCase
 	 * @param resultHistory
 	 * @param tcId
 	 * @param sessionId

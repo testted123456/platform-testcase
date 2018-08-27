@@ -441,11 +441,16 @@ public class ApiHandlerUtils {
 								">, 名称<" + dbGroupName + ">没有配置地址");
 					}
 					
-					String mySql_driver = "com.mysql.jdbc.Driver";
+					String driver = "com.mysql.jdbc.Driver";
 					String db_name = dbCfg.getDbName();
-					String mySql_url = "jdbc:mysql://" + dbCfg.getIp() + ":" + "3306" + "/" + db_name;
+					String url = "jdbc:mysql://" + dbCfg.getIp() + ":" + dbCfg.getPort() + "/" + db_name;
 					String user_name = dbCfg.getUserName();
 					String db_password = dbCfg.getPassword();
+					
+					if(dbCfg.getType().equals("Oracle")){
+						driver = "oracle.jdbc.driver.OracleDriver";
+						url = "jdbc:oracle:thin:@" + dbCfg.getIp() + ":" + dbCfg.getPort() + ":" + db_name;
+					}
 					
 					String [] funcArray = null;
 					
@@ -456,8 +461,8 @@ public class ApiHandlerUtils {
 						funcArray = new String[4];
 					}
 					
-					funcArray[0] = mySql_driver;
-					funcArray[1] = mySql_url;
+					funcArray[0] = driver;
+					funcArray[1] = url;
 					funcArray[2] = user_name;
 					funcArray[3] = db_password;
 					

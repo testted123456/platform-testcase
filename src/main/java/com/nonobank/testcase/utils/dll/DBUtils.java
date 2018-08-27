@@ -16,46 +16,46 @@ import com.alibaba.fastjson.JSONObject;
 
 public class DBUtils {
 
-	public static Connection connection_nono_nono;
-	public static Connection connection_pay_nono;
+	/*public static Connection connection_nono_nono;
+	public static Connection connection_pay_nono;*/
 	public static Map<String, BasicDataSource> map = new HashMap<String, BasicDataSource>();
 
 	/**
 	 * @param
 	 * @return
 	 */
-	public static Connection getConnection(String mySql_driver, String mySql_url, String db_name, String db_password)
+	public static Connection getConnection(String driver, String url, String db_name, String db_password)
 			throws SQLException {
 		
-		BasicDataSource dataSource = map.get(mySql_url + ":" + db_name);
+		BasicDataSource dataSource = map.get(url + ":" + db_name);
 		
 		if(null == dataSource){
 			dataSource = new BasicDataSource();
-			dataSource.setDriverClassName(mySql_driver);
-			dataSource.setUrl(mySql_url);
+			dataSource.setDriverClassName(driver);
+			dataSource.setUrl(url);
 			dataSource.setUsername(db_name);
 			dataSource.setPassword(db_password);
 			dataSource.setInitialSize(10);//初始化的连接数
 			dataSource.setMaxActive(25);//最大的连接数
 			dataSource.setMaxIdle(5);//最大空闲数
 			dataSource.setMinIdle(2);//最小空闲数
-			dataSource.setValidationQuery("SELECT 1");
+			dataSource.setValidationQuery("SELECT 1 from dual");
 			dataSource.setTestWhileIdle(true);
 			dataSource.setTimeBetweenEvictionRunsMillis(3600000);
 			dataSource.setMinEvictableIdleTimeMillis(18000000);
-			map.put(mySql_url + ":" + db_name, dataSource);
+			map.put(url + ":" + db_name, dataSource);
 		}
 
-		String name = db_name;
+//		String name = db_name;
 		Connection con = null;
 		
 		con = dataSource.getConnection();
 
-		if (name.equals("nono")) {
+		/*if (name.equals("nono")) {
 			connection_nono_nono = con;
 		} else if (name.equals("pay")) {
 			connection_pay_nono = con;
-		}
+		}*/
 		return con;
 	}
 
@@ -229,6 +229,10 @@ public class DBUtils {
 		Connection con = getConnection("com.mysql.jdbc.Driver", "jdbc:mysql://" + ip + ":" + port + "/" + dataBaseName,
 				user_name, db_password);
 		return con;
+	}
+	
+	public static void main(String [] args){
+//		Connection con = getConnection("", url, db_name, db_password)
 	}
 
 }

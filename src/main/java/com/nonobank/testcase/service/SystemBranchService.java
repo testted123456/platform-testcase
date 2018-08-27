@@ -1,6 +1,10 @@
 package com.nonobank.testcase.service;
 
 import java.util.List;
+
+import org.springframework.web.bind.annotation.RequestBody;
+
+import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.entity.SystemBranch;
 
 public interface SystemBranchService {
@@ -18,6 +22,8 @@ public interface SystemBranchService {
 	 * @return
 	 */
 	SystemBranch update(SystemBranch systemBranch);
+	
+	public SystemBranch updateBySystemAndBranch( SystemBranch systemBranch);
 	
 	void update(String system, List<String> branches);
 	

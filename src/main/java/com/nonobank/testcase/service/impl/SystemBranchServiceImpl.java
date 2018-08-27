@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.nonobank.testcase.component.exception.TestCaseException;
+import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.entity.SystemBranch;
 import com.nonobank.testcase.repository.SystemBranchRepository;
@@ -101,5 +102,36 @@ public class SystemBranchServiceImpl implements SystemBranchService {
 				systemBranchRepository.save(systemBranch);
 			}
 		});
+	}
+
+	@Override
+	public SystemBranch updateBySystemAndBranch(SystemBranch systemBranch) {
+		// TODO Auto-generated method stub
+		Boolean codeChecked = systemBranch.getCodeChecked();
+		Boolean last = systemBranch.getLast();
+		Short optStatus = systemBranch.getOptstatus();
+		String version = systemBranch.getVersion();
+		
+		SystemBranch sysBranch = findBySystemAndBranch(systemBranch.getSystem(), systemBranch.getBranch());
+		
+		if(null != codeChecked){
+			sysBranch.setCodeChecked(codeChecked);
+		}
+		
+		if(null != last){
+			sysBranch.setLast(last);
+		}
+		
+		if(null != optStatus){
+			sysBranch.setOptstatus(optStatus);
+		}
+		
+		if(null != version){
+			sysBranch.setVersion(version);
+		}
+		
+		sysBranch = update(sysBranch);
+		
+		return sysBranch;
 	}
 }

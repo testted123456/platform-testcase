@@ -35,4 +35,8 @@
 		<appender-ref ref="fileInfoLog" />
 		<appender-ref ref="fileErrorLog" />
 	</root>
+	
+	<!-- 下面配置一些第三方包的日志过滤级别，用于避免刷屏 -->  
+   <!--  <logger name="org.hibernate" level="DEBUG" />   -->
+   <logger name="org.hibernate.engine.QueryParameters" level="DEBUG" />  
 </configuration>

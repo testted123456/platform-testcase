@@ -35,32 +35,6 @@ public class MobileUtil {
 		return mobile;
 	}
 
-
-	/**
-	 * @api {函数} getUnRegisterAmericaMobile_db() 美国未注册号码
-	 * @apiGroup MOBILE
-	 * @apiVersion 0.1.0
-	 * @apiSuccessExample {invoke} 调用说明:
-	 * ${getUnRegisterAmericaMobile_db()}
-	 */
-	public static void getUnRegisterAmericaMobile_db(){
-	}
-
-	public static String getUnRegisterAmericaMobile(String mySql_driver,String mySql_url,
-													String db_name,String db_password) throws SQLException, Exception{
-		String mobile = RandomUtils.getInstance().generateAmericaMobile();
-		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
-		String sql = "select count(*) from user_info WHERE mobile_num='" + mobile + "'";
-		String count =  String.valueOf(DBUtils.getOneObject(conn, sql));
-		while (Integer.parseInt(count) > 0) {
-			mobile = RandomUtils.getInstance().generateMobilePhoneNumber();
-			sql = "select count(*) from user_info WHERE mobile_num='" + mobile + "'";
-			count = String.valueOf(DBUtils.getOneObject(conn, sql));
-		}
-		DBUtils.closeConnection(conn);
-		return mobile;
-	}
-
 	/**
 	 * @api {函数} getRegisterMobileRandom_db() 已注册号码
 	 * @apiGroup MOBILE
@@ -164,11 +138,23 @@ public class MobileUtil {
 
 	/**
 	 * @api {函数} getLoginPassword_db("mobile") 按手机号获取登陆密码
+	 * @apiName xxx
 	 * @apiGroup MOBILE
 	 * @apiVersion 0.1.0
 	 * @apiParam (入参) {String} mobile 手机号码
 	 * @apiParam (入参) {String} requestXML 请求xml	
-	 * @apiParam (入参) {String} id 用户id					
+	 * @apiParam (入参) {String} id 用户id			
+	 * @apiParam {Object[]} f1 f1数组
+	 * @apiParam {Object} f1.f2 f2字段
+	 * @apiParam {String} f1.f2.f3 f3字段		
+	 * @apiParam {Object[]} BOTTOMMODULES  数组BOTTOMMODULES
+	 * @apiParam {Object} BOTTOMMODULES.e 数组BOTTOMMODULES的元素
+	 * @apiParam {String} BOTTOMMODULES.e.name 数组BOTTOMMODULES的元素的属性name
+	 * @apiParam {String} BOTTOMMODULES.e.version 数组BOTTOMMODULES的元素的属性version
+	 * @apiParam {Object} resultBean 对象resultBean
+	 * @apiParam {Object[]} resultBean.bottomModules 数组BOTTOMMODULES
+	 * @apiParam {Object} resultBean.bottomModules.e 数组BOTTOMMODULES的元素
+	 * @apiParam {String} resultBean.bottomModules.e.IOSUrl 字段IOSUrl
 	 * @apiParamExample {String} Request-Example:
 	 *    requestXML= 
 	 *    	"<xml>
@@ -246,10 +232,10 @@ public class MobileUtil {
 	 * @apiSuccessExample {invoke} 调用说明:
 	 * ${getIdCard_db("mobile")}
 	 */
-	public static void getIdCard_db(String mobile){
+	public static void getIdCardByPhone_db(String mobile){
 	}
 
-	public static String getIdCard(String mySql_driver,String mySql_url,
+	public static String getIdCardByPhone(String mySql_driver,String mySql_url,
 								   String db_name,String db_password,String mobile) throws SQLException, Exception{
 		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
 		String sql = "select id_num from user_info where mobile_num='" + mobile + "'";
@@ -258,20 +244,4 @@ public class MobileUtil {
 		return idCard;
 	}
 
-	/**
-	 * @api {函数} md5MobileDate("mobile") MD5加密手机号码和当前日期
-	 * @apiGroup MOBILE
-	 * @apiVersion 0.1.0
-	 * @apiParam (入参) {String} mobile 手机号码
-	 * @apiSuccessExample {invoke} 调用说明:
-	 * ${md5MobileDate("mobile")}
-	 */
-	public static String md5MobileDate(String mobile){
-		SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd");
-		Date dt=new Date();
-		String currentDate=format.format(dt);
-//		String var =org.apache.commons.codec.digest.DigestUtils.md5Hex(mobile + currentDate);
-		String var = MD5Util.toMD5(mobile + currentDate);
-		return var;
-	}
 }

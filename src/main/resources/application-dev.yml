@@ -2,9 +2,9 @@ server:
  port: 9200
  context-path: /case
 httpServer:
-  interfaceServer: http://192.168.1.120:9100/inter/
+  interfaceServer: http://127.0.0.1:9100/inter/
   user:
-    baseUrl: http://192.168.1.122:9090
+    baseUrl: http://127.0.0.1:9090
     roleUrlpath: /user/getRoleUrlPathBySystem?system=group
 spring:
   redis:
@@ -31,4 +31,4 @@ spring:
      
 ignore:
   urlPath:
-  ip: 192.168.1.120,192.168.1.121,192.168.1.122,192.168.1.123
+  ip: 127.0.0.1

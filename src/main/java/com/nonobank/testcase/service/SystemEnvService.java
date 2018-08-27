@@ -15,8 +15,14 @@ public interface SystemEnvService {
 	
 	SystemEnv findBySystemCfgIdAndEnvId(Integer systemCfgId, Integer envId);
 	
+	SystemEnv findBySystemAndEnv(String system, String env);
+	
 	List<SystemEnv> findAll();
 	
 	List<SystemEnv> findBySystemCfgId(Integer systemCfgId);
+	
+	String getApiRequest(String request);
+	
+	String getApiResponse(String response);
 	
 }

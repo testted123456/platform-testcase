@@ -2,7 +2,6 @@ package com.nonobank.testcase.controller;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
 import com.alibaba.fastjson.JSONArray;
 import com.nonobank.testcase.component.remoteEntity.RemoteApi;
 import com.nonobank.testcase.component.result.Result;
@@ -54,7 +52,7 @@ public class SystemBranchController {
 		SystemCfg systemCfg = systemCfgService.findBySystem(system);
 		String gitAddress = systemCfg.getGitAddress();
 		JSONArray branches = remoteApi.getSystemBranches(system, gitAddress);
-		List<String> list = new ArrayList<>();
+	    List<String> list = new ArrayList<>();
 		
 		branches.forEach(x->{
 			list.add(x.toString());
@@ -113,6 +111,25 @@ public class SystemBranchController {
 		}
 		
 		systemBranchService.update(systemBranch);
+		return ResultUtil.success();
+	}
+	
+	/**
+	 * 更新codeChecked字段
+	 * @param systemBranch
+	 * @return
+	 */
+	@PostMapping(value="updateBySystemAndBranch")
+	@ResponseBody
+	public Result updateBySystemAndBranch(@RequestBody SystemBranch systemBranch){
+		logger.info("开始更新codeChecked");
+		
+		if(null == systemBranch){
+			return ResultUtil.success();
+		}
+		
+		systemBranchService.updateBySystemAndBranch(systemBranch);
+		
 		return ResultUtil.success();
 	}
 	

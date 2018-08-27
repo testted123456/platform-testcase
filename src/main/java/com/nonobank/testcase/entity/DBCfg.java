@@ -21,6 +21,9 @@ public class DBCfg {
 	@Column(nullable=false, columnDefinition="varchar(20) COMMENT '数据库'")
 	String name;
 	
+	@Column(nullable=false, columnDefinition="varchar(20) COMMENT '数据库类型：Oracle、Mysql'")
+	String type;
+	
 	@Column(nullable=false, columnDefinition="varchar(30) COMMENT '数据库ip'")
 	String ip;
 	
@@ -58,6 +61,14 @@ public class DBCfg {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
 	}
 
 	public String getIp() {
