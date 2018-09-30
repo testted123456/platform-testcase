@@ -19,7 +19,7 @@ import com.nonobank.testcase.entity.Env;
 import com.nonobank.testcase.service.EnvService;
 
 @Controller
-@RequestMapping(value="env")
+@RequestMapping(value="envs")
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class EnvController {
 

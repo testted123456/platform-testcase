@@ -290,7 +290,7 @@ public class TestCaseExecutor {
 		
 		//处理请求消息体
 		if(null != requestBody){
-			requestBody = apiRequestHandler.handleRequest(map, requestBody, sessionId);
+			requestBody = apiRequestHandler.replaceVariables(map, requestBody, sessionId);
 		}
 		
 		/*if("大前端".equals(system) || "html5".equals(system)){//大前端加签

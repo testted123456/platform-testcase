@@ -28,6 +28,28 @@ spring:
      maxPoolSize: 20
      keepAliveSeconds: 120
      queueCapacity: 10
+  rabbitmq:
+    host: 192.168.1.121
+    port: 5672
+    username: rabbitadmin
+    password: 123456
+  application: 
+    name: platform-testcase
+  cloud:
+    config:
+      label: master
+      profile: dev
+      uri: http://192.168.18.140:9500
+eureka:
+ client:
+  serviceUrl:
+   defaultZone: http://192.168.18.140:9400/eureka/
+management:
+  security:
+    enabled: false
+feign:
+  httpclient:
+    enabled: true
      
 ignore:
   urlPath:

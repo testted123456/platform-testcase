@@ -1,5 +1,6 @@
 package com.nonobank.testcase.controller;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,14 +27,17 @@ import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.component.result.ResultUtil;
 import com.nonobank.testcase.component.security.manager.MyAccessDecisionManager;
 import com.nonobank.testcase.component.ws.WebSocket;
+import com.nonobank.testcase.entity.ResultHistory;
 import com.nonobank.testcase.entity.SystemBranch;
 import com.nonobank.testcase.entity.SystemCfg;
 import com.nonobank.testcase.entity.TestCase;
 import com.nonobank.testcase.entity.TestCaseFront;
 import com.nonobank.testcase.entity.TestCaseInterface;
+import com.nonobank.testcase.service.GlobalVariableService;
 import com.nonobank.testcase.service.SystemBranchService;
 import com.nonobank.testcase.service.SystemCfgService;
 import com.nonobank.testcase.service.TestCaseInterfaceService;
+import com.nonobank.testcase.service.TestCaseRunService;
 import com.nonobank.testcase.service.TestCaseService;
 import com.nonobank.testcase.utils.UserUtil;
 
@@ -67,6 +71,12 @@ public class TestCaseController {
 	
 	@Autowired
 	MyAccessDecisionManager myAccessDecisionManager;
+	
+	@Autowired
+	TestCaseRunService testCaseRunService;
+	
+	@Autowired
+	GlobalVariableService globalVariableService;
 	
 	/**
 	 * reload url权限
@@ -232,6 +242,30 @@ public class TestCaseController {
 	
 	@PostMapping(value="executeApis")
 	@ResponseBody
+	public Result executeApis(@RequestBody JSONObject jsonObj){
+		Integer tcId = jsonObj.getInteger("tcId");
+		JSONArray jsonArrOfApiIds = jsonObj.getJSONArray("apiIds");
+		List<Integer> tciIds = jsonArrOfApiIds.stream().map(x->{return (Integer)x;}).collect(Collectors.toList());
+		String user = UserUtil.getUser();
+		
+		//sessionId用于和websocket通信识别
+		String sessionId = tcId + user + "1";
+		
+		//初始化上下文
+		Map<String, Object> map = globalVariableService.getAllVars();
+		
+		ResultHistory resultHistory = new ResultHistory();
+		resultHistory.setTcType('0');
+		resultHistory.setTcId(tcId);
+		resultHistory.setApiIds(tciIds.toString());
+		resultHistory.setCreatedTime(LocalDateTime.now());
+		//异步执行case
+		testCaseRunService.asyncRunCase(resultHistory, tcId, tciIds, map, sessionId);
+		return ResultUtil.success();
+	}
+	
+	/*@PostMapping(value="executeApis")
+	@ResponseBody
 	public Result executeApis( @RequestBody JSONObject jsonObj){
 		Integer tcId = jsonObj.getInteger("tcId");
 		JSONArray jsonArrOfApiIds = jsonObj.getJSONArray("apiIds");
@@ -241,7 +275,7 @@ public class TestCaseController {
 		String sessionId = tcId + user + "1";
 		
 		TestCase testCase = testCaseService.findById(tcId);
-		webSocket.sendMsgTo("### " + "开始执行用例：" + testCase.getName(), "123");
+		webSocket.sendMsgTo("### " + "开始执行用例：" + testCase.getName(), sessionId);
 		String env = testCase.getEnv();
 		
 		List<Integer> listOfApiIds = jsonArrOfApiIds.stream().map(x->{
@@ -259,7 +293,7 @@ public class TestCaseController {
 		
 		testCaseExecutor.asyncRunCase(sessionId, env, tcId, tcis, totalsize);
 		return ResultUtil.success(testCase);
-	}
+	}*/
 	
 	@GetMapping(value="searchCase")
 	@ResponseBody

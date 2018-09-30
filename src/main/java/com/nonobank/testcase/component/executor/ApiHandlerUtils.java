@@ -615,6 +615,40 @@ public class ApiHandlerUtils {
 		return resultMap;
 	}
 	
+	/**
+	 * @param apiType 0:http, 1:https
+	 * @param domain 服务器domain
+	 * @param url 除domain的url
+	 * @return 拼接后的url
+	 */
+	public String handleUrl(Character apiType, String domain, String url){
+		String pattern = "([H|h][T|t][T|t][P|p][S|s]*)://(.+?)/(.*)";
+		Pattern p = Pattern.compile(pattern);
+		Matcher m = p.matcher(url);
+		
+		if(m.find() && m.groupCount() == 3){
+			url = m.group(3);
+		}
+		
+		if(!url.startsWith("/") && !domain.endsWith("/")){
+			url = domain + "/" + url;
+		}else{
+			url =  domain + url;
+		}
+		
+		switch (apiType) {
+		case '0':
+			url = "http://" + url;
+			break;
+		case '1':
+			url = "https://" + url;
+		default:
+			break;
+		}
+		
+		return url;
+	}
+	
 	public static void main(String [] args){
 		ApiHandlerUtils tt = new ApiHandlerUtils();
 		String str = "{\"a\":\"#{abc}\"}";
@@ -624,23 +658,5 @@ public class ApiHandlerUtils {
 			str = str.replaceAll("\"#\\{abc\\}\"", "123");
 			System.out.println(str);
 		}
-//		String str2 = "abc[1]1";
-//		
-//		String str = "${abc.a[0].b}";
-//		String str1 = "xyz${def[1]}abc${def[0]}";
-//		
-//		Map<String, Object> map = new HashMap<>();
-//		map.put("abc", "{\"a\":[{\"b\":2}, {\"c\":3}]}");
-//		map.put("def", "[1,2]");
-//		
-//		Matcher m = 
-////				JSONARRAY_PATTERN.matcher(str1);
-//				JSONOBJECT_PATTERN.matcher(str);
-//		
-//		Map<Boolean, String> resMap = 
-//				tt.handleObject(str, map);
-////				handleArrayVariable(str1, map);
-//		System.out.println(resMap.get(true));
-//		System.out.println(resMap.get(false));
 	}
 }

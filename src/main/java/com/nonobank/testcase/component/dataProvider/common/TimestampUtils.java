@@ -2,6 +2,8 @@ package com.nonobank.testcase.component.dataProvider.common;
 
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 public class TimestampUtils {
@@ -21,7 +23,7 @@ public class TimestampUtils {
 	}
 
 	/**
-	 * @api {函数} getServerTimeWithFormat("timeFormat") 按格式获取服务器时间,YYMMDD/hhmmss
+	 * @api {函数} getServerTimeWithFormat("timeFormat") 按格式获取服务器时间,yyyyMMdd/HHmmss
 	 * @apiGroup TIME
 	 * @apiVersion 0.1.0
 	 * @apiParam (入参) {String} timeFormat 时间格式
@@ -29,10 +31,13 @@ public class TimestampUtils {
 	 * ${getServerTimeWithFormat("timeFormat")}
 	 */
 	public static String getServerTimeWithFormat(String timeFormat)  {
-		SimpleDateFormat dataFormat = new SimpleDateFormat(timeFormat);
-		Date date = new Date();
-		String dateString = dataFormat.format(date);
-		return dateString;
+		return LocalDateTime.now().format(DateTimeFormatter.ofPattern(timeFormat));
+	}
+	
+	public static void main(String [] args){
+//		return this.createdTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+		System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
+
 	}
 
 }

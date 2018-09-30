@@ -1,6 +1,9 @@
 package com.nonobank.testcase.service.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +47,21 @@ public class GlobalVariableServiceImpl implements GlobalVariableService {
 	@Override
 	public GlobalVariable findByName(String name) {
 		return globalVariableRepository.findByName(name);
+	}
+
+	@Override
+	public Map<String, Object> getAllVars() {
+		Map<String, Object> map = new HashMap<>();
+		
+		List<GlobalVariable> listOfGlobalVars = getAll();
+		
+		listOfGlobalVars.forEach(g->{
+			String name = g.getName();
+			String value = g.getValue();
+			map.put(name, value);
+		});
+		
+		return map;
 	}
 
 }

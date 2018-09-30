@@ -1,7 +1,10 @@
 package com.nonobank.testcase.component.executor;
 
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -128,6 +131,57 @@ public class HttpExecutor {
 		}
 		
 		CloseableHttpResponse response = doPost(httpClient, client, url, mapOfVariables, requestHeaders, requestBody);
+		return response;
+	}
+	
+	public CloseableHttpResponse sendHttpRequest(Character apiType, Character postWay, String contentType, String url, String header, String requestBody, NonoDnsResolver dnsResolver) throws KeyManagementException, NoSuchAlgorithmException, IOException{
+		
+		HttpClient httpClient = new HttpClient();
+		
+		CloseableHttpResponse response = null;
+		
+		CloseableHttpClient client = null;
+		
+		if(apiType.equals('0')){//http
+			client = httpClient.getHttpClient(dnsResolver);
+		}else{//https
+			client = httpClient.getHttpsClient(dnsResolver);
+		}
+		
+		final Map<String, String> mapOfHeader = new HashMap<String, String>();
+		List<JSONObject> listOfHeader = null;
+		
+		if(header != null){
+			listOfHeader = JSONArray.parseArray(header, JSONObject.class);
+			listOfHeader.forEach(x->{
+				String key = x.getString("Key");
+				String value = x.getString("Value");
+				mapOfHeader.put(key, value);
+			});
+		}
+		
+		if(postWay.equals('0')){//get
+			Map<String, String> mapOfRquest = JSONObject.parseObject(requestBody, Map.class);
+			response = httpClient.doGetSend(client, mapOfHeader, url, mapOfRquest);
+		}else{//post
+			switch (contentType) {
+			case "application/x-www-form-urlencoded":
+				Map<String, String> mapOfRquest = JSONObject.parseObject(requestBody, Map.class);
+				response = httpClient.doPostSendForm(client, mapOfHeader, url, mapOfRquest);
+				break;
+			case "application/json":
+				mapOfRquest = JSONObject.parseObject(requestBody, Map.class);
+				response = httpClient.doPostSendJson(client, mapOfHeader, url, requestBody);
+				break;
+			case "application/xml":
+				mapOfRquest = JSONObject.parseObject(requestBody, Map.class);
+				response = httpClient.doPostSendXML(client, mapOfHeader, url, requestBody);
+				break;
+			default:
+				break;
+			}
+		}
+		
 		return response;
 	}
 	

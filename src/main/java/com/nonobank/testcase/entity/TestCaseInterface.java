@@ -66,7 +66,7 @@ public class TestCaseInterface implements Cloneable {
 
 	@Column(columnDefinition = " text")
 	String responseBody;
-
+	
 	@Column(columnDefinition = " text")
 	String assertions;
 

@@ -28,7 +28,7 @@ public class ApiRequestHandler {
 	 * @return
 	 * @throws ExecutorException 
 	 */
-	public String handleRequest(Map<String, Object> map, String request, String sessionId) {
+	public String replaceVariables(Map<String, Object> map, String request, String sessionId) {
 		request = ApiHandlerUtils.removeCRLF(request);
 		webSocket.sendH6("处理request", sessionId);
 		webSocket.sendItem("处理前的request", sessionId);
@@ -42,6 +42,7 @@ public class ApiRequestHandler {
 		}
 		
 		if(null != request){
+			//替换消息体中的自定义变量
 			Map<Boolean, String> resultMap = apiHandlerUtils.handleVariable(map, request);
 			
 			if(resultMap.containsKey(true)){
@@ -64,6 +65,8 @@ public class ApiRequestHandler {
 				webSocket.sendVar("```", sessionId);
 				throw new TestCaseException(ResultCode.EXCEPTION_ERROR.getCode(), errorMsg);
 			}
+			
+			
 		}
 		
 		return request;
