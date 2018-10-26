@@ -44,6 +44,7 @@ import com.nonobank.testcase.entity.TestCaseInterface;
 import com.nonobank.testcase.service.DBCfgService;
 import com.nonobank.testcase.service.EnvService;
 import com.nonobank.testcase.service.GlobalVariableService;
+import com.nonobank.testcase.service.RemoteApiService;
 import com.nonobank.testcase.service.ResultDetailService;
 import com.nonobank.testcase.service.ResultHistoryService;
 import com.nonobank.testcase.service.SystemCfgService;
@@ -73,8 +74,8 @@ public class TestCaseExecutor {
 	@Autowired
 	RemoteApi remoteApi;
 	
-//	@Autowired
-//	ApiExecutor apiExecutor;
+	@Autowired
+	RemoteApiService remoteApiService;
 	
 	@Autowired
 	SystemCfgService systemCfgService;
@@ -163,7 +164,8 @@ public class TestCaseExecutor {
 		
 		//查询api的协议、url
 		Integer interfaceid = testCaseInterface.getInterfaceId();
-		JSONObject apiRespOfJson = remoteApi.getApi(interfaceid);
+//		JSONObject apiRespOfJson = remoteApi.getApi(interfaceid);
+		JSONObject apiRespOfJson = remoteApiService.getApi(interfaceid);
 		
 		//0:get，1:post
 		String postWay = apiRespOfJson.getString("postWay");
@@ -171,7 +173,18 @@ public class TestCaseExecutor {
 		String apiType =  null;
 		String system = apiRespOfJson.getString("system"); 
 		String apiName = apiRespOfJson.getString("name");
-		String responseBodyType = apiRespOfJson.getString("responseBodyType");
+		
+		String strOfResHead = testCaseInterface.getResponseHead();
+		
+		String responseBodyType = null;
+		
+		if(null != strOfResHead){
+			if(strOfResHead.contains("application/json")){ //响应是json格式
+				responseBodyType = "0";
+			}else{
+				responseBodyType = "1";
+			}
+		}
 		
 		webSocket.sendH6("执行接口：" + apiName, sessionId);
 		

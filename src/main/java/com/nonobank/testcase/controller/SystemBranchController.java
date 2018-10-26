@@ -2,6 +2,7 @@ package com.nonobank.testcase.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
 import com.alibaba.fastjson.JSONArray;
-import com.nonobank.testcase.component.remoteEntity.RemoteApi;
+import com.alibaba.fastjson.JSONObject;
+import com.nonobank.testcase.remotecontroller.*;
 import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.component.result.ResultUtil;
@@ -51,7 +54,17 @@ public class SystemBranchController {
 		
 		SystemCfg systemCfg = systemCfgService.findBySystem(system);
 		String gitAddress = systemCfg.getGitAddress();
-		JSONArray branches = remoteApi.getSystemBranches(system, gitAddress);
+		JSONObject jsonObj = new JSONObject();
+		jsonObj.put("system", system);
+		jsonObj.put("gitAddress", gitAddress);
+		Result result = remoteApi.getBranchs(jsonObj);
+		
+		JSONArray branches = null;
+		
+		if(null != result.getData()){
+			branches = JSONObject.parseArray(JSONObject.toJSONString(result.getData()));
+		}
+		
 	    List<String> list = new ArrayList<>();
 		
 		branches.forEach(x->{
@@ -142,6 +155,13 @@ public class SystemBranchController {
 	public Result getAll(){
 		logger.info("开始获取系统分支配置");
 		return ResultUtil.success(systemBranchService.findall());
+	}
+	
+	@GetMapping(value="getByBranch")
+	@ResponseBody
+	public Result getByBranch(String branch){
+		logger.info("开始根据分支获取系统配置");
+		return ResultUtil.success(systemBranchService.findByBranch(branch));
 	}
 	
 	/**

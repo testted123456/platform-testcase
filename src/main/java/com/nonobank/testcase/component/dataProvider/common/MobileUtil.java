@@ -9,6 +9,17 @@ import com.nonobank.testcase.utils.dll.MD5Util;
 import com.nonobank.testcase.utils.dll.RandomUtils;
 
 public class MobileUtil {
+	
+	/**
+	 * @api {函数} generateMobile() 生成手机号码
+	 * @apiGroup MOBILE
+	 * @apiVersion 0.1.0
+	 * @apiSuccessExample {invoke} 调用说明:
+	 * ${generateMobile()}
+	 */
+	public static String generateMobile(){
+		return RandomUtils.getInstance().generateMobilePhoneNumber();
+	}
 
 	/**
 	 * @api {函数} getUnRegisterMobile_db() 未注册号码

@@ -2,6 +2,7 @@ package com.nonobank.testcase.entity;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -231,7 +232,9 @@ public class TestCase implements Cloneable {
 		testCaseFront.setProjectName(this.projectName);
 		
 		if(null != this.getTestCaseInterfaces()){
-			testCaseFront.setTestCaseInterfaces(this.getTestCaseInterfaces().stream().map(x->{return x.convert();}).collect(Collectors.toList()));
+			testCaseFront.setTestCaseInterfaces(this.getTestCaseInterfaces().stream().map(x->{return x.convert();})
+					.sorted(Comparator.comparing(TestCaseInterfaceFront::getOrderNo))
+					.collect(Collectors.toList()));
 		}
 		
 		testCaseFront.setOptstatus(this.optstatus);

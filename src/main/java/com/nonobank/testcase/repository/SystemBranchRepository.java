@@ -9,6 +9,8 @@ public interface SystemBranchRepository extends JpaRepository<SystemBranch, Inte
 	
 	SystemBranch findBySystemAndBranch(String system, String branch);
 	
+	List<SystemBranch> findByBranch(String branch);
+	
 	List<SystemBranch> findBySystemAndOptstatusNot(String system, short optstatus); 
 	
 	List<SystemBranch> findBySystemAndBranchAndOptstatusNot(String system, String branch, short optstatus);

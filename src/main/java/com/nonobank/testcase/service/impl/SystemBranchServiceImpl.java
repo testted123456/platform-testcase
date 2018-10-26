@@ -99,6 +99,7 @@ public class SystemBranchServiceImpl implements SystemBranchService {
 				systemBranch.setSystem(system);
 				systemBranch.setBranch(x);
 				systemBranch.setOptstatus((short)0);
+				systemBranch.setVersion("");
 				systemBranchRepository.save(systemBranch);
 			}
 		});
@@ -133,5 +134,11 @@ public class SystemBranchServiceImpl implements SystemBranchService {
 		sysBranch = update(sysBranch);
 		
 		return sysBranch;
+	}
+
+	@Override
+	public List<SystemBranch> findByBranch(String branch) {
+		// TODO Auto-generated method stub
+		return systemBranchRepository.findByBranch(branch);
 	}
 }

@@ -3,8 +3,10 @@ package com.nonobank.testcase.component.dataProvider.common;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.TimeZone;
 
 public class TimestampUtils {
 
@@ -31,13 +33,24 @@ public class TimestampUtils {
 	 * ${getServerTimeWithFormat("timeFormat")}
 	 */
 	public static String getServerTimeWithFormat(String timeFormat)  {
-		return LocalDateTime.now().format(DateTimeFormatter.ofPattern(timeFormat));
+//		return LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern(timeFormat));
+		
+		Date currentTime = new Date();  
+	    SimpleDateFormat formatter = new SimpleDateFormat(timeFormat); 
+	    formatter.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));
+	    String dateString = formatter.format(currentTime);
+	    return dateString;
 	}
 	
 	public static void main(String [] args){
-//		return this.createdTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-		System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")));
-
+		System.out.println(getServerTimeWithFormat("HHmmss"));
+		System.out.println(LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HHmmss")));
+		
+		Date currentTime = new Date();  
+	    SimpleDateFormat formatter = new SimpleDateFormat("HHmmss");  
+	    String dateString = formatter.format(currentTime);  
+	    System.out.print(dateString);
+		
 	}
 
 }

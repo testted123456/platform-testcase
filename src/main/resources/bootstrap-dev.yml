@@ -1,0 +1,17 @@
+eureka:
+ client:
+  serviceUrl:
+   defaultZone: http://127.0.0.1:9400/eureka/
+ instance: 
+  hostname: ${spring.cloud.client.ipAddress}
+spring:
+ application:
+  name: platform-testcase
+ cloud: 
+  config:
+   label: master
+   profile: dev
+#   uri: http://192.168.7.115:9500/
+   discovery: 
+    enabled: true
+    serviceId: PLATFORM-CONFIG-SERVER  

@@ -72,6 +72,10 @@ public class GroupController {
 		int totalSize = groupOfJson.getIntValue("totalSize");
 		JSONArray testCases = groupOfJson.getJSONArray("testCases");
 		
+		logger.info("env: {}", env);
+		logger.info("totalSize:{}", totalSize);
+		logger.info("testCases:{}", testCases.toJSONString());
+		
 		List<Object> checkedTestCases = 
 		testCases.stream().filter(x->{
 			if(x instanceof JSONObject){
@@ -87,38 +91,6 @@ public class GroupController {
 		groupMap.put("executedCount", 0);
 		groupExecutor.setMap(groupId, groupMap);
 		groupExecutor.runGroup(groupId, env, totalSize, checkedTestCases);
-		
-		
-//		List<Integer> listOfTcIDs = null;
-//		
-//		Object objOfGroupId = map.get("groupId");
-//		
-//		if(objOfGroupId instanceof Integer){
-//			 groupId = (Integer)objOfGroupId;
-//			 
-//			 if(groupExecutor.checkGroup(groupId) == true){
-//				 return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "测试集正在执行中...");
-//			 }
-//		}
-//		
-//		//待执行case列表
-//		Object objOfTcIDs = map.get("tcIDs");
-//		Object objOfTC = map.get("testCases");
-//		
-//		
-//		String env = map.get("env").toString();
-//		
-//		//group中case数量
-//		Integer totalSize = Integer.parseInt(map.get("totalSize").toString());
-//		
-//		if(objOfTcIDs instanceof List){
-//			listOfTcIDs = (List)objOfTcIDs;
-//			Map<String, Integer> groupMap = new HashMap<String, Integer>();
-//			groupMap.put("totalCount", listOfTcIDs.size());
-//			groupMap.put("executedCount", 0);
-//			groupExecutor.setMap(groupId, groupMap);
-//			groupExecutor.runGroup(groupId, env, totalSize, objOfTC);
-//		}
 		
 		return ResultUtil.success();
 	}

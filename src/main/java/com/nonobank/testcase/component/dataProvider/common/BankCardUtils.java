@@ -286,5 +286,9 @@ public class BankCardUtils {
 
 		return entry == null ? null : entry.getKey();
 	}
+	
+	public static void main(String [] args){
+		System.out.println(getBankCard());
+	}
 
 }

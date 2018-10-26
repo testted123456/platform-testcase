@@ -435,5 +435,9 @@ public class IdCardGenerator {
 			return null;
 		}
 	}
+	
+	public static void main(String [] args){
+		System.out.println(generateByYearEndWithX("1990"));
+	}
 
 }

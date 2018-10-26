@@ -1,10 +1,10 @@
 server:
  port: 9200
- context-path: /case
+# context-path: /case
 httpServer:
-  interfaceServer: http://192.168.1.121:9100/inter/
+  interfaceServer: http://127.0.0.1:9100/inter/
   user:
-    baseUrl: http://192.168.1.122:9090
+    baseUrl: http://127.0.0.1:9090
     roleUrlpath: /user/getRoleUrlPathBySystem?system=group
 spring:
   redis:
@@ -28,9 +28,21 @@ spring:
      maxPoolSize: 20
      keepAliveSeconds: 120
      queueCapacity: 10
+  rabbitmq:
+    host: 192.168.1.121
+    port: 5672
+    username: rabbitadmin
+    password: 123456
+management:
+  security:
+    enabled: false
+feign:
+  httpclient:
+    enabled: true
+ribbon:  
+  ReadTimeout: 60000  
+  ConnectTimeout: 60000 
      
 ignore:
   urlPath:
-  ip: 192.168.1.120,192.168.1.121,192.168.1.122,192.168.1.123
-     
-      
+  ip: 127.0.0.1,192.168.18.140

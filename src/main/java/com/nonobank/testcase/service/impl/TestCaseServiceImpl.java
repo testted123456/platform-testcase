@@ -120,7 +120,7 @@ public class TestCaseServiceImpl implements TestCaseService {
 				}
 			});
 			
-			testCaseRepository.save(testCase);
+			testCase = testCaseRepository.save(testCase);
 			
 			List<TestCaseInterface> updatedTcis =
 			testCase.getTestCaseInterfaces().stream().filter(x->{return x.getOptstatus() != 2;}).collect(Collectors.toList());

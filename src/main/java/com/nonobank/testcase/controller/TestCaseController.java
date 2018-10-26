@@ -3,7 +3,6 @@ package com.nonobank.testcase.controller;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import com.alibaba.fastjson.JSON;
 import com.nonobank.testcase.utils.JSONUtils;
 import org.slf4j.Logger;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.testcase.component.executor.TestCaseExecutor;
@@ -25,7 +23,6 @@ import com.nonobank.testcase.component.remoteEntity.RemoteApi;
 import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.component.result.ResultUtil;
-import com.nonobank.testcase.component.security.manager.MyAccessDecisionManager;
 import com.nonobank.testcase.component.ws.WebSocket;
 import com.nonobank.testcase.entity.ResultHistory;
 import com.nonobank.testcase.entity.SystemBranch;
@@ -70,24 +67,10 @@ public class TestCaseController {
 	SystemBranchService systemBranchService;
 	
 	@Autowired
-	MyAccessDecisionManager myAccessDecisionManager;
-	
-	@Autowired
 	TestCaseRunService testCaseRunService;
 	
 	@Autowired
 	GlobalVariableService globalVariableService;
-	
-	/**
-	 * reload url权限
-	 * @return
-	 */
-	@GetMapping(value="initUrlRole")
-	@ResponseBody
-	public Result initUrlRole(){
-		myAccessDecisionManager.initUrlMap();
-		return ResultUtil.success();
-	}
 	
 	@PostMapping(value="addCase")
 	@ResponseBody
@@ -323,7 +306,5 @@ public class TestCaseController {
 		return ResultUtil.success(remap);
 
 	}
-
-
 	
 }

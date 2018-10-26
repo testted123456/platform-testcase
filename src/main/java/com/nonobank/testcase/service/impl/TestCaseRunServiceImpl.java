@@ -1,17 +1,14 @@
 package com.nonobank.testcase.service.impl;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
 import com.nonobank.testcase.component.ws.WebSocket;
 import com.nonobank.testcase.entity.Env;
 import com.nonobank.testcase.entity.ResultDetail;
@@ -98,12 +95,17 @@ public class TestCaseRunServiceImpl implements TestCaseRunService {
 				map = globalVariableService.getAllVars();
 			}
 			
-			result = apiRunService.runApi(resultHistory, resultDetail, testCase, tci, env, map, sessionId);
+			try{
+				result = apiRunService.runApi(resultHistory, resultDetail, testCase, tci, env, map, sessionId);
+			}catch(Exception e){
+				webSocket.sendItem("用例执行异常：" + e.getMessage(), sessionId);
+				result = false;
+			}
 			
 			resultDetailService.add(resultDetail);
 			
 			if(isflow == true && result == false){
-				webSocket.sendH5("用例执行结束...", sessionId);
+//				webSocket.sendH5("用例执行结束...", sessionId);
 				break;
 			}else{
 				continue;

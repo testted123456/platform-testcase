@@ -1,6 +1,6 @@
 server:
  port: 9200
- context-path: /case
+# context-path: /case
 httpServer:
   interfaceServer: http://127.0.0.1:9100/inter/
   user:
@@ -33,24 +33,16 @@ spring:
     port: 5672
     username: rabbitadmin
     password: 123456
-  application: 
-    name: platform-testcase
-  cloud:
-    config:
-      label: master
-      profile: dev
-      uri: http://192.168.18.140:9500
-eureka:
- client:
-  serviceUrl:
-   defaultZone: http://192.168.18.140:9400/eureka/
 management:
   security:
     enabled: false
 feign:
   httpclient:
     enabled: true
+ribbon:  
+  ReadTimeout: 60000  
+  ConnectTimeout: 60000 
      
 ignore:
   urlPath:
-  ip: 127.0.0.1
+  ip: 127.0.0.1,192.168.18.140

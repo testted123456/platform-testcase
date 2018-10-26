@@ -34,6 +34,8 @@ public interface SystemBranchService {
 	 */
 	List<SystemBranch> findBySystem(String system); 
 	
+	List<SystemBranch> findByBranch(String branch);
+	
 	/**
 	 * 根据system、branch查询
 	 * @param system
