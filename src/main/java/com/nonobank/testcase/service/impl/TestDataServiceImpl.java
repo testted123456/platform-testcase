@@ -1,17 +1,5 @@
 package com.nonobank.testcase.service.impl;
 
-import com.nonobank.testcase.component.dataProvider.common.BankCardUtils;
-import com.nonobank.testcase.component.dataProvider.common.IdCardGenerator;
-import com.nonobank.testcase.component.dataProvider.common.MobileUtil;
-import com.nonobank.testcase.component.exception.TestCaseException;
-import com.nonobank.testcase.entity.DBCfg;
-import com.nonobank.testcase.service.TestDataService;
-import com.nonobank.testcase.utils.dll.DBUtils;
-import com.nonobank.testcase.utils.dll.IdCardGeneratorUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Comparator;
@@ -19,6 +7,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import com.nonobank.testcase.component.dataProvider.common.BankCardUtils;
+import com.nonobank.testcase.component.dataProvider.common.IdCardGenerator;
+import com.nonobank.testcase.component.dataProvider.common.MobileUtil;
+import com.nonobank.testcase.component.exception.TestCaseException;
+import com.nonobank.testcase.entity.DBCfg;
+import com.nonobank.testcase.entity.DBGroup;
+import com.nonobank.testcase.entity.Env;
+import com.nonobank.testcase.service.DBCfgService;
+import com.nonobank.testcase.service.EnvService;
+import com.nonobank.testcase.service.TestDataService;
+import com.nonobank.testcase.utils.dll.DBUtils;
+import com.nonobank.testcase.utils.dll.IdCardGeneratorUtil;
 
 @Service
 public class TestDataServiceImpl implements TestDataService {
@@ -36,6 +41,12 @@ public class TestDataServiceImpl implements TestDataService {
 
     @Value("${spring.datasource.password}")
     String tpMySQLPassword;
+    
+    @Autowired
+    EnvService envService;
+    
+    @Autowired
+    DBCfgService dbCfgService;
 
     /**
      *
@@ -147,19 +158,32 @@ public class TestDataServiceImpl implements TestDataService {
      */
     public String getIdCardByEnvIsRegisteredProvinceCityDistrict(String env, boolean isRegistered, String province, String city, String district) throws Exception{
         String idCardNum = null;
-
-        DBCfg dbCfg = getDBCfgByEnv(env);
-        if (dbCfg == null){
-            logger.error(String.format("数据库查询返回为空，请确认环境(%s)数据库是否配置到测试平台", env));
-            return null;
-        }
-
-        String envMySQLUrl = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=utf-8&useSSL=true", dbCfg.getIp(), dbCfg.getPort(), dbCfg.getDbName());
-
-        if(isRegistered){
-            idCardNum = IdCardGenerator.getRegisterIDCardByProvinceCityDistrict(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword(), province, city, district);
+        
+        Env envEntity = envService.findByName(env);
+        
+        DBGroup dbGroup = envEntity.getDbGroup();
+        
+        DBCfg dbCfg = dbCfgService.findByDbGroupIdAndName(dbGroup.getId(), "default");
+        
+        String driver = "com.mysql.jdbc.Driver";
+        
+		String db_name = dbCfg.getDbName();
+		
+		String url = "jdbc:mysql://" + dbCfg.getIp() + ":" + dbCfg.getPort() + "/" + db_name;
+		
+		String user_name = dbCfg.getUserName();
+		
+		String db_password = dbCfg.getPassword();
+        
+        if(dbCfg.getType().equals("Oracle")){
+			driver = "oracle.jdbc.driver.OracleDriver";
+			url = "jdbc:oracle:thin:@" + dbCfg.getIp() + ":" + dbCfg.getPort() + ":" + db_name;
+		}
+        
+        if(isRegistered == true){
+        	idCardNum = IdCardGenerator.getRegisterIDCardByProvinceCityDistrict(driver, url, user_name, db_password, province, city, district);
         }else{
-            idCardNum = IdCardGenerator.getUnRegisterIDCardByProvinceCityDistrict(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword(), province, city, district);
+        	idCardNum = IdCardGenerator.getUnRegisterIDCardByProvinceCityDistrict(driver, url, user_name, db_password, province, city, district);
         }
 
         return idCardNum;
@@ -176,46 +200,70 @@ public class TestDataServiceImpl implements TestDataService {
         if (enBankName == null){
             throw new TestCaseException(10003, "银行名称不匹配，请检查输入是否正确或更新测试平台银行数据");
         }
-
-        DBCfg dbCfg = getDBCfgByEnv(env);
-        if (dbCfg == null){
-            throw new TestCaseException(10003, String.format("测试平台数据库查询返回为空，请确认环境(%s)数据库是否配置到测试平台", env));
-        }
-
-        String envMySQLUrl = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=utf-8&useSSL=true", dbCfg.getIp(), dbCfg.getPort(), dbCfg.getDbName());
-        if(isRegistered){
-            bankCard = BankCardUtils.getUsedBankcardByBankName(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword(), enBankName);
-            if (bankCard == null || ( bankCard != null && bankCard.toLowerCase().equals("null"))){
-                throw new TestCaseException(10003, String.format("测试环境%s数据库不存在已注册%s卡", env, bankName));
-            }
+        
+        Env envEntity = envService.findByName(env);
+        
+        DBGroup dbGroup = envEntity.getDbGroup();
+        
+        DBCfg dbCfg = dbCfgService.findByDbGroupIdAndName(dbGroup.getId(), "default");
+        
+        String driver = "com.mysql.jdbc.Driver";
+        
+		String db_name = dbCfg.getDbName();
+		
+		String url = "jdbc:mysql://" + dbCfg.getIp() + ":" + dbCfg.getPort() + "/" + db_name;
+		
+		String user_name = dbCfg.getUserName();
+		
+		String db_password = dbCfg.getPassword();
+        
+        if(dbCfg.getType().equals("Oracle")){
+			driver = "oracle.jdbc.driver.OracleDriver";
+			url = "jdbc:oracle:thin:@" + dbCfg.getIp() + ":" + dbCfg.getPort() + ":" + db_name;
+		}
+        
+        if(isRegistered == true){
+        	bankCard = BankCardUtils.getUnUsedBankcardByBankName(driver, url, user_name, db_password, bankName);
         }else{
-            bankCard = BankCardUtils.getUnUseBankcardByBankName(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword(), enBankName);
+        	bankCard = BankCardUtils.getUsedBankcardByBankName(driver, url, user_name, db_password, bankName);
         }
+
         return bankCard;
     }
 
 
     public String getMobileNO(String env, boolean isRegistered) throws SQLException, Exception{
 
-        String mobileNO = null;
-
-        DBCfg dbCfg = getDBCfgByEnv(env);
-        if (dbCfg == null){
-            logger.error(String.format("数据库查询返回为空，请确认环境(%s)数据库是否配置到测试平台", env));
-            return null;
-        }
-
-        String envMySQLUrl = String.format("jdbc:mysql://%s:%s/%s?useUnicode=true&characterEncoding=utf-8&useSSL=true", dbCfg.getIp(), dbCfg.getPort(), dbCfg.getDbName());
-        if(isRegistered){
-            mobileNO = MobileUtil.getRegisterMobileRandom(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword());
-            if (mobileNO == null || ( mobileNO != null && mobileNO.toLowerCase().equals("null"))){
-                throw new TestCaseException(10003, String.format("测试环境%s数据库不存在已注册手机号", env));
-            }
+        String mobile = null;
+        
+        Env envEntity = envService.findByName(env);
+        
+        DBGroup dbGroup = envEntity.getDbGroup();
+        
+        DBCfg dbCfg = dbCfgService.findByDbGroupIdAndName(dbGroup.getId(), "default");
+        
+        String driver = "com.mysql.jdbc.Driver";
+        
+		String db_name = dbCfg.getDbName();
+		
+		String url = "jdbc:mysql://" + dbCfg.getIp() + ":" + dbCfg.getPort() + "/" + db_name;
+		
+		String user_name = dbCfg.getUserName();
+		
+		String db_password = dbCfg.getPassword();
+        
+        if(dbCfg.getType().equals("Oracle")){
+			driver = "oracle.jdbc.driver.OracleDriver";
+			url = "jdbc:oracle:thin:@" + dbCfg.getIp() + ":" + dbCfg.getPort() + ":" + db_name;
+		}
+        
+        if(isRegistered == true){
+        	mobile = MobileUtil.getRegisterMobileRandom(driver, url, user_name, db_password);
         }else{
-            mobileNO = MobileUtil.getUnRegisterMobile(tpMySQLDriver, envMySQLUrl, dbCfg.getUserName(), dbCfg.getPassword());
+        	mobile = MobileUtil.getUnRegisterMobile(driver, url, user_name, db_password);
         }
-
-        return mobileNO;
+        
+        return mobile;
     }
 
 }

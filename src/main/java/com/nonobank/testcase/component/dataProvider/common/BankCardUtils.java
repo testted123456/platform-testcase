@@ -1,7 +1,6 @@
 package com.nonobank.testcase.component.dataProvider.common;
 
 import com.nonobank.testcase.utils.dll.DBUtils;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
@@ -156,17 +155,17 @@ public class BankCardUtils {
 	 * @apiSuccessExample {invoke} 调用说明:
 	 * ${getUnUseBankcard_db()}
 	 */
-	public static void getUnUseBankcard_db(){
+	public static void getUnUsedBankcard_db(){
 	}
 
-	public static String getUnUseBankcard(String mySql_driver, String mySql_url, String db_name, String db_password) throws SQLException, Exception{
+	public static String getUnUsedBankcard(String mySql_driver, String mySql_url, String db_name, String db_password) throws SQLException, Exception{
 		String bankCard = BankCardUtils.getBankCard("621226100102");
 		Connection conn = DBUtils.getConnection(mySql_driver, mySql_url, db_name, db_password);
-		String sql = "select count(*) from user_bankcard_info WHERE bank_card_no='" + bankCard + "'";
+		String sql = "select count(*) from qtpay.cs_bindcard WHERE accountno='" + bankCard + "'";
 		String count =  String.valueOf(DBUtils.getOneObject(conn, sql));
 		while (Integer.parseInt(count) > 0) {
 			bankCard = BankCardUtils.getBankCard();
-			sql = "select count(*) from user_bankcard_info WHERE bank_card_no='" + bankCard + "'";
+			sql = "select count(*) from qtpay.cs_bindcard WHERE accountno='" + bankCard + "'";
 			count =  String.valueOf(DBUtils.getOneObject(conn, sql));
 		}
 		DBUtils.closeConnection(conn);
@@ -195,20 +194,20 @@ public class BankCardUtils {
 	 * @apiSuccessExample {invoke} 调用说明:
 	 * ${getUnUseBankcardByBankName_db("CCB")}
 	 */
-	public static void getUnUseBankcardByBankName_db(String bankName){
+	public static void getUnUsedBankcardByBankName_db(String bankName){
 	}
 
-	public static String getUnUseBankcardByBankName(String mySql_driver, String mySql_url, String db_name,
+	public static String getUnUsedBankcardByBankName(String mySql_driver, String mySql_url, String db_name,
 													String db_password, String bankName) throws SQLException, Exception{
 		String prefix = bankMap.get(bankName);
 		String bankCard = BankCardUtils.getBankCard(prefix);
 		Connection conn = DBUtils.getConnection(mySql_driver, mySql_url, db_name, db_password);
-		String sql = "select count(*) from user_bankcard_info WHERE bank_card_no='" + bankCard + "'";
+		String sql = "select count(*) from qtpay.cs_bindcard WHERE accountno='" + bankCard + "'";
 		String count =  String.valueOf(DBUtils.getOneObject(conn, sql));
 
 		while (Integer.parseInt(count) > 0) {
 			bankCard = BankCardUtils.getBankCard(prefix);
-			sql = "select count(*) from user_bankcard_info WHERE bank_card_no='" + bankCard + "'";
+			sql = "select count(*) from qtpay.cs_bindcard WHERE accountno='" + bankCard + "'";
 			count =  String.valueOf(DBUtils.getOneObject(conn, sql));
 		}
 		DBUtils.closeConnection(conn);
@@ -230,7 +229,8 @@ public class BankCardUtils {
 												   String db_password, String bankName) throws SQLException, Exception{
 		String prefix = bankMap.get(bankName);
 		Connection conn = DBUtils.getConnection(mySql_driver, mySql_url, db_name, db_password);
-		String sql = "select bank_card_no from user_bankcard_info WHERE bank_card_no like '" + prefix + "%' order by rand() limit 1";
+		String sql = "select accountno from qtpay.cs_bindcard WHERE accountno like '" + prefix + "%' order by dbms_random.value()";
+		sql = "select accountno from (" + sql + ") where rownum<2";
 		Object obj = DBUtils.getOneObject(conn, sql);
 		String bankCard = String.valueOf(obj);
 		return bankCard;
@@ -243,36 +243,17 @@ public class BankCardUtils {
 	 * @apiSuccessExample {invoke} 调用说明:
 	 * ${getUseBankcardRandom_db()}
 	 */
-	public static void getUseBankcardRandom_db(){
+	public static void getUsedBankcardRandom_db(){
 	}
 
-	public static String getUseBankcardRandom(String mySql_driver, String mySql_url, String db_name,
+	public static String getUsedBankcardRandom(String mySql_driver, String mySql_url, String db_name,
 											  String db_password) throws SQLException, Exception{
 		Connection conn = DBUtils.getConnection(mySql_driver, mySql_url, db_name, db_password);
-		String sql = "SELECT bank_card_no FROM user_bankcard_info where bank_card_no is not null order by rand() LIMIT 1;";
+		String sql = "SELECT accountno FROM qtpay.cs_bindcard where accountno is not null order by dbms_random.value()";
+		sql = "SELECT accountno FROM (" + sql + ") where rownum<2";
 		String bankCard =  String.valueOf(DBUtils.getOneObject(conn, sql));
 		DBUtils.closeConnection(conn);
 		return bankCard;
-	}
-
-	/**
-	 * @api {函数} getBankcardByUserId_db("userId") 按userid获取卡号
-	 * @apiGroup BANKCARD
-	 * @apiVersion 0.1.0
-	 * @apiParam (入参) {String} userId 用户id
-	 * @apiSuccessExample {invoke} 调用说明:
-	 * ${getBankcardByUserId_db("123")}
-	 */
-	public static void getBankcardByUserId_db(String userId){
-	}
-
-	public static String getBankcardByUserId(String mySql_driver, String mySql_url, String db_name, String db_password,
-											 String userId) throws SQLException, Exception{
-		Connection conn = DBUtils.getConnection(mySql_driver, mySql_url, db_name, db_password);
-		String sql = "select bank_card_no from user_bankcard_info where user_id='" + userId + "'";
-		String bankcard = String.valueOf(DBUtils.getOneObject(conn, sql));
-		DBUtils.closeConnection(conn);
-		return bankcard;
 	}
 
 	/**

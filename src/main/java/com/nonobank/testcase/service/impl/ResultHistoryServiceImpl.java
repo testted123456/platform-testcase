@@ -1,6 +1,7 @@
 package com.nonobank.testcase.service.impl;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,7 @@ public class ResultHistoryServiceImpl implements ResultHistoryService {
 		resultHistory.setTcIds(tcIds);
 		resultHistory.setApiIds(apiIds);
 		resultHistory.setTotalSize(totalSize);
-		resultHistory.setCreatedTime(LocalDateTime.now());
+		resultHistory.setCreatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 		return add(resultHistory);
 	}
 

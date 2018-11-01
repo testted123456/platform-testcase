@@ -1,18 +1,17 @@
 package com.nonobank.testcase.service.impl;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.testcase.component.exception.TestCaseException;
@@ -51,7 +50,7 @@ public class TestCaseServiceImpl implements TestCaseService {
 		testCase.setType(type);
 		testCase.setOptstatus((short)0);
 		testCase.setCreatedBy(userName);
-		testCase.setCreatedTime(LocalDateTime.now());
+		testCase.setCreatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 		
 		List<TestCaseInterface> tcis = testCase.getTestCaseInterfaces();
 		
@@ -68,7 +67,7 @@ public class TestCaseServiceImpl implements TestCaseService {
 			tci.setTestCase(testCase);
 			tci.setOrderNo(i);
 			tci.setCreatedBy(userName);
-			tci.setCreatedTime(LocalDateTime.now());
+			tci.setCreatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 			tci.setId(null);
 			tci.setOptstatus((short)0);
 		}
@@ -86,7 +85,7 @@ public class TestCaseServiceImpl implements TestCaseService {
 		
 		if(null != findById(id)){
 			testCase.setUpdatedBy(userName);
-			testCase.setUpdatedTime(LocalDateTime.now());
+			testCase.setUpdatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 			
 			List<TestCaseInterface> tcis = testCase.getTestCaseInterfaces();
 			int size = tcis.size();
@@ -100,10 +99,10 @@ public class TestCaseServiceImpl implements TestCaseService {
 				if(null == tci.getId() ){//新增接口
 					tci.setTestCase(testCase);
 					tci.setCreatedBy(userName);
-					tci.setCreatedTime(LocalDateTime.now());
+					tci.setCreatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 				}else{//更新接口
 					tci.setUpdatedBy(userName);
-					tci.setUpdatedTime(LocalDateTime.now());
+					tci.setUpdatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 				}
 			}
 			
@@ -139,7 +138,7 @@ public class TestCaseServiceImpl implements TestCaseService {
 		TestCase testCase = testCaseRepository.findByIdAndOptstatusEquals(id, (short)0);
 		testCase.setOptstatus((short)2);
 		testCase.setUpdatedBy(userName);
-		testCase.setUpdatedTime(LocalDateTime.now());
+		testCase.setUpdatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 		testCaseRepository.save(testCase);
 		logger.info("删除用例{}成功", testCase.getId());
 		return testCase;
@@ -152,14 +151,14 @@ public class TestCaseServiceImpl implements TestCaseService {
 		List<TestCase> tcs = testCaseRepository.findByPIdAndOptstatusEquals(id, (short)0);
 		
 		tc.setUpdatedBy(userName);
-		tc.setUpdatedTime(LocalDateTime.now());
+		tc.setUpdatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 		tc.setOptstatus((short)2);
 		testCaseRepository.save(tc);
 		
 		for(TestCase tCase : tcs){
 			if(tCase.getType() == true){
 				tCase.setOptstatus((short)2);
-				tCase.setUpdatedTime(LocalDateTime.now());
+				tCase.setUpdatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 				tCase.setUpdatedBy(userName);
 				testCaseRepository.save(tCase);
 			}else{

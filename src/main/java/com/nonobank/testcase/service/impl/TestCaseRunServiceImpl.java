@@ -1,6 +1,7 @@
 package com.nonobank.testcase.service.impl;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -88,7 +89,7 @@ public class TestCaseRunServiceImpl implements TestCaseRunService {
 			resultDetail.setApiId(tci.getInterfaceId());
 			resultDetail.setTcId(tcId);
 			resultDetail.setResultHistory(resultHistory);
-			resultDetail.setCreatedTime(LocalDateTime.now());
+			resultDetail.setCreatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 			resultDetail.setTcName(testCase.getName());
 			
 			if(isflow == false){//不是流程用例，没有上下文

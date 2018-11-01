@@ -1,6 +1,7 @@
 package com.nonobank.testcase.controller;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 import com.alibaba.fastjson.JSON;
@@ -241,7 +242,7 @@ public class TestCaseController {
 		resultHistory.setTcType('0');
 		resultHistory.setTcId(tcId);
 		resultHistory.setApiIds(tciIds.toString());
-		resultHistory.setCreatedTime(LocalDateTime.now());
+		resultHistory.setCreatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 		//异步执行case
 		testCaseRunService.asyncRunCase(resultHistory, tcId, tciIds, map, sessionId);
 		return ResultUtil.success();

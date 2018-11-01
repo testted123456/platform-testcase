@@ -11,7 +11,7 @@ public class DBOperator {
 	 * @apiGroup DB_OPER
 	 * @apiVersion 0.1.0
 	 * @apiParam (入参) {String} sql sql语句
-	 *  @apiParam (入参) {String} args 可选参数，数据库配置名称，默认default
+	 * @apiParam (入参) {String} args 可选参数，数据库配置名称，默认default
 	 * @apiSuccessExample {invoke} 调用说明:
 	 * ${getOneField_db("select name from user_info", "default")}
 	 */

@@ -44,13 +44,7 @@ public class TimestampUtils {
 	
 	public static void main(String [] args){
 		System.out.println(getServerTimeWithFormat("HHmmss"));
-		System.out.println(LocalDateTime.now(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HHmmss")));
-		
-		Date currentTime = new Date();  
-	    SimpleDateFormat formatter = new SimpleDateFormat("HHmmss");  
-	    String dateString = formatter.format(currentTime);  
-	    System.out.print(dateString);
-		
+		System.out.println(LocalDateTime.now(ZoneId.of("Asia/Shanghai")).format(DateTimeFormatter.ofPattern("HHmmss")));
 	}
 
 }

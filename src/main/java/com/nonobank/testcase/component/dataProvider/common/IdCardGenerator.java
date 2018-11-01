@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.regex.Pattern;
 
 public class IdCardGenerator {
 	public static final Map<String, Integer> areaCode = new HashMap<String, Integer>();
@@ -106,7 +105,7 @@ public class IdCardGenerator {
 		String idCard = generater.toString();
 
 		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
-		String sql = "select count(*) from user_info WHERE id_num='" + idCard + "'";
+		String sql = "select count(*) from qtpay.paycustomer WHERE customerpid='" + idCard + "'";
 		String count = String.valueOf(DBUtils.getOneObject(conn, sql));
 
 		while (Integer.parseInt(count) > 0) {
@@ -116,7 +115,7 @@ public class IdCardGenerator {
 			generater.append(IdCardGeneratorUtil.randomCode());
 			generater.append(IdCardGeneratorUtil.calcTrailingNumber(generater.toString().toCharArray()));
 			idCard = generater.toString();
-			sql = "select count(*) from user_info WHERE id_num='" + idCard + "'";
+			sql = "select count(*) from qtpay.paycustomer WHERE customerpid='" + idCard + "'";
 			count =  String.valueOf(DBUtils.getOneObject(conn, sql));
 		}
 		DBUtils.closeConnection(conn);
@@ -157,7 +156,7 @@ public class IdCardGenerator {
 		}
 
 		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
-		String sql = "select id_num from user_info WHERE id_num like '" + prefixOfArea + prefixOfBirthDay + "%'";
+		String sql = "select customerpid from qtpay.paycustomer WHERE customerpid like '" + prefixOfArea + prefixOfBirthDay + "%'";
 		String count =  String.valueOf(DBUtils.getOneObject(conn, sql));
 		DBUtils.closeConnection(conn);
 		return count;
@@ -178,11 +177,11 @@ public class IdCardGenerator {
 											 String db_name,String db_password) throws SQLException, Exception{
 		String idCard = IdCardGenerator.generate();
 		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
-		String sql = "select count(*) from user_info WHERE id_num='" + idCard + "'";
+		String sql = "select count(*) from qtpay.paycustomer WHERE customerpid='" + idCard + "'";
 		String count = DBUtils.getOneObject(conn, sql).toString();
 		while (Integer.parseInt(count) > 0) {
 			idCard = IdCardGenerator.generate();
-			sql = "select count(*) from user_info WHERE id_num='" + idCard + "'";
+			sql = "select count(*) from qtpay.paycustomer WHERE customerpid='" + idCard + "'";
 			count =  String.valueOf(DBUtils.getOneObject(conn, sql));
 		}
 		DBUtils.closeConnection(conn);
@@ -206,11 +205,11 @@ public class IdCardGenerator {
 		int year = rand.nextInt(23)+1977;
 		String idCard = IdCardGenerator.generateByYear(String.valueOf(year));
 		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
-		String sql = "select count(*) from user_info WHERE id_num='" + idCard + "'";
+		String sql = "select count(*) from qtpay.paycustomer WHERE customerpid='" + idCard + "'";
 		String count = DBUtils.getOneObject(conn, sql).toString();
 		while (Integer.parseInt(count) > 0) {
 			idCard = IdCardGenerator.generate();
-			sql = "select count(*) from user_info WHERE id_num='" + idCard + "'";
+			sql = "select count(*) from qtpay.paycustomer WHERE customerpid='" + idCard + "'";
 			count =  String.valueOf(DBUtils.getOneObject(conn, sql));
 		}
 		DBUtils.closeConnection(conn);
@@ -231,7 +230,8 @@ public class IdCardGenerator {
 	public static String getRegisterIDCardRandom(String mySql_driver,String mySql_url,
 												 String db_name,String db_password) throws SQLException, Exception{
 		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
-		String sql = "SELECT id_num FROM user_info where id_num is not null order by rand() LIMIT 1;";
+		String sql = "SELECT customerpid FROM qtpay.paycustomer where customerpid is not null order by dbms_random.value()";
+		sql = "SELECT customerpid FROM (" + sql + ") where rownum<2";
 		String idCard =  String.valueOf(DBUtils.getOneObject(conn, sql));
 		return idCard;
 	}
@@ -251,11 +251,11 @@ public class IdCardGenerator {
 												   String db_name,String db_password,String year) throws SQLException, Exception{
 		String idCard = IdCardGenerator.generateByYear(year);
 		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
-		String sql = "select count(*) from user_info WHERE id_num='" + idCard + "'";
+		String sql = "select count(*) from qtpay.paycustomer WHERE customerpid='" + idCard + "'";
 		String count = DBUtils.getOneObject(conn, sql).toString();
 		while (Integer.parseInt(count) > 0) {
 			idCard = IdCardGenerator.generate();
-			sql = "select count(*) from user_info WHERE id_num='" + idCard + "'";
+			sql = "select count(*) from qtpay.paycustomer WHERE customerpid='" + idCard + "'";
 			count = String.valueOf(DBUtils.getOneObject(conn, sql));
 		}
 		DBUtils.closeConnection(conn);
@@ -350,7 +350,7 @@ public class IdCardGenerator {
 			return null;
 		}
 		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
-		String sql = "select count(*) from user_info WHERE id_num='" + idCard + "'";
+		String sql = "select count(*) from qtpay.paycustomer WHERE customerpid='" + idCard + "'";
 		String count = DBUtils.getOneObject(conn, sql).toString();
 
 		int loop = 0;
@@ -359,7 +359,7 @@ public class IdCardGenerator {
 			if (idCard == null){
 				return null;
 			}
-			sql = "select count(*) from user_info WHERE id_num='" + idCard + "'";
+			sql = "select count(*) from qtpay.paycustomer WHERE customerpid='" + idCard + "'";
 			count =  String.valueOf(DBUtils.getOneObject(conn, sql));
 			loop++;
 		}
@@ -387,7 +387,7 @@ public class IdCardGenerator {
 																 String district
 																 )throws Exception{
 
-		if (province == null || province.isEmpty()){
+		/*if (province == null || province.isEmpty()){
 			return getRegisterIDCardRandom(mySql_driver, mySql_url,db_name,db_password);
 		}
 
@@ -423,17 +423,23 @@ public class IdCardGenerator {
 					pattern = "^" + districtCode;
 				}
 			}
-		}
+		}*/
 
-		String sql = String.format("SELECT id_num FROM user_info where id_num regexp \"%s\" order by rand() LIMIT 1;", pattern);
+		String sql = "SELECT customerpid FROM (SELECT customerpid FROM qtpay.paycustomer order by dbms_random.value()) where rownum<2";
 		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
-		Object[] items = DBUtils.getOneLine(conn, sql);
-
-		if (items.length > 0){
-			return String.valueOf(items[0]);
-		}else{
-			return null;
+		Object obj = DBUtils.getOneObject(conn, sql);
+		String id = String.valueOf(obj);
+		
+		for(int i=0;i<100;i++){
+			if(null != id && !id.equals("null")){
+				break;
+			}else{
+				obj = DBUtils.getOneObject(conn, sql);
+				id = String.valueOf(obj);
+			}
 		}
+
+		return id;
 	}
 	
 	public static void main(String [] args){

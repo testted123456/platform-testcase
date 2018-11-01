@@ -4,6 +4,7 @@ import java.net.URLEncoder;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +12,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.slf4j.Logger;
@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.apps.HttpClient;
@@ -516,7 +515,7 @@ public class TestCaseExecutor {
 			resultDetail.setApiId(tcf.getInterfaceId());
 			resultDetail.setTcId(tcId);
 			resultDetail.setResultHistory(resultHistory);
-			resultDetail.setCreatedTime(LocalDateTime.now());
+			resultDetail.setCreatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 			resultDetail.setTcName(testCase.getName());
 			
 			try{
@@ -581,7 +580,7 @@ public class TestCaseExecutor {
 			resultDetail.setApiName(tcf.getInterfaceName());
 			resultDetail.setTcId(tcId);
 			resultDetail.setResultHistory(resultHistory);
-			resultDetail.setCreatedTime(LocalDateTime.now());
+			resultDetail.setCreatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 			resultDetail.setTcName(testCase.getName());
 			
 			try{

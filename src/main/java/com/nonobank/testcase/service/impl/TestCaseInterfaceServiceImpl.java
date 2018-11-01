@@ -1,6 +1,7 @@
 package com.nonobank.testcase.service.impl;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,7 @@ public class TestCaseInterfaceServiceImpl implements TestCaseInterfaceService {
 			TestCaseInterface tci = tcif.convert();
 			tci.setOrderNo(i);
 			tci.setCreatedBy(userName);
-			tci.setCreatedTime(LocalDateTime.now());
+			tci.setCreatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 //			tci.setUpdatedTime(null);
 			tci.setOptstatus((short)0);
 			testCaseInterfaceRepository.save(tci);
@@ -73,13 +74,13 @@ public class TestCaseInterfaceServiceImpl implements TestCaseInterfaceService {
 				logger.info("新增用例接口，用例{},接口{}",tcif.getTestCase().getName(), tcif.getName());
 				
 				tci.setCreatedBy(userName);
-				tci.setCreatedTime(LocalDateTime.now());
+				tci.setCreatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 				tci.setOptstatus((short)0);
 			}else{
 				logger.info("更新用例接口，用例{},接口{}",tcif.getTestCase().getName(), tcif.getName());
 				
 				tci.setUpdatedBy(userName);
-				tci.setUpdatedTime(LocalDateTime.now());
+				tci.setUpdatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 			}
 			
 			testCaseInterfaceRepository.save(tci);
