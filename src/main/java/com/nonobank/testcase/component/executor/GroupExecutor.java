@@ -1,5 +1,6 @@
 package com.nonobank.testcase.component.executor;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import com.nonobank.testcase.service.FlowCaseService;
 import com.nonobank.testcase.service.GlobalVariableService;
 import com.nonobank.testcase.service.ResultHistoryService;
 import com.nonobank.testcase.service.TestCaseInterfaceService;
+import com.nonobank.testcase.service.TestCaseRunService;
 import com.nonobank.testcase.service.TestCaseService;
 
 @Component
@@ -42,6 +44,9 @@ public class GroupExecutor {
 	
 	@Autowired
 	TestCaseService testCaseService;
+	
+	@Autowired
+	TestCaseRunService testCaseRunService;
 	
 	@Autowired
 	FlowCaseService flowCaseService;
@@ -126,8 +131,11 @@ public class GroupExecutor {
 					logger.info("开始执行用例：{}", name);
 					List<TestCaseInterface> tcis = testCaseInterfaceService.findByTestCaseId(tcId);
 					
+					List<Integer> tciIds = tcis.stream().map(TestCaseInterface::getId).collect(Collectors.toList());
+					
 					try{
-						testCaseExecutor.runCase(resultHistory, tc.getId(), null, env, tcis, varMap);
+//						testCaseExecutor.runCase(resultHistory, tc.getId(), null, env, tcis, varMap);
+						testCaseRunService.runCase(resultHistory, tcId, tciIds, varMap, null);
 					}catch(Exception e){
 						e.printStackTrace();
 						logger.error("group中case执行抛异常，case：" + name);

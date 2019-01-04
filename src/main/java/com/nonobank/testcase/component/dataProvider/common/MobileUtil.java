@@ -50,16 +50,20 @@ public class MobileUtil {
 	 * @apiSuccessExample {invoke} 调用说明:
 	 * ${getRegisterMobileRandom_db()}
 	 */
-	public static void getRegisterMobileRandom_db(){
+	public static void getRegisterMobileRandom_db(String branchid){
 	}
 
-	public static String getRegisterMobileRandom(String mySql_driver,String mySql_url,
-												 String db_name,String db_password) throws SQLException, Exception{
+	public static String getRegisterMobileRandom(String mySql_driver, String mySql_url,
+												 String db_name, String db_password, String branchid) throws SQLException, Exception{
 		Connection conn = DBUtils.getConnection(mySql_driver,mySql_url,db_name,db_password);
 		String sql = 
 //				"select t.userid FROM (SELECT userid FROM user_info WHERE userid is not null LIMIT 1000) t order by rand() LIMIT 1";
-		"select userid from (select t.userid FROM (SELECT userid FROM qtpay.payuser WHERE userid is not null and rownum < 1000) t " +
-        "order by dbms_random.value()) where rownum<2";
+//		"select userid from (select t.userid FROM (SELECT userid FROM qtpay.payuser WHERE userid is not null and rownum < 1000) t " +
+//        "order by dbms_random.value()) where rownum<2";
+		
+		"select userid from (" +
+        "SELECT userid FROM qtpay.payuser WHERE branchid='" + branchid + "' and userid is not null and rownum < 1000 order by dbms_random.value())" +
+        "where rownum<2";
 		String mobile =  String.valueOf(DBUtils.getOneObject(conn, sql));
 		DBUtils.closeConnection(conn);
 		return mobile;

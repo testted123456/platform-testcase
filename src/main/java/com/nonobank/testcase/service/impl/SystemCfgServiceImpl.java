@@ -2,10 +2,12 @@ package com.nonobank.testcase.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
-
 import com.nonobank.testcase.component.exception.TestCaseException;
 import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.entity.SystemCfg;
@@ -94,6 +96,19 @@ public class SystemCfgServiceImpl implements SystemCfgService{
 	public SystemCfg findBySystemAndBranch(String system, String branch) {
 		return null;
 	}
-	
+
+	@Override
+	public List<SystemCfg> findPage(int pageIndex, int pageSize) {
+		// TODO Auto-generated method stub
+		Pageable pageable = new PageRequest(pageIndex, pageSize);
+		Page<SystemCfg> page = systemCfgRepository.findAll(pageable);
+		List<SystemCfg> list = null;
+		
+		if(page.hasContent()){
+			list = page.getContent();
+		}
+		
+		return list;
+	}
 
 }

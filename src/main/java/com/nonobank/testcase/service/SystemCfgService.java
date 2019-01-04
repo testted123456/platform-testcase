@@ -2,6 +2,9 @@ package com.nonobank.testcase.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.nonobank.testcase.entity.SystemCfg;
 
 public interface SystemCfgService {
@@ -25,5 +28,7 @@ public interface SystemCfgService {
 	List<SystemCfg> findAll();
 	
 	List<String> findAllAlias();
+	
+	List<SystemCfg> findPage(int pageIndex, int pageSize);
 
 }

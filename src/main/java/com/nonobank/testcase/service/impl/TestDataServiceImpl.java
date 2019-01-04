@@ -232,7 +232,7 @@ public class TestDataServiceImpl implements TestDataService {
     }
 
 
-    public String getMobileNO(String env, boolean isRegistered) throws SQLException, Exception{
+    public String getMobileNO(String env, boolean isRegistered, String branchId) throws SQLException, Exception{
 
         String mobile = null;
         
@@ -258,7 +258,7 @@ public class TestDataServiceImpl implements TestDataService {
 		}
         
         if(isRegistered == true){
-        	mobile = MobileUtil.getRegisterMobileRandom(driver, url, user_name, db_password);
+        	mobile = MobileUtil.getRegisterMobileRandom(driver, url, user_name, db_password, branchId);
         }else{
         	mobile = MobileUtil.getUnRegisterMobile(driver, url, user_name, db_password);
         }

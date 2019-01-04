@@ -257,7 +257,9 @@ public class TestDataController {
         }else{
             return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "请求未提供是否注册参数isRegistered");
         }
-        String mobileNO = testDataService.getMobileNO(env, isRegistered);
+        
+        String branchId = reqJson.getString("branchId");
+        String mobileNO = testDataService.getMobileNO(env, isRegistered, branchId);
         return ResultUtil.success(mobileNO);
     }
 

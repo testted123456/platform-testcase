@@ -10,7 +10,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.dom4j.Attribute;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.dom4j.Node;
+import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +50,9 @@ import com.nonobank.testcase.service.DBCfgService;
 import com.nonobank.testcase.service.SystemEnvService;
 import com.nonobank.testcase.utils.JSONUtils;
 import com.nonobank.testcase.utils.dll.DBUtils;
+
+import net.sf.json.JSON;
+import net.sf.json.xml.XMLSerializer;
 
 @Service
 public class ApiRunServiceImpl implements ApiRunService {
@@ -240,9 +251,10 @@ public class ApiRunServiceImpl implements ApiRunService {
 		}
 		
 		//前置系统加签
-		if(null != requestBody){
+		if(null != requestBody && !system.equals("Mock") && url.endsWith(".json")){
 			JSONObject jsonObj = JSONObject.parseObject(requestBody);
 			JSONObject reqXML = jsonObj.getJSONObject("requestXml");
+			
 			String sign = reqXML.getString("sign");
 			String appUser = reqXML.getString("appUser");
 			String version = reqXML.getString("version");
@@ -272,11 +284,84 @@ public class ApiRunServiceImpl implements ApiRunService {
 				    logger.info("key is {}", String.valueOf(key));
 				    reqXML.put("sign", String.valueOf(key));
 				    String reqXMLOfStr = reqXML.toJSONString();
-				    String newSign =  SignatureUtils.md5(URLEncoder.encode(reqXMLOfStr, "UTF-8")).toUpperCase();
+				    String newSign = SignatureUtils.md5(URLEncoder.encode(reqXMLOfStr, "UTF-8")).toUpperCase();
 				    logger.info("new sign is: {}",newSign);
 				    reqXMLOfStr = reqXMLOfStr.replace(String.valueOf(key), newSign);
 				    logger.info("requestXml:{}", reqXMLOfStr);
 				    jsonObj.put("requestXml", reqXMLOfStr);
+				    requestBody = jsonObj.toJSONString();
+				} catch (SQLException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+	
+			logger.info("请求消息加签后内容：{}", requestBody);
+			
+			/*if(url.endsWith(".do")){//url以.do结尾，表示requestXml的value为xml格式
+				XMLSerializer xmlSerializer = new XMLSerializer();
+				String reqJsonStr = jsonObj.getString("requestXml");
+				String reqXMLStr = xmlSerializer.write(JSONSerializer.toJSON(reqJsonStr));
+				logger.info("请求消息xml格式为：{}", reqXMLStr);
+				jsonObj.put("requestXml", reqXMLStr);
+				requestBody = jsonObj.toJSONString();
+			}*/
+		}else if(null != requestBody && !system.equals("Mock") && url.endsWith(".do")){//url以.do结尾，表示requestXml的value为xml格式
+			JSONObject jsonObj = JSONObject.parseObject(requestBody);
+			String reqXML = jsonObj.getString("requestXml");
+			Document document = null;
+			
+			try {
+				document = DocumentHelper.parseText(reqXML);
+			} catch (DocumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			Element qtPayElement = document.getRootElement();
+			
+//			String sign = reqXML.getString("sign");
+			Attribute appUserAtt = qtPayElement.attribute("appUser");
+			String appUser = appUserAtt.getText();
+			Attribute versionAtt = qtPayElement.attribute("version");
+			String version = versionAtt.getText();
+			Attribute clientTypeAtt = qtPayElement.attribute("clientType");
+			String clientType = clientTypeAtt.getText();
+			Element signAtt = qtPayElement.element("sign");
+			String sign = signAtt.getText();
+			
+			//查询密钥
+			Integer dbGroupId = env.getDbGroup().getId();
+			String dbGroupName = "qtpay";
+			DBCfg dbCfg = dbCfgService.findByDbGroupIdAndName(dbGroupId, dbGroupName);
+			
+			if(null == dbCfg){
+				dbGroupName = "default";
+				dbCfg = dbCfgService.findByDbGroupIdAndName(dbGroupId, dbGroupName);
+			}
+			
+			if("true".equals(sign) && null != dbCfg){
+				try {
+				    Connection con = DBUtils.getConnection("oracle.jdbc.driver.OracleDriver", 
+							"jdbc:oracle:thin:@" + dbCfg.getIp() + ":" + dbCfg.getPort() + ":" + dbCfg.getDbName(), 
+							dbCfg.getUserName(), 
+							dbCfg.getPassword());
+				    String sql = "select key"
+				    		+ " from prep_client_version where client_type='" + clientType + "'"
+				    		+ " and client_version='" + version + "'"
+				    		+ " and appuser='" + appUser + "'";
+				    Object key = DBUtils.getOneObject(con, sql);
+				    logger.info("key is {}", String.valueOf(key));
+//				    reqXML.put("sign", String.valueOf(key));
+				    reqXML = reqXML.replace("<sign>true</sign>", "<sign>" + String.valueOf(key) + "</sign>");
+//				    String reqXMLOfStr = reqXML.toJSONString();
+				    String newSign = SignatureUtils.md5(URLEncoder.encode(reqXML, "UTF-8")).toUpperCase();
+				    logger.info("new sign is: {}", newSign);
+				    reqXML = reqXML.replace(String.valueOf(key), newSign);
+				    logger.info("requestXml:{}", reqXML);
+				    jsonObj.put("requestXml", reqXML);
 				    requestBody = jsonObj.toJSONString();
 				} catch (SQLException e1) {
 					// TODO Auto-generated catch block
@@ -364,6 +449,26 @@ public class ApiRunServiceImpl implements ApiRunService {
 		}
 		
 		return result;
+	}
+	
+	public static void main(String [] args){
+		SAXReader saxReader = new SAXReader();
+		String str = "<QtPay application=\"RequestOrder.Req\" appUser=\"bmzhangguibao\" version=\"3.8.1\" osType=\"android8.0.0\" mobileSerialNum=\"8299587079654326362064333334919426474106\" userIP=\"192.168.167.200\" clientType=\"02\" token=\"66F596BD8FEE15C98ADFD790D35A0CB8\" customerId=\"A000248760\" phone=\"18713534770\" longitude=\"121.535095\" latitude=\"31.213836\" areaCode=\"310115\"><merchantId>0002000043</merchantId><productId>0000000000</productId><orderAmt>000000010400</orderAmt><payTool>01</payTool><orderDesc>10400|4367421217375128881|201811131743504434729</orderDesc><orderRemark>10400|4367421217375128881|201811131743504434729</orderRemark><payNo>V3</payNo><orderAdditional>{\"name\":\"f1\",\"fee\":\"f2\"}</orderAdditional><mobileNo>18713534770</mobileNo><transDate>20181115</transDate><transTime>114659</transTime><transLogNo>000026</transLogNo><sign>126560851650D59496BEA53079F772EB</sign></QtPay>";
+		/*try {
+			Document document = DocumentHelper.parseText(str);
+			Node x = document.selectSingleNode("x");
+			Element element = document.getRootElement();
+			Attribute att= element.attribute("x1");
+			
+			System.out.println(att.getText());
+		} catch (DocumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+		
+		XMLSerializer xmlSerializer = new XMLSerializer();
+		JSON json = xmlSerializer.read(str);
+		System.out.println(json.toString());
 	}
 
 }

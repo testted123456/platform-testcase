@@ -170,6 +170,20 @@ public class TestCaseInterfaceController {
 		return ResultUtil.success(resultJson);
 	}
 	
+	@GetMapping(value="getByApiId")
+	@ResponseBody
+	public Result getByApiId(@RequestParam Integer apiId){
+		logger.info("开始根据api id查找：{}", apiId);
+		
+		List<TestCaseInterface> list = testCaseInterfaceService.findByInterfaceIdAndOptstatusEquals(apiId);
+		
+		if(null != list && list.size()>0){
+			return ResultUtil.success(list);
+		}else{
+			return ResultUtil.success();
+		}
+	}
+	
 	/**
 	 * 查找具有相同接口的用例，并以树展示
 	 * @param apiId

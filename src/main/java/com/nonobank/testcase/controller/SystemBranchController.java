@@ -197,5 +197,20 @@ public class SystemBranchController {
 		systemBranchService.update(systemBranch);
 		return ResultUtil.success();
 	}
+	
+	@GetMapping(value="setCodeChecked")
+	@ResponseBody
+	public Result setCodeChecked(@RequestParam(value="system") String system, @RequestParam(value="branch") String branch, @RequestParam(value="codeChecked") String codeChecked){
+		SystemBranch systemBranch = systemBranchService.findBySystemAndBranch(system, branch);
+		
+		if("true".equals(codeChecked)){
+			systemBranch.setCodeChecked(true);
+		}else{
+			systemBranch.setCodeChecked(false);
+		}
+		
+		systemBranchService.update(systemBranch);
+		return ResultUtil.success();
+	}
 
 }

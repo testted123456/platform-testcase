@@ -15,11 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.testcase.component.exception.TestCaseException;
+import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultCode;
+import com.nonobank.testcase.component.result.ResultUtil;
 import com.nonobank.testcase.entity.TestCase;
 import com.nonobank.testcase.entity.TestCaseFront;
 import com.nonobank.testcase.entity.TestCaseInterface;
+import com.nonobank.testcase.remotecontroller.RemoteGroup;
 import com.nonobank.testcase.repository.TestCaseRepository;
+import com.nonobank.testcase.service.RemoteGroupService;
 import com.nonobank.testcase.service.TestCaseInterfaceService;
 import com.nonobank.testcase.service.TestCaseService;
 
@@ -33,6 +37,9 @@ public class TestCaseServiceImpl implements TestCaseService {
 	
 	@Autowired
 	TestCaseInterfaceService testCaseInterfaceService;
+	
+	@Autowired
+	RemoteGroupService remoteGroupService;
 
 	@Override
 	public TestCase findById(Integer id) {
@@ -134,14 +141,26 @@ public class TestCaseServiceImpl implements TestCaseService {
 	}
 
 	@Override
-	public TestCase deleteTestCase(String userName, Integer id) {
+	public Result deleteTestCase(String userName, Integer id) {
 		TestCase testCase = testCaseRepository.findByIdAndOptstatusEquals(id, (short)0);
+		
+		Result result = remoteGroupService.isCaseInGroup(id);
+		
+		if(result.getCode() == 10000){
+			logger.info("用例{}已被引用", id);
+			return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "用例已被测试集引用引用！");
+		}
+		
+		if(!userName.equals(testCase.getCreatedBy())){
+			return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "不能删除别人的用例");
+		}
+		
 		testCase.setOptstatus((short)2);
 		testCase.setUpdatedBy(userName);
 		testCase.setUpdatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 		testCaseRepository.save(testCase);
 		logger.info("删除用例{}成功", testCase.getId());
-		return testCase;
+		return ResultUtil.success();
 	}
 
 	@Override
@@ -157,6 +176,17 @@ public class TestCaseServiceImpl implements TestCaseService {
 		
 		for(TestCase tCase : tcs){
 			if(tCase.getType() == true){
+				Result result = remoteGroupService.isCaseInGroup(tCase.getId());
+				
+				if(result.getCode() == 10000){
+					logger.info("用例{}已被引用", id);
+					throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "case已被引用！");
+				}
+				
+				if(!userName.equals(tCase.getCreatedBy())){
+					throw new TestCaseException(ResultCode.VALIDATION_ERROR.getCode(), "不能删除别人的用例！");
+				}
+				
 				tCase.setOptstatus((short)2);
 				tCase.setUpdatedTime(LocalDateTime.now(ZoneId.of("Asia/Shanghai")));
 				tCase.setUpdatedBy(userName);
@@ -237,4 +267,5 @@ public class TestCaseServiceImpl implements TestCaseService {
 		
 		return list;
 	}
+
 }

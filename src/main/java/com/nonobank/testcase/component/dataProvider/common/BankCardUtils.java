@@ -125,7 +125,13 @@ public class BankCardUtils {
 				sum += v;
 			}
 		}
-		str += String.valueOf(10 - sum % 10);
+		
+		if(sum % 10 == 0){
+			str += "0";
+		}else{
+			str += String.valueOf(10 - sum % 10);
+		}
+		
 		return str;
 	}
 
@@ -144,7 +150,13 @@ public class BankCardUtils {
 				sum += v;
 			}
 		}
-		str += String.valueOf(10 - sum % 10);
+		
+		if(sum % 10 == 0){
+			str += "0";
+		}else{
+			str += String.valueOf(10 - sum % 10);
+		}
+		
 		return str;
 	}
 
@@ -269,7 +281,7 @@ public class BankCardUtils {
 	}
 	
 	public static void main(String [] args){
-		System.out.println(getBankCard());
+		System.out.println(getBankCard("436742121737"));
 	}
 
 }

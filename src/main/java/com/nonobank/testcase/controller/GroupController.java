@@ -1,5 +1,6 @@
 package com.nonobank.testcase.controller;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,9 +46,15 @@ public class GroupController {
 	@ResponseBody
 	public Result getProgress(@RequestParam Integer groupId){
 		float progress = groupExecutor.getGroupStatus(groupId);
+		DecimalFormat decimalFormat=new DecimalFormat(".00");//构造方法的字符格式这里如果小数不足2位,会以0补足.
+		String p = "0.00";
+		
+		if(progress != 0){
+			p = decimalFormat.format(progress);
+		}
 		
 		if(progress != -1){
-			return ResultUtil.success(progress);
+			return ResultUtil.success(p);
 		}else{
 			return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "group已执行结束！");
 		}
@@ -91,6 +98,7 @@ public class GroupController {
 		groupMap.put("executedCount", 0);
 		groupExecutor.setMap(groupId, groupMap);
 		groupExecutor.runGroup(groupId, env, totalSize, checkedTestCases);
+//		groupExecutor.runGroup(groupId, env, checkedTestCases.size(), checkedTestCases);
 		
 		return ResultUtil.success();
 	}

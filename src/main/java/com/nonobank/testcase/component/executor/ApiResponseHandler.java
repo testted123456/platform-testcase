@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,9 @@ import org.springframework.stereotype.Component;
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.testcase.component.ws.WebSocket;
 import com.nonobank.testcase.utils.JSONUtils;
+
+import net.sf.json.JSON;
+import net.sf.json.xml.XMLSerializer;
 
 @Component
 public class ApiResponseHandler {
@@ -97,27 +102,53 @@ public class ApiResponseHandler {
 	    		}
 	    		
 	    		return result;
-	    	}
-	    	
-	    	expectedResponseBody = ApiHandlerUtils.removeCRLF(expectedResponseBody);
-	    	//json响应消息
-	    	if(JSONOBJECT_PATTERN.matcher(expectedResponseBody).matches()){
-	    		if(JSONOBJECT_PATTERN.matcher(actualResponseBody).matches()){
-	    			Map<String, Boolean> resultOfMap = new HashMap<>();
-	    			resultOfMap.put("result", true);
-	    			
-	    			apiHandlerUtils.compareJsonObj(JSONObject.parseObject(expectedResponseBody), JSONObject.parseObject(actualResponseBody), map, 
-	    					handledResponse, 
-	    					sessionId, resultOfMap);
-	    			return resultOfMap.get("result");
-	    			
-	    		}else{
-	    			logger.error("响应消息不是json格式");
-	    			webSocket.sendItem("响应消息不是json格式", sessionId);
-	    			result = false;
+	    	}else if("0".equals(responseBodyType) || "3".equals(responseBodyType)){//响应是json/xml格式
+	    		if("3".equals(responseBodyType)){//响应是xml格式
+	    			//将预期值、实际值转换城json再进行比较
+		    		XMLSerializer xmlSerializer = new XMLSerializer();
+		    		
+		    		/*try{
+		    			JSON json = xmlSerializer.read(expectedResponseBody);
+		    			expectedResponseBody = json.toString();
+		    		}catch(Exception e){
+		    			webSocket.sendItem("预期结果不是xml格式", sessionId);
+		    			return false;
+		    		}*/
+		    		
+	    			try{
+		    			JSON json = xmlSerializer.read(actualResponseBody);
+		    			actualResponseBody = json.toString();
+		    		}catch(Exception e){
+		    			webSocket.sendItem("实际结果不是xml格式", sessionId);
+		    			return false;
+		    		}
 	    		}
+	    		
+	    		expectedResponseBody = ApiHandlerUtils.removeCRLF(expectedResponseBody);
+	    		
+		    	//json响应消息
+		    	if(JSONOBJECT_PATTERN.matcher(expectedResponseBody).matches()){
+		    		if(JSONOBJECT_PATTERN.matcher(actualResponseBody).matches()){
+		    			Map<String, Boolean> resultOfMap = new HashMap<>();
+		    			resultOfMap.put("result", true);
+		    			
+		    			apiHandlerUtils.compareJsonObj(JSONObject.parseObject(expectedResponseBody), JSONObject.parseObject(actualResponseBody), map, 
+		    					handledResponse, 
+		    					sessionId, resultOfMap);
+		    			return resultOfMap.get("result");
+		    			
+		    		}else{
+		    			logger.error("响应消息不是json格式");
+		    			webSocket.sendItem("响应消息不是json格式", sessionId);
+		    			result = false;
+		    		}
+		    	}
+		    	
+		    	return result;
 	    	}
 	    	
-	    	return result;
+	    	return false;
+	    	
+	    	
 	    }
 }

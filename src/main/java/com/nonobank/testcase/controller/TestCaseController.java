@@ -135,7 +135,7 @@ public class TestCaseController {
 		String createdBy = testCaseFront.getCreatedBy();
 		
 		if(null != createdBy && !createdBy.equals(userName)){
-			return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "用例只能由创建人修改，创建人：{}" + createdBy);
+			return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "用例只能由创建人修改，创建人：" + createdBy);
 		}
 		TestCase testCase = testCaseService.update(userName, testCaseFront);
 		testCaseFront = testCase.convert();
@@ -147,8 +147,8 @@ public class TestCaseController {
 	public Result deleteCase(Integer id){
 		logger.info("开始删除用例");
 		String userName = UserUtil.getUser();
-		testCaseService.deleteTestCase(userName, id);
-		return ResultUtil.success();
+		Result result = testCaseService.deleteTestCase(userName, id);
+		return result;
 	}
 	
 	@GetMapping(value="deleteTestCaseDir")
@@ -156,7 +156,13 @@ public class TestCaseController {
 	public Result deleteTestCaseDir(Integer id){
 		logger.info("开始删除用例");
 		String userName = UserUtil.getUser();
-		testCaseService.deleteTestCaseDir(userName, id);
+		
+		try{
+			testCaseService.deleteTestCaseDir(userName, id);
+		}catch(Exception e){
+			return ResultUtil.error(ResultCode.VALIDATION_ERROR.getCode(), "删除失败，用例被测试集引用或存在别人的用例！");
+		}
+		
 		return ResultUtil.success();
 	}
 	
@@ -306,6 +312,15 @@ public class TestCaseController {
 		remap.put("variables",keys==null?new HashSet<>():keys);
 		return ResultUtil.success(remap);
 
+	}
+	
+	@GetMapping(value="getCasesByApiId")
+	@ResponseBody
+	public Result getCasesByApiId(@RequestParam Integer apiId){
+		logger.info("开始获取用例，api id：{}", apiId);
+		
+		return ResultUtil.success();
+		
 	}
 	
 }

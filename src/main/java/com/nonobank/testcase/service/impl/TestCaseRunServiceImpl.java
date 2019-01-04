@@ -2,6 +2,7 @@ package com.nonobank.testcase.service.impl;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -70,9 +71,13 @@ public class TestCaseRunServiceImpl implements TestCaseRunService {
 		
 		resultHistory.setTotalSize(totalSize);
 		
-		resultHistoryService.add(resultHistory);
+		if(resultHistory.getId() == null){//不是执行group
+			resultHistoryService.add(resultHistory);
+		}
 		
-		List<TestCaseInterface> tcisToBeRun = testCaseInterfaces.stream().filter(x->tciIds.contains(x.getId())).collect(Collectors.toList());
+		List<TestCaseInterface> tcisToBeRun = testCaseInterfaces.stream().filter(x->tciIds.contains(x.getId()))
+				.sorted(Comparator.comparing(TestCaseInterface::getOrderNo))
+				.collect(Collectors.toList());
 		
 		String envName = testCase.getEnv();
 		

@@ -6,12 +6,14 @@ import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.slf4j.Logger;
@@ -20,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.nonobank.apps.HttpClient;
@@ -51,6 +54,9 @@ import com.nonobank.testcase.service.SystemEnvService;
 import com.nonobank.testcase.service.TestCaseService;
 import com.nonobank.testcase.utils.JSONUtils;
 import com.nonobank.testcase.utils.dll.DBUtils;
+
+import net.sf.json.JSONSerializer;
+import net.sf.json.xml.XMLSerializer;
 
 @Component
 @EnableAsync
@@ -323,7 +329,7 @@ public class TestCaseExecutor {
 		}*/
 		
 		//前置系统加签
-		if(null != requestBody){
+		if(null != requestBody && !"Mock".equals(system)){
 			JSONObject jsonObj = JSONObject.parseObject(requestBody);
 			JSONObject reqXML = jsonObj.getJSONObject("requestXml");
 			String sign = reqXML.getString("sign");
@@ -374,6 +380,16 @@ public class TestCaseExecutor {
 //			jsonObj.put("requestXml", reqXML.toJSONString());
 //			requestBody = jsonObj.toJSONString();
 			logger.info("请求消息加签后内容：{}", requestBody);
+			
+			if(url.endsWith(".do")){//url以.do结尾，表示requestXml的value为xml格式
+				XMLSerializer xmlSerializer = new XMLSerializer();
+				String reqJsonStr = jsonObj.getString("requestXml");
+				String reqXMLStr = xmlSerializer.write(JSONSerializer.toJSON(reqJsonStr));
+				reqXMLStr = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + reqXMLStr;
+				logger.info("请求消息xml格式为：{}", reqXMLStr);
+				jsonObj.put("requestXml", reqXMLStr);
+				requestBody = jsonObj.toJSONString();
+			}
 		}
 		
 		resultDetail.setRequestBody(requestBody);
@@ -502,10 +518,14 @@ public class TestCaseExecutor {
 		
 		logger.info("开始执行用例，id：{}", tcId);
 		
-		for(TestCaseInterface tcf : testCaseInterfaces){
-			TestCase testCase = testCaseService.findById(tcId);
-			
+		//按orderid排序
+		List<TestCaseInterface> list = testCaseInterfaces.stream().sorted(Comparator.comparing(TestCaseInterface::getOrderNo)).collect(Collectors.toList());
+		TestCase testCase = testCaseService.findById(tcId);
+		
+		for(TestCaseInterface tcf : list){
 			boolean isflow = false;
+			
+			logger.info("tcf orderNo is:{}", tcf.getOrderNo());
 			
 			if(null != testCase.getCaseType()){
 				 isflow = testCase.getCaseType();

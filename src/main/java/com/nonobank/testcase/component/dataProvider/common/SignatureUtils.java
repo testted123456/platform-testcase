@@ -135,6 +135,30 @@ public class SignatureUtils {
         return md5(by).toUpperCase();
 	}
 	
+	private static byte charToByte(char c) {
+
+        return (byte) "0123456789ABCDEF".indexOf(c);
+    }
+	
+   public static byte[] hexStringToBytes(String hexString) {
+        if (hexString == null || "".equals(hexString)) {
+            return null;
+        }
+        hexString = hexString.toUpperCase();
+        int length = hexString.length() / 2;
+        char[] hexChars = hexString.toCharArray();
+        byte[] d = new byte[length];
+        for (int i = 0; i < length; i++) {
+            int pos = i * 2;
+            d[i] = (byte) (charToByte(hexChars[pos]) << 4 | charToByte(hexChars[pos + 1]));
+        }
+        return d;
+    }
+   
+   public static String picSign(String file){
+	   return md5(hexStringToBytes(file)).toUpperCase();
+   }
+	
 	public static void main(String [] args){
 		
 		/*
@@ -159,14 +183,17 @@ public class SignatureUtils {
 		
 		String log="%7B%22application%22%3A%22NewUserLogin.Req%22%2C%22transDate%22%3A%2220180820%22%2C%22clientType%22%3A%2204%22%2C%22transTime%22%3A%22144356%22%2C%22dataRequestType%22%3A%22JSON%22%2C%22mobileSerialNum%22%3A%22E7C75A6FF1C987EE158BF0579C0554A200000000%22%2C%22userIP%22%3A%22192.168.1.120%22%2C%22appVersion%22%3A%22V3%22%2C%22customerId%22%3A%220000%22%2C%22latitude%22%3A%2231.215848%22%2C%22version%22%3A%223.8.0%22%2C%22sign%22%3A%22n85o3nd2romjnb06onivuq1m85k1qnfl%22%2C%22mobileNo%22%3A%2218011111111%22%2C%22token%22%3A%220000%22%2C%22longitude%22%3A%22121.530974%22%2C%22phone%22%3A%2218011111111%22%2C%22transLogNo%22%3A%22000006%22%2C%22appUser%22%3A%22bmzhangguibao%22%2C%22userName%22%3A%2218011111111%22%2C%22osType%22%3A%22iOS11.3.1%22%2C%22password%22%3A%220a074e5a9ad7ec76f6906c514c9f813809c9ee427525a8fca133a08c91d2a36d9ad74f29a163a902dd4162f9f7e82e24a7ea5cb5bdd62d4111fa165f179e9c3a40592fe3a7e527956ce9b8f7d9b27f116034581488c8d347df700db3e520b17b561d62143ce4c631c4acee26b0b3a9f167d0c8f8dd3936803d4c014a593d5750%22%2C%22loginCheckDevice%22%3A%221%22%2C%22areaCode%22%3A%22310115%22%7D";
 		System.out.println(str1.equals(log));*/
+//        String macValue = Format.md5(Format.hexStringToBytes(prepSignUpload.getSignPicAsciiStr())).toUpperCase();
+
+		String file = "123456789";
+		String picSign = picSign(file);
+		System.out.println(picSign);
+		System.out.println(picSign.equals(md5(hexStringToBytes(file.toUpperCase()))));
 		
-		String str = "123456789%7D";
-		try {
-			System.out.println(md5File(str));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		//"picSign":"891a26e0581a7f2c9a574ceff1549ee1","signPicAscii":"123456789"
+		System.out.print("891a26e0581a7f2c9a574ceff1549ee1".equals(hexStringToBytes("123456789")));
+		
+		
 	}
 
 }
