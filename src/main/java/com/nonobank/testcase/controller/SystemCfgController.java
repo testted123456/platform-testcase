@@ -1,6 +1,7 @@
 package com.nonobank.testcase.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,13 +28,13 @@ public class SystemCfgController {
 	public static Logger logger = LoggerFactory.getLogger(SystemCfgController.class);
 	
 	@Autowired
-	SystemCfgService SystemCfgService;
+	SystemCfgService systemCfgService;
 	
 	@PostMapping(value="add")
 	@ResponseBody
 	public Result add(@RequestBody SystemCfg systemCfg){
 		logger.info("开始添加系统{}", systemCfg.getSystem());
-		SystemCfgService.add(systemCfg);
+		systemCfgService.add(systemCfg);
 		logger.info("添加系统{}成功", systemCfg.getSystem());
 		return ResultUtil.success(systemCfg);
 	}
@@ -42,7 +43,7 @@ public class SystemCfgController {
 	@ResponseBody
 	public Result update(@RequestBody SystemCfg systemCfg){
 		logger.info("开始更新系统{}", systemCfg.getSystem());
-		SystemCfgService.update(systemCfg);
+		systemCfgService.update(systemCfg);
 		logger.info("更新系统{}成功", systemCfg.getSystem());
 		return ResultUtil.success(systemCfg);
 	}
@@ -51,7 +52,7 @@ public class SystemCfgController {
 	@ResponseBody
 	public Result delete(@RequestBody SystemCfg systemCfg){
 		logger.info("开始删除系统{}", systemCfg.getSystem());
-		SystemCfgService.delete(systemCfg);
+		systemCfgService.delete(systemCfg);
 		logger.info("更新删除{}成功", systemCfg.getSystem());
 		return ResultUtil.success();
 	}
@@ -60,7 +61,7 @@ public class SystemCfgController {
 	@ResponseBody
 	public Result getAllAlias(){
 		logger.info("开始查找所有系统别名");
-		List<String> aliases = SystemCfgService.findAllAlias();
+		List<String> aliases = systemCfgService.findAllAlias();
 		logger.info("查找所有系统别名成功");
 		return ResultUtil.success(aliases);
 	}
@@ -69,16 +70,24 @@ public class SystemCfgController {
 	@ResponseBody
 	public Result getAll(){
 		logger.info("开始查找所有系统配置");
-		List<SystemCfg> systemCfgs = SystemCfgService.findAll();
+		List<SystemCfg> systemCfgs = systemCfgService.findAll();
 		logger.info("查找所有系统配置");
 		return ResultUtil.success(systemCfgs);
+	}
+	
+	@PostMapping(value="getPage")
+	@ResponseBody
+	public Result getPage(@RequestParam int pageIndex, @RequestParam int pageSize){
+		logger.info("开始分页查询...");
+		Map<String, Object> map = systemCfgService.findPage(pageIndex, pageSize);
+		return ResultUtil.success(map);
 	}
 	
 	@GetMapping(value="getBySystem")
 	@ResponseBody
 	public Result getBySystem(@RequestParam String system){
 		logger.info("开始查找系统配置");
-		SystemCfg systemCfgs = SystemCfgService.findBySystem(system);
+		SystemCfg systemCfgs = systemCfgService.findBySystem(system);
 		return ResultUtil.success(systemCfgs);
 	}
 	

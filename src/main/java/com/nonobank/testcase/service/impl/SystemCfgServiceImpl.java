@@ -1,13 +1,16 @@
 package com.nonobank.testcase.service.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
+
 import com.nonobank.testcase.component.exception.TestCaseException;
 import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.entity.SystemCfg;
@@ -98,7 +101,7 @@ public class SystemCfgServiceImpl implements SystemCfgService{
 	}
 
 	@Override
-	public List<SystemCfg> findPage(int pageIndex, int pageSize) {
+	public Map<String, Object> findPage(int pageIndex, int pageSize) {
 		// TODO Auto-generated method stub
 		Pageable pageable = new PageRequest(pageIndex, pageSize);
 		Page<SystemCfg> page = systemCfgRepository.findAll(pageable);
@@ -108,7 +111,13 @@ public class SystemCfgServiceImpl implements SystemCfgService{
 			list = page.getContent();
 		}
 		
-		return list;
+		long count = page.getTotalElements();
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("count", Long.valueOf(count));
+		map.put("list", list);
+		
+		return map;
 	}
 
 }

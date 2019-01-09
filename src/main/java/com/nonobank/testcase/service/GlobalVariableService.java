@@ -7,6 +7,8 @@ import com.nonobank.testcase.entity.GlobalVariable;
 
 public interface GlobalVariableService {
 	
+	public Map<String, Object> getPage(int pageIndex, int pageSize);
+	
 	public List<GlobalVariable> getAll();
 	
 	public Map<String, Object> getAllVars();

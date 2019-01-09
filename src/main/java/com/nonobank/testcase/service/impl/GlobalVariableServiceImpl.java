@@ -3,10 +3,11 @@ package com.nonobank.testcase.service.impl;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
 import com.nonobank.testcase.component.exception.TestCaseException;
 import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.entity.GlobalVariable;
@@ -61,6 +62,18 @@ public class GlobalVariableServiceImpl implements GlobalVariableService {
 			map.put(name, value);
 		});
 		
+		return map;
+	}
+
+	@Override
+	public Map<String, Object> getPage(int pageIndex, int pageSize) {
+		// TODO Auto-generated method stub
+		Pageable pageable = new PageRequest(pageIndex, pageSize);
+		Page<GlobalVariable> page = globalVariableRepository.findAll(pageable);
+		
+		Map<String, Object> map = new HashMap<>();
+		map.put("list", page.getContent());
+		map.put("count", page.getTotalElements());
 		return map;
 	}
 

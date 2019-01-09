@@ -159,9 +159,16 @@ public class SystemBranchController {
 	
 	@GetMapping(value="getByBranch")
 	@ResponseBody
-	public Result getByBranch(String branch){
+	public Result getByBranch(@RequestParam String branch){
 		logger.info("开始根据分支获取系统配置");
 		return ResultUtil.success(systemBranchService.findByBranch(branch));
+	}
+	
+	@GetMapping(value="getPageByBranch")
+	@ResponseBody
+	public Result getPageByBranch(@RequestParam String branch, @RequestParam int pageIndex, @RequestParam int pageSize){
+		logger.info("开始根据分支获取系统配置");
+		return ResultUtil.success(systemBranchService.findPageByBranch(branch, pageIndex, pageSize));
 	}
 	
 	/**

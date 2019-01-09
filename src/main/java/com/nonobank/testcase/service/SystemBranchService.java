@@ -1,6 +1,7 @@
 package com.nonobank.testcase.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -49,4 +50,7 @@ public interface SystemBranchService {
 	List<SystemBranch> findBySystemAndLast(String system, boolean last);
 
 	List<SystemBranch> findall();
+	
+	public Map<String, Object> findPageByBranch(String branch, int pageIndex, int pageSize);
+
 }

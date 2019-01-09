@@ -1,7 +1,11 @@
 package com.nonobank.testcase.repository;
 
 import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+
 import com.nonobank.testcase.entity.SystemBranch;
 
 public interface SystemBranchRepository extends JpaRepository<SystemBranch, Integer> {
@@ -18,4 +22,6 @@ public interface SystemBranchRepository extends JpaRepository<SystemBranch, Inte
 	SystemBranch findBySystemAndBranchAndOptstatusEquals(String system, String branch, short optstatus);
 	
 	List<SystemBranch> findBySystemAndLastAndOptstatusEquals(String system, boolean last, short optstatus);
+	
+	Page<SystemBranch> findByBranch(String branch, Pageable pageable);
 }

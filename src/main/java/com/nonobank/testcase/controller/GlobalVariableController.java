@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultUtil;
@@ -38,6 +39,13 @@ public class GlobalVariableController {
 	public Result getAll(){
 		logger.info("开始查找所有变量");
 		return ResultUtil.success(globalVariableService.getAll());
+	}
+	
+	@GetMapping(value="getPage")
+	@ResponseBody
+	public Result getPage(@RequestParam int pageIndex, @RequestParam int pageSize){
+		logger.info("开始分页查找全局变量...");
+		return ResultUtil.success(globalVariableService.getPage(pageIndex, pageSize));
 	}
 	
 	@PostMapping(value="delete")

@@ -1,13 +1,19 @@
 package com.nonobank.testcase.service.impl;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.nonobank.testcase.component.exception.TestCaseException;
 import com.nonobank.testcase.component.result.Result;
 import com.nonobank.testcase.component.result.ResultCode;
 import com.nonobank.testcase.entity.SystemBranch;
+import com.nonobank.testcase.entity.SystemCfg;
 import com.nonobank.testcase.repository.SystemBranchRepository;
 import com.nonobank.testcase.service.SystemBranchService;
 
@@ -140,5 +146,25 @@ public class SystemBranchServiceImpl implements SystemBranchService {
 	public List<SystemBranch> findByBranch(String branch) {
 		// TODO Auto-generated method stub
 		return systemBranchRepository.findByBranch(branch);
+	}
+
+	@Override
+	public Map<String, Object> findPageByBranch(String branch, int pageIndex, int pageSize) {
+		// TODO Auto-generated method stub
+		Pageable pageable = new PageRequest(pageIndex, pageSize);
+		Page<SystemBranch> page = systemBranchRepository.findByBranch(branch, pageable);
+		List<SystemBranch> list = null;
+		
+		if(page.hasContent()){
+			list = page.getContent();
+		}
+		
+		long count = page.getTotalElements();
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("count", Long.valueOf(count));
+		map.put("list", list);
+		
+		return map;
 	}
 }
