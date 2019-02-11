@@ -240,7 +240,12 @@ public class ResultReportController {
 		map.forEach((k,v)->{
 			boolean res = true;
 			Optional<ResultDetail> optRD = v.stream().filter(x->{
-				return x.getResult() == false;
+				if(null == x.getResult() || x.getResult() == false){
+					return true;
+				}else{
+					return false;
+				}
+//				return x.getResult() == false;
 				}).findAny();
 			
 			if(optRD.isPresent() == true){
